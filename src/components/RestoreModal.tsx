@@ -12,15 +12,7 @@ interface RestoreModalProps {
   onSuccessClose: () => void;
 }
 
-export default function RestoreModal({
-  show,
-  onConfirm,
-  onCancel,
-  isRestoring,
-  restoreError,
-  restoreSuccess,
-  onSuccessClose,
-}: RestoreModalProps) {
+export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, restoreError, restoreSuccess, onSuccessClose }: RestoreModalProps) {
   const terminalRef = useRef<TerminalOutputRef>(null);
 
   useEffect(() => {
@@ -50,12 +42,9 @@ export default function RestoreModal({
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#2a2a2a]">
               <FaSync className="h-8 w-8 text-white" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-white">
-              Restore Complete
-            </h2>
+            <h2 className="mb-2 text-xl font-bold text-white">Restore Complete</h2>
             <p className="text-center text-sm text-[#a0a0a0]">
-              Spotify has been restored to its original state. All Spicetify
-              customizations have been removed.
+              Spotify has been restored to its original state. All Spicetify customizations have been removed.
             </p>
           </div>
           <button
@@ -71,19 +60,13 @@ export default function RestoreModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-      <div
-        className={`flex ${isRestoring ? "h-[75%] w-full" : "h-[40%] w-[75%] max-w-lg"} max-w-2xl flex-col rounded-lg bg-[#121418] p-5 shadow-lg`}
-      >
+      <div className={`flex ${isRestoring ? "h-[75%] w-full" : "h-[40%] w-[75%] max-w-lg"} max-w-2xl flex-col rounded-lg bg-[#121418] p-5 shadow-lg`}>
         {!isRestoring ? (
           <>
             <div className="flex-1">
-              <h2 className="mb-4 text-xl font-bold text-white">
-                Confirm Restore
-              </h2>
+              <h2 className="mb-4 text-xl font-bold text-white">Confirm Restore</h2>
               <p className="mb-4 text-[#a0a0a0]">
-                Are you sure you want to restore Spicetify to its default
-                configuration? This will remove all installed themes and
-                extensions.
+                Are you sure you want to restore Spicetify to its default configuration? This will remove all installed themes and extensions.
               </p>
             </div>
           </>
@@ -96,12 +79,8 @@ export default function RestoreModal({
                   <FaSync className="h-5 w-5 animate-spin text-white" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">
-                    Restoring Spotify
-                  </h3>
-                  <p className="text-xs text-[#a0a0a0]">
-                    Removing customizations and restoring defaults
-                  </p>
+                  <h3 className="text-sm font-semibold text-white">Restoring Spotify</h3>
+                  <p className="text-xs text-[#a0a0a0]">Removing customizations and restoring defaults</p>
                 </div>
               </div>
             </div>
@@ -111,9 +90,7 @@ export default function RestoreModal({
         {isRestoring && (
           <div className="flex-1 overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#0c0e11]">
             <div className="flex items-center justify-between border-b border-[#2a2a2a] px-3 py-2">
-              <span className="text-xs font-medium text-white">
-                Restore Log
-              </span>
+              <span className="text-xs font-medium text-white">Restore Log</span>
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 animate-pulse rounded-full bg-[#d63c6a]"></div>
                 <span className="text-xs text-[#a0a0a0]">Live</span>
