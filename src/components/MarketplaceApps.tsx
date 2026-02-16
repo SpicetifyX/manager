@@ -95,6 +95,17 @@ export default function MarketplaceApps() {
     }
   }, [browsingContent]);
 
+  useEffect(() => {
+    if (communityApps.length > 0) {
+      setCommunityApps((prev) =>
+        prev.map((ca) => ({
+          ...ca,
+          installed: apps.some((ia) => ia.name === ca.title),
+        })),
+      );
+    }
+  }, [apps]);
+
   const handleToggleApp = async (appId: string, enable: boolean) => {
     const appName = apps.find((a) => a.id === appId)?.name || appId;
     setApplyModal({

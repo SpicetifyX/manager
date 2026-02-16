@@ -97,6 +97,17 @@ export default function MarketplaceAddons() {
     }
   }, [browsingContent]);
 
+  useEffect(() => {
+    if (communityExtensions.length > 0) {
+      setCommunityExtensions((prev) =>
+        prev.map((ce) => ({
+          ...ce,
+          installed: addons.some((a) => a.name === ce.title),
+        })),
+      );
+    }
+  }, [addons]);
+
   const handleToggleAddon = async (addonFileName: string, enable: boolean) => {
     const addonName = addons.find((a) => a.addonFileName === addonFileName)?.name || addonFileName;
     setApplyModal({
