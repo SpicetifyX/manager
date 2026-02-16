@@ -97,6 +97,17 @@ export default function MarketplaceThemes() {
     }
   }, [browsingContent]);
 
+  useEffect(() => {
+    if (communityThemes.length > 0) {
+      setCommunityThemes((prev) =>
+        prev.map((ct) => ({
+          ...ct,
+          installed: themes.some((t) => t.name === ct.title),
+        })),
+      );
+    }
+  }, [themes]);
+
   const handleSelectTheme = async (themeId: string) => {
     const themeName = themes.find((t) => t.id === themeId)?.name || themeId;
     setApplyModal({
