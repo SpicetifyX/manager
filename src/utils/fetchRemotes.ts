@@ -1,19 +1,12 @@
 import type { CardItem, RepoTopic, Snippet, Author } from "./marketplace-types";
 
 const ITEMS_PER_REQUEST = 100;
-const SNIPPETS_URL =
-  "https://raw.githubusercontent.com/spicetify/marketplace/main/resources/snippets.json";
-const BLACKLIST_URL =
-  "https://raw.githubusercontent.com/spicetify/marketplace/main/resources/blacklist.json";
+const SNIPPETS_URL = "https://raw.githubusercontent.com/spicetify/marketplace/main/resources/snippets.json";
+const BLACKLIST_URL = "https://raw.githubusercontent.com/spicetify/marketplace/main/resources/blacklist.json";
 
 export const sanitizeUrl = (url: string) => {
   const u = decodeURI(url).trim().toLowerCase();
-  if (
-    u.startsWith("javascript:") ||
-    u.startsWith("data:") ||
-    u.startsWith("vbscript:")
-  )
-    return "about:blank";
+  if (u.startsWith("javascript:") || u.startsWith("data:") || u.startsWith("vbscript:")) return "about:blank";
   return url;
 };
 
@@ -21,12 +14,9 @@ const matchesBlacklistPattern = (url: string, pattern: string): boolean => {
   const normalizedUrl = url.toLowerCase();
   const normalizedPattern = pattern.toLowerCase();
 
-  if (!normalizedPattern.includes("*"))
-    return normalizedUrl === normalizedPattern;
+  if (!normalizedPattern.includes("*")) return normalizedUrl === normalizedPattern;
 
-  const regexPattern = normalizedPattern
-    .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-    .replace(/\*/g, "[^/]+");
+  const regexPattern = normalizedPattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^/]+");
 
   return new RegExp(`^${regexPattern}$`).test(normalizedUrl);
 };
@@ -53,19 +43,12 @@ export const processAuthors = (authors: Author[], user: string) => {
   return parsedAuthors;
 };
 
-export async function getTaggedRepos(
-  tag: RepoTopic,
-  page = 1,
-  BLACKLIST: string[] = [],
-  showArchived = false,
-) {
+export async function getTaggedRepos(tag: RepoTopic, page = 1, BLACKLIST: string[] = [], showArchived = false) {
   let url = `https://api.github.com/search/repositories?q=${encodeURIComponent(`topic:${tag}`)}&per_page=${ITEMS_PER_REQUEST}`;
 
   if (page) url += `&page=${page}`;
   const allRepos =
-    JSON.parse(
-      window.sessionStorage.getItem(`${tag}-page-${page}`) || "null",
-    ) ||
+    JSON.parse(window.sessionStorage.getItem(`${tag}-page-${page}`) || "null") ||
     (await fetch(url)
       .then((res) => res.json())
       .catch(() => null));
@@ -74,19 +57,12 @@ export async function getTaggedRepos(
     return { items: [] };
   }
 
-  window.sessionStorage.setItem(
-    `${tag}-page-${page}`,
-    JSON.stringify(allRepos),
-  );
+  window.sessionStorage.setItem(`${tag}-page-${page}`, JSON.stringify(allRepos));
 
   const filteredResults = {
     ...allRepos,
     page_count: allRepos.items.length,
-    items: allRepos.items.filter(
-      (item: any) =>
-        !isBlacklisted(item.html_url, BLACKLIST) &&
-        (showArchived || !item.archived),
-    ),
+    items: allRepos.items.filter((item: any) => !isBlacklisted(item.html_url, BLACKLIST) && (showArchived || !item.archived)),
   };
 
   return filteredResults;
@@ -125,9 +101,7 @@ async function getRepoManifest(user: string, repo: string, branch: string) {
   if (sessionStorageItem) return JSON.parse(sessionStorageItem);
 
   const failedKey = "noManifests";
-  const failedSessionStorageItems: string[] = JSON.parse(
-    window.sessionStorage.getItem(failedKey) || "[]",
-  );
+  const failedSessionStorageItems: string[] = JSON.parse(window.sessionStorage.getItem(failedKey) || "[]");
 
   const url = `https://raw.githubusercontent.com/${user}/${repo}/${branch}/manifest.json`;
   if (failedSessionStorageItems.includes(url)) return null;
@@ -136,10 +110,7 @@ async function getRepoManifest(user: string, repo: string, branch: string) {
 
   if (!manifest) {
     failedSessionStorageItems.push(url);
-    window.sessionStorage.setItem(
-      failedKey,
-      JSON.stringify(failedSessionStorageItems),
-    );
+    window.sessionStorage.setItem(failedKey, JSON.stringify(failedSessionStorageItems));
     return null;
   }
 
@@ -149,62 +120,45 @@ async function getRepoManifest(user: string, repo: string, branch: string) {
   return manifest;
 }
 
-export async function fetchExtensionManifest(
-  contents_url: string,
-  branch: string,
-  stars: number,
-  hideInstalled = false,
-) {
+export async function fetchExtensionManifest(contents_url: string, branch: string, stars: number, hideInstalled = false) {
   try {
-    const regex_result = contents_url.match(
-      /https:\/\/api\.github\.com\/repos\/(?<user>.+)\/(?<repo>.+)\/contents/,
-    );
+    const regex_result = contents_url.match(/https:\/\/api\.github\.com\/repos\/(?<user>.+)\/(?<repo>.+)\/contents/);
     if (!regex_result || !regex_result.groups) return null;
     const { user, repo } = regex_result.groups;
 
     const manifests = await getRepoManifest(user, repo, branch);
 
-    const parsedManifests: CardItem[] = manifests.reduce(
-      (accum: any, manifest: any) => {
-        if (manifest?.name && manifest.description && manifest.main) {
-          const selectedBranch = manifest.branch || branch;
-          const item = {
-            manifest,
-            title: manifest.name,
-            subtitle: manifest.description,
-            authors: processAuthors(manifest.authors, user),
-            user,
-            repo,
-            branch: selectedBranch,
+    const parsedManifests: CardItem[] = manifests.reduce((accum: any, manifest: any) => {
+      if (manifest?.name && manifest.description && manifest.main) {
+        const selectedBranch = manifest.branch || branch;
+        const item = {
+          manifest,
+          title: manifest.name,
+          subtitle: manifest.description,
+          authors: processAuthors(manifest.authors, user),
+          user,
+          repo,
+          branch: selectedBranch,
 
-            imageURL: manifest.preview?.startsWith("http")
-              ? manifest.preview
-              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`,
-            extensionURL: manifest.main.startsWith("http")
-              ? manifest.main
-              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.main}`,
-            readmeURL: manifest.readme?.startsWith("http")
-              ? manifest.readme
-              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.readme}`,
-            stars,
-            tags: manifest.tags,
-          };
-          if (
-            !(
-              hideInstalled &&
-              localStorage.getItem(
-                `marketplace:installed:${user}/${repo}/${manifest.main}`,
-              )
-            )
-          ) {
-            accum.push(item);
-          }
+          imageURL: manifest.preview?.startsWith("http")
+            ? manifest.preview
+            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`,
+          extensionURL: manifest.main.startsWith("http")
+            ? manifest.main
+            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.main}`,
+          readmeURL: manifest.readme?.startsWith("http")
+            ? manifest.readme
+            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.readme}`,
+          stars,
+          tags: manifest.tags,
+        };
+        if (!(hideInstalled && localStorage.getItem(`marketplace:installed:${user}/${repo}/${manifest.main}`))) {
+          accum.push(item);
         }
+      }
 
-        return accum;
-      },
-      [],
-    );
+      return accum;
+    }, []);
 
     return parsedManifests;
   } catch {
@@ -212,64 +166,53 @@ export async function fetchExtensionManifest(
   }
 }
 
-export async function fetchThemeManifest(
-  contents_url: string,
-  branch: string,
-  stars: number,
-) {
+export async function fetchThemeManifest(contents_url: string, branch: string, stars: number) {
   try {
-    const regex_result = contents_url.match(
-      /https:\/\/api\.github\.com\/repos\/(?<user>.+)\/(?<repo>.+)\/contents/,
-    );
+    const regex_result = contents_url.match(/https:\/\/api\.github\.com\/repos\/(?<user>.+)\/(?<repo>.+)\/contents/);
     if (!regex_result || !regex_result.groups) return null;
     const { user, repo } = regex_result.groups;
 
     const manifests = await getRepoManifest(user, repo, branch);
 
-    const parsedManifests: CardItem[] = manifests.reduce(
-      (accum: any, manifest: any) => {
-        if (manifest?.name && manifest?.usercss && manifest?.description) {
-          const selectedBranch = manifest.branch || branch;
-          const item = {
-            manifest,
-            title: manifest.name,
-            subtitle: manifest.description,
-            authors: processAuthors(manifest.authors, user),
-            user,
-            repo,
-            branch: selectedBranch,
-            imageURL: manifest.preview?.startsWith("http")
-              ? manifest.preview
-              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`,
-            readmeURL: manifest.readme?.startsWith("http")
-              ? manifest.readme
-              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.readme}`,
-            stars,
-            tags: manifest.tags,
-            cssURL: manifest.usercss.startsWith("http")
-              ? manifest.usercss
-              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.usercss}`,
-            schemesURL: manifest.schemes
-              ? manifest.schemes.startsWith("http")
-                ? manifest.schemes
-                : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.schemes}`
-              : null,
-            include: manifest.include
-              ? manifest.include.map((inc: string) =>
-                  inc.startsWith("http")
-                    ? inc
-                    : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${inc}`,
-                )
-              : undefined,
-          };
+    const parsedManifests: CardItem[] = manifests.reduce((accum: any, manifest: any) => {
+      if (manifest?.name && manifest?.usercss && manifest?.description) {
+        const selectedBranch = manifest.branch || branch;
+        const item = {
+          manifest,
+          title: manifest.name,
+          subtitle: manifest.description,
+          authors: processAuthors(manifest.authors, user),
+          user,
+          repo,
+          branch: selectedBranch,
+          imageURL: manifest.preview?.startsWith("http")
+            ? manifest.preview
+            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`,
+          readmeURL: manifest.readme?.startsWith("http")
+            ? manifest.readme
+            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.readme}`,
+          stars,
+          tags: manifest.tags,
+          cssURL: manifest.usercss.startsWith("http")
+            ? manifest.usercss
+            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.usercss}`,
+          schemesURL: manifest.schemes
+            ? manifest.schemes.startsWith("http")
+              ? manifest.schemes
+              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.schemes}`
+            : null,
+          include: manifest.include
+            ? manifest.include.map((inc: string) =>
+                inc.startsWith("http") ? inc : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${inc}`,
+              )
+            : undefined,
+        };
 
-          accum.push(item);
-        }
+        accum.push(item);
+      }
 
-        return accum;
-      },
-      [],
-    );
+      return accum;
+    }, []);
     return parsedManifests;
   } catch (e) {
     console.log(e);
@@ -277,54 +220,40 @@ export async function fetchThemeManifest(
   }
 }
 
-export async function fetchAppManifest(
-  contents_url: string,
-  branch: string,
-  stars: number,
-) {
+export async function fetchAppManifest(contents_url: string, branch: string, stars: number) {
   try {
-    const regex_result = contents_url.match(
-      /https:\/\/api\.github\.com\/repos\/(?<user>.+)\/(?<repo>.+)\/contents/,
-    );
+    const regex_result = contents_url.match(/https:\/\/api\.github\.com\/repos\/(?<user>.+)\/(?<repo>.+)\/contents/);
     if (!regex_result || !regex_result.groups) return null;
     const { user, repo } = regex_result.groups;
 
     const manifests = await getRepoManifest(user, repo, branch);
 
-    const parsedManifests: CardItem[] = manifests.reduce(
-      (accum: any, manifest: any) => {
-        if (
-          manifest?.name &&
-          manifest.description &&
-          !manifest.main &&
-          !manifest.usercss
-        ) {
-          const selectedBranch = manifest.branch || branch;
-          const item = {
-            manifest,
-            title: manifest.name,
-            subtitle: manifest.description,
-            authors: processAuthors(manifest.authors, user),
-            user,
-            repo,
-            branch: selectedBranch,
+    const parsedManifests: CardItem[] = manifests.reduce((accum: any, manifest: any) => {
+      if (manifest?.name && manifest.description && !manifest.main && !manifest.usercss) {
+        const selectedBranch = manifest.branch || branch;
+        const item = {
+          manifest,
+          title: manifest.name,
+          subtitle: manifest.description,
+          authors: processAuthors(manifest.authors, user),
+          user,
+          repo,
+          branch: selectedBranch,
 
-            imageURL: manifest.preview?.startsWith("http")
-              ? manifest.preview
-              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`,
-            readmeURL: manifest.readme?.startsWith("http")
-              ? manifest.readme
-              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.readme}`,
-            stars,
-            tags: manifest.tags,
-          };
+          imageURL: manifest.preview?.startsWith("http")
+            ? manifest.preview
+            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`,
+          readmeURL: manifest.readme?.startsWith("http")
+            ? manifest.readme
+            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.readme}`,
+          stars,
+          tags: manifest.tags,
+        };
 
-          accum.push(item);
-        }
-        return accum;
-      },
-      [],
-    );
+        accum.push(item);
+      }
+      return accum;
+    }, []);
 
     return parsedManifests;
   } catch (e) {
@@ -356,14 +285,7 @@ export const fetchCssSnippets = async (hideInstalled = false) => {
       snip.preview = undefined;
     }
 
-    if (
-      !(
-        hideInstalled &&
-        localStorage.getItem(
-          `marketplace:installed:snippet:${snip.title.replace(" ", "-")}`,
-        )
-      )
-    ) {
+    if (!(hideInstalled && localStorage.getItem(`marketplace:installed:snippet:${snip.title.replace(" ", "-")}`))) {
       accum.push(snip);
     }
 
