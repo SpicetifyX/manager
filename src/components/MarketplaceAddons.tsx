@@ -1,0 +1,395 @@
+import { useEffect, useState, useRef } from "react";
+import { AddonInfo } from "../types/addon.d";
+import Addon from "./Addon";
+import { FaChevronLeft, FaDownload, FaInfoCircle } from "react-icons/fa";
+import { fetchExtensionManifest, getTaggedRepos } from "../utils/fetchRemotes";
+import { CardItem } from "../utils/marketplace-types";
+import Spinner from "./Spinner";
+import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
+import ApplyModal from "./ApplyModal";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
+
+export default function MarketplaceAddons() {
+  const [addons, setAddons] = useState<AddonInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [browsingContent, setBrowsingContent] = useState(false);
+  const [communityExtensions, setCommunityExtensions] = useState<CardItem[]>([]);
+  const [communityLoading, setCommunityLoading] = useState(false);
+  const [communityError, setCommunityError] = useState<string | null>(null);
+  const [installingIndex, setInstallingIndex] = useState<number | null>(null);
+  const [infoIndex, setInfoIndex] = useState<number | null>(null);
+  const [applyModal, setApplyModal] = useState<{
+    action: string;
+    items: string[];
+    isApplying: boolean;
+  } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const addonsRef = useRef<AddonInfo[]>([]);
+
+  const fetchCommunityExtensions = async () => {
+    setCommunityLoading(true);
+    setCommunityError(null);
+    try {
+      const pageOfRepos = await getTaggedRepos("spicetify-extensions", 1, [], false);
+      const results = await Promise.allSettled(
+        pageOfRepos.items.map((repo: any) =>
+          fetchExtensionManifest(repo.contents_url, repo.default_branch, repo.stargazers_count).then(
+            (exts) =>
+              exts?.map((ext) => ({
+                ...ext,
+                archived: repo.archived,
+                lastUpdated: repo.pushed_at,
+                created: repo.created_at,
+              })) || [],
+          ),
+        ),
+      );
+      const extensions: CardItem[] = [];
+      const currentAddons = addonsRef.current;
+      for (const result of results) {
+        if (result.status === "fulfilled" && result.value.length) {
+          extensions.push(
+            ...result.value.map((ext: any) => ({
+              ...ext,
+              installed: currentAddons.some((a) => a.name === ext.title),
+            })),
+          );
+        }
+      }
+      setCommunityExtensions(extensions);
+    } catch (err: any) {
+      console.error("Failed to fetch community extensions:", err);
+      setCommunityError(err.message?.includes("403") ? "GitHub API rate limit reached. Try again later." : "Failed to load community extensions.");
+    } finally {
+      setCommunityLoading(false);
+    }
+  };
+
+  const fetchAddons = async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
+    try {
+      const fetchedAddons = await window.electron.getSpicetifyExtensions();
+      setAddons(fetchedAddons);
+      addonsRef.current = fetchedAddons;
+    } catch (err: any) {
+      if (!silent) setError(err.message || "Failed to fetch addons.");
+      console.error("Error fetching addons:", err);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAddons();
+  }, []);
+
+  useEffect(() => {
+    if (browsingContent && communityExtensions.length === 0 && !communityLoading) {
+      fetchCommunityExtensions();
+    }
+  }, [browsingContent]);
+
+  const handleToggleAddon = async (addonFileName: string, enable: boolean) => {
+    const addonName = addons.find((a) => a.addonFileName === addonFileName)?.name || addonFileName;
+    setApplyModal({
+      action: enable ? "Enabling Extension" : "Disabling Extension",
+      items: [addonName],
+      isApplying: true,
+    });
+    setTogglingId(addonFileName);
+    setAddons((prevAddons) => prevAddons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: enable } : addon)));
+
+    try {
+      const success = await window.electron.toggleSpicetifyExtension(addonFileName, enable);
+      if (!success) {
+        setAddons((prevAddons) => prevAddons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: !enable } : addon)));
+        setApplyModal(null);
+        alert(`Failed to toggle addon: ${addonFileName}`);
+      } else {
+        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+      }
+      fetchAddons(true);
+    } catch (err: any) {
+      console.error(`Error toggling addon ${addonFileName}:`, err);
+      setAddons((prevAddons) => prevAddons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: !enable } : addon)));
+      setApplyModal(null);
+      alert(`Error toggling addon: ${err.message}`);
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const handleDeleteAddon = (addonFileName: string) => {
+    const addonName = addons.find((a) => a.addonFileName === addonFileName)?.name || addonFileName;
+    setPendingDelete({ id: addonFileName, name: addonName });
+  };
+
+  const confirmDeleteAddon = async () => {
+    if (!pendingDelete) return;
+    const { id: addonFileName, name: addonName } = pendingDelete;
+    setPendingDelete(null);
+    setApplyModal({
+      action: "Deleting Extension",
+      items: [addonName],
+      isApplying: true,
+    });
+    setTogglingId(addonFileName);
+    try {
+      const success = await window.electron.deleteSpicetifyExtension(addonFileName);
+      if (!success) {
+        setApplyModal(null);
+        alert(`Failed to delete extension: ${addonFileName}`);
+      } else {
+        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+      }
+      fetchAddons(true);
+    } catch (err: any) {
+      console.error(`Error deleting extension ${addonFileName}:`, err);
+      setApplyModal(null);
+      alert(`Error deleting extension: ${err.message}`);
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const handleInstallExtension = async (ext: CardItem, index: number) => {
+    if (!ext.extensionURL || ext.installed) return;
+    setInstallingIndex(index);
+    setInfoIndex(null);
+    setApplyModal({
+      action: "Installing Extension",
+      items: [ext.title],
+      isApplying: true,
+    });
+    try {
+      const urlParts = ext.extensionURL.split("/");
+      const filename = urlParts[urlParts.length - 1];
+      const meta = {
+        name: ext.title,
+        description: ext.subtitle,
+        imageURL: ext.imageURL,
+        authors: ext.authors,
+        tags: ext.tags,
+        stars: ext.stargazers_count,
+      };
+      const success = await window.electron.installMarketplaceExtension(ext.extensionURL, filename, meta);
+      if (success) {
+        setCommunityExtensions((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
+        fetchAddons(true);
+        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+      } else {
+        setApplyModal(null);
+        alert(`Failed to install ${ext.title}`);
+      }
+    } catch (err: any) {
+      setApplyModal(null);
+      alert(`Error installing ${ext.title}: ${err.message}`);
+    } finally {
+      setInstallingIndex(null);
+    }
+  };
+
+  return browsingContent ? (
+    <div className="flex h-full w-full flex-col overflow-hidden">
+      <div className="flex h-12 w-full flex-shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-[#121418] pl-1 select-none">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setBrowsingContent(false)}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2a2a] hover:text-white"
+            title="Back"
+          >
+            <FaChevronLeft />
+          </button>
+          <span className="text-gray-300">Browsing Community Extensions</span>
+        </div>
+      </div>
+
+      {communityError ? (
+        <div className="flex flex-1 items-center justify-center">
+          <div className="flex flex-col items-center space-y-4">
+            <span className="text-lg text-red-400">{communityError}</span>
+            <button
+              onClick={fetchCommunityExtensions}
+              className="rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c52c5a]"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      ) : communityLoading ? (
+        <div className="flex flex-1 items-center justify-center">
+          <div className="flex flex-col items-center space-y-6">
+            <Spinner className="h-16 w-16" />
+            <span className="text-lg text-gray-100">Fetching Extensions</span>
+          </div>
+        </div>
+      ) : communityExtensions.length === 0 ? (
+        <div className="flex flex-1 items-center justify-center">
+          <span className="text-lg text-[#a0a0a0]">No community extensions found.</span>
+        </div>
+      ) : (
+        <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-6 text-white">
+          <div className="grid w-full grid-cols-3 gap-4">
+            {communityExtensions.map((ext, index) => {
+              const hasImage = ext.imageURL && /\.(png|jpg|jpeg|gif|webp|svg)/i.test(ext.imageURL);
+              const isInstalling = installingIndex === index;
+
+              return (
+                <div
+                  key={`${ext.user}/${ext.repo}/${ext.title}`}
+                  className={`group relative flex h-64 max-h-64 w-full flex-col rounded-lg border ${ext.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
+                >
+                  {hasImage ? (
+                    <div className="relative aspect-square w-full overflow-hidden rounded-t-lg">
+                      <div
+                        className="absolute inset-0 scale-125 rounded-t-lg bg-cover bg-center blur-2xl"
+                        style={{ backgroundImage: `url(${ext.imageURL})` }}
+                      />
+                      <div className="absolute inset-0 rounded-t-lg bg-black/40" />
+                      <img
+                        src={ext.imageURL}
+                        className="relative z-0 h-full w-full rounded-lg object-contain"
+                        alt=""
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex aspect-square w-full items-center justify-center rounded-t-lg bg-gradient-to-br from-[#1e2228] to-[#121418]">
+                      <img src="/spicetifyx-logo.png" alt="" className="h-12 w-12 opacity-30" />
+                    </div>
+                  )}
+
+                  {ext.installed ? (
+                    <div className="absolute top-2 right-2">
+                      <div className="z-[96] flex h-8 items-center rounded-full border border-[#1a1a1a] bg-[#d63c6a] p-3 text-sm font-semibold">
+                        Installed
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="absolute hidden h-full w-full rounded-t-lg bg-gradient-to-b from-black/75 to-black/5 transition-all duration-200 group-hover:block">
+                      <div className="flex w-full items-center justify-end gap-1 pt-2 pr-2">
+                        <button
+                          onClick={() => setInfoIndex(index)}
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1a1a1a] bg-gray-500 p-1 hover:bg-gray-400 transition-colors"
+                          title="Info"
+                        >
+                          <FaInfoCircle />
+                        </button>
+                        <button
+                          onClick={() => handleInstallExtension(ext, index)}
+                          disabled={isInstalling}
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1a1a1a] bg-[#d63c6a] p-1 hover:bg-[#c52c5a] transition-colors disabled:opacity-50"
+                          title="Install"
+                        >
+                          {isInstalling ? <Spinner className="h-4 w-4" /> : <FaDownload />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col space-y-1 p-3 text-sm text-zinc-300">
+                    <span className="text-md font-semibold text-white">{ext.title}</span>
+                    <span className="truncate text-sm text-gray-300">{ext.subtitle}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {infoIndex !== null &&
+        communityExtensions[infoIndex] &&
+        (() => {
+          const ext = communityExtensions[infoIndex];
+          const infoData: AddonInfoData = {
+            title: ext.title,
+            description: ext.subtitle || ext.description,
+            imageURL: ext.imageURL,
+            authors: ext.authors,
+            tags: ext.tags,
+            stars: ext.stargazers_count,
+            lastUpdated: ext.lastUpdated,
+            installed: ext.installed,
+            extensionURL: ext.extensionURL,
+          };
+          return (
+            <AddonInfoModal
+              info={infoData}
+              onClose={() => setInfoIndex(null)}
+              onInstall={() => handleInstallExtension(ext, infoIndex)}
+              isInstalling={installingIndex === infoIndex}
+            />
+          );
+        })()}
+      {applyModal && (
+        <ApplyModal action={applyModal.action} items={applyModal.items} isApplying={applyModal.isApplying} onClose={() => setApplyModal(null)} />
+      )}
+    </div>
+  ) : (
+    <>
+      <div className="flex h-full flex-col p-4">
+        <div className="mb-6 flex w-full items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Installed Addons</h1>
+            <p className="text-[#a0a0a0]">Manage your Spicetify extensions.</p>
+          </div>
+          <button
+            onClick={() => setBrowsingContent(true)}
+            className="flex h-8 w-fit items-center gap-2 rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-all duration-200 hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+          >
+            Browse content
+            <FaDownload />
+          </button>
+        </div>
+
+        {loading && <p className="text-[#a0a0a0]">Loading addons...</p>}
+        {error && <p className="text-red-500">Error: {error}</p>}
+
+        {!loading && !error && (
+          <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
+            {addons.length > 0 ? (
+              addons.map((addon) => (
+                <Addon
+                  key={addon.id}
+                  name={addon.name}
+                  description={addon.description}
+                  isEnabled={addon.isEnabled}
+                  onToggle={handleToggleAddon}
+                  onDelete={handleDeleteAddon}
+                  preview={addon.preview ? addon.preview : undefined}
+                  isToggling={togglingId === addon.addonFileName}
+                  addonFileName={addon.addonFileName}
+                  authors={addon.authors}
+                  tags={addon.tags}
+                />
+              ))
+            ) : (
+              <p className="text-[#a0a0a0]">No addons found.</p>
+            )}
+          </div>
+        )}
+      </div>
+      {applyModal && (
+        <ApplyModal action={applyModal.action} items={applyModal.items} isApplying={applyModal.isApplying} onClose={() => setApplyModal(null)} />
+      )}
+      <ConfirmDeleteModal
+        show={!!pendingDelete}
+        itemName={pendingDelete?.name || ""}
+        itemType="extension"
+        onConfirm={confirmDeleteAddon}
+        onCancel={() => setPendingDelete(null)}
+      />
+    </>
+  );
+}
