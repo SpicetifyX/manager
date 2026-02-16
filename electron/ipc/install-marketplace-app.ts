@@ -23,6 +23,7 @@ ipcMain.handle(
     user: string,
     repo: string,
     appName: string,
+    branch?: string,
     meta?: MarketplaceAppMeta,
   ): Promise<boolean> => {
     let tempDir: string | null = null;
@@ -31,25 +32,29 @@ ipcMain.handle(
         `[install-marketplace-app] Installing app "${appName}" from ${user}/${repo}`,
       );
 
+      let archiveUrl: string;
+
       const apiUrl = `https://api.github.com/repos/${user}/${repo}/releases/latest`;
       const releaseRes = await fetch(apiUrl);
-      if (!releaseRes.ok) {
-        throw new Error(
-          `Failed to fetch latest release: HTTP ${releaseRes.status}`,
+
+      if (releaseRes.ok) {
+        const release = (await releaseRes.json()) as {
+          assets: { name: string; browser_download_url: string }[];
+          zipball_url: string;
+        };
+
+        const zipAsset = release.assets.find((a) =>
+          a.name.endsWith(".zip"),
+        );
+        archiveUrl = zipAsset
+          ? zipAsset.browser_download_url
+          : release.zipball_url;
+      } else {
+        archiveUrl = `https://api.github.com/repos/${user}/${repo}/zipball/${branch || "main"}`;
+        console.log(
+          `[install-marketplace-app] No release found, falling back to repo zipball`,
         );
       }
-
-      const release = (await releaseRes.json()) as {
-        assets: { name: string; browser_download_url: string }[];
-        zipball_url: string;
-      };
-
-      const zipAsset = release.assets.find((a) =>
-        a.name.endsWith(".zip"),
-      );
-      const archiveUrl = zipAsset
-        ? zipAsset.browser_download_url
-        : release.zipball_url;
 
       console.log(
         `[install-marketplace-app] Downloading archive from ${archiveUrl}`,
@@ -120,10 +125,12 @@ ipcMain.handle(
       console.error(`[install-marketplace-app] Failed:`, error);
       return false;
     } finally {
+
       if (tempDir) {
         try {
           await fs.rm(tempDir, { recursive: true, force: true });
         } catch {
+            // ignore
         }
       }
     }

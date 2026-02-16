@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { AppInfo } from "../types/app.d";
 import { FaChevronLeft, FaDownload, FaInfoCircle } from "react-icons/fa";
 import App from "./App";
@@ -177,7 +177,7 @@ export default function MarketplaceApps() {
         tags: app.tags,
         stars: app.stargazers_count,
       };
-      const success = await window.electron.installMarketplaceApp(app.user, app.repo, appName, meta);
+      const success = await window.electron.installMarketplaceApp(app.user, app.repo, appName, app.branch, meta);
       if (success) {
         setCommunityApps((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
         fetchApps(true);
