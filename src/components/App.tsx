@@ -32,17 +32,11 @@ export default function App({
         <div className="flex min-w-0 flex-grow items-center">
           <div className="mr-4 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
             <div className="flex h-full w-full items-center justify-center bg-[#1e2228]">
-              <img
-                src="/spicetifyx-logo.png"
-                alt=""
-                className="h-8 w-8 opacity-40"
-              />
+              <img src="/spicetifyx-logo.png" alt="" className="h-8 w-8 opacity-40" />
             </div>
           </div>
           <div className="min-w-0">
-            <h3 className="truncate text-lg font-semibold text-white">
-              {name}
-            </h3>
+            <h3 className="truncate text-lg font-semibold text-white">{name}</h3>
             <p className="truncate text-sm text-[#a0a0a0]">Custom app</p>
           </div>
         </div>
@@ -76,20 +70,14 @@ export default function App({
                 onChange={(e) => onToggle(appId, e.target.checked)}
                 disabled={isToggling}
               />
-              <div
-                className={`block h-8 w-14 rounded-full ${isEnabled ? "bg-[#d63c6a]" : "bg-gray-600"}`}
-              ></div>
-              <div
-                className={`dot absolute top-1 left-1 h-6 w-6 rounded-full bg-white transition ${isEnabled ? "translate-x-full" : ""}`}
-              ></div>
+              <div className={`block h-8 w-14 rounded-full ${isEnabled ? "bg-[#d63c6a]" : "bg-gray-600"}`}></div>
+              <div className={`dot absolute top-1 left-1 h-6 w-6 rounded-full bg-white transition ${isEnabled ? "translate-x-full" : ""}`}></div>
             </div>
           </label>
         </div>
       </div>
 
-      {showInfo && (
-        <AddonInfoModal info={infoData} onClose={() => setShowInfo(false)} />
-      )}
+      {showInfo && <AddonInfoModal info={infoData} onClose={() => setShowInfo(false)} />}
     </>
   );
 }
