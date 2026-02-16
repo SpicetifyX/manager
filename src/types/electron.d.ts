@@ -37,6 +37,12 @@ declare global {
         include?: string[],
         meta?: Record<string, any>,
       ) => Promise<boolean>;
+      installMarketplaceApp: (
+        user: string,
+        repo: string,
+        appName: string,
+        meta?: Record<string, any>,
+      ) => Promise<boolean>;
       deleteSpicetifyExtension: (addonFileName: string) => Promise<boolean>;
       deleteSpicetifyApp: (appId: string) => Promise<boolean>;
       deleteSpicetifyTheme: (themeId: string) => Promise<boolean>;
