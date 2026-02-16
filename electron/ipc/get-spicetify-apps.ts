@@ -1,7 +1,7 @@
 import { ipcMain } from "electron";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { AppInfo, AppManifest } from "../../src/types/app";
+import { AppInfo } from "../../src/types/app";
 import { getConfigFilePath, getCustomAppsDir } from "../utils/paths";
 
 ipcMain.handle("get-spicetify-apps", async (): Promise<AppInfo[]> => {
@@ -37,38 +37,25 @@ ipcMain.handle("get-spicetify-apps", async (): Promise<AppInfo[]> => {
         if (knownAppIds.has(appId.toLowerCase())) continue;
 
         const isEnabled = enabledApps.includes(appId);
-        const manifestPath = path.join(customAppsDir, appId, "manifest.json");
 
-        let appInfo: AppInfo;
-        try {
-          const manifestContent = await fs.readFile(manifestPath, "utf-8");
-          const manifest: AppManifest = JSON.parse(manifestContent);
-          appInfo = { ...manifest, id: appId, isEnabled };
-        } catch (e) {
-          console.log(e);
+        let appInfo: AppInfo = {
+          name: appId,
+          icon: "",
+          activeIcon: "",
+          subfiles: [],
+          subfiles_extension: [],
+          id: appId,
+          isEnabled,
+        };
 
-          appInfo = {
-            name: appId,
-            icon: "",
-            activeIcon: "",
-            subfiles: [],
-            subfiles_extension: [],
-            id: appId,
-            isEnabled,
-          };
-        }
-
-        let meta: any = null;
         try {
           const metaPath = path.join(customAppsDir, appId, "app.meta.json");
           const metaContent = await fs.readFile(metaPath, "utf-8");
-          meta = JSON.parse(metaContent);
+          const meta = JSON.parse(metaContent);
+          if (meta.name) appInfo.name = meta.name;
+          if (meta.imageURL) appInfo.imageURL = meta.imageURL;
         } catch (e) {
           console.log(e);
-        }
-
-        if (meta?.imageURL) {
-          appInfo.imageURL = meta.imageURL;
         }
 
         installedApps.push(appInfo);
