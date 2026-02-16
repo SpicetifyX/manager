@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { AppInfo } from "../types/app.d";
 import { FaChevronLeft, FaDownload, FaInfoCircle } from "react-icons/fa";
 import App from "./App";
@@ -18,6 +18,7 @@ export default function MarketplaceApps() {
   const [communityApps, setCommunityApps] = useState<CardItem[]>([]);
   const [communityLoading, setCommunityLoading] = useState(false);
   const [communityError, setCommunityError] = useState<string | null>(null);
+  const [installingIndex, setInstallingIndex] = useState<number | null>(null);
   const [infoIndex, setInfoIndex] = useState<number | null>(null);
   const [applyModal, setApplyModal] = useState<{
     action: string;
@@ -48,9 +49,15 @@ export default function MarketplaceApps() {
         ),
       );
       const allApps: CardItem[] = [];
+      const currentApps = apps;
       for (const result of results) {
         if (result.status === "fulfilled" && result.value.length) {
-          allApps.push(...result.value);
+          allApps.push(
+            ...result.value.map((a: any) => ({
+              ...a,
+              installed: currentApps.some((ia) => ia.name === a.title),
+            })),
+          );
         }
       }
       setCommunityApps(allApps);
@@ -151,6 +158,42 @@ export default function MarketplaceApps() {
     }
   };
 
+  const handleInstallApp = async (app: CardItem, index: number) => {
+    if (app.installed) return;
+    setInstallingIndex(index);
+    setInfoIndex(null);
+    setApplyModal({
+      action: "Installing App",
+      items: [app.title],
+      isApplying: true,
+    });
+    try {
+      const appName = app.title.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const meta = {
+        name: app.title,
+        description: app.subtitle,
+        imageURL: app.imageURL,
+        authors: app.authors,
+        tags: app.tags,
+        stars: app.stargazers_count,
+      };
+      const success = await window.electron.installMarketplaceApp(app.user, app.repo, appName, meta);
+      if (success) {
+        setCommunityApps((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
+        fetchApps(true);
+        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+      } else {
+        setApplyModal(null);
+        alert(`Failed to install ${app.title}`);
+      }
+    } catch (err: any) {
+      setApplyModal(null);
+      alert(`Error installing ${app.title}: ${err.message}`);
+    } finally {
+      setInstallingIndex(null);
+    }
+  };
+
   return browsingContent ? (
     <div className="flex h-full w-full flex-col overflow-hidden">
       <div className="flex h-12 w-full flex-shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-[#121418] pl-1 select-none">
@@ -191,11 +234,12 @@ export default function MarketplaceApps() {
           <div className="grid w-full grid-cols-3 gap-4">
             {communityApps.map((app, index) => {
               const hasImage = app.imageURL && /\.(png|jpg|jpeg|gif|webp|svg)/i.test(app.imageURL);
+              const isInstalling = installingIndex === index;
 
               return (
                 <div
                   key={`${app.user}/${app.repo}/${app.title}`}
-                  className="group relative flex h-64 max-h-64 w-full flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] transition"
+                  className={`group relative flex h-64 max-h-64 w-full flex-col rounded-lg border ${app.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
                 >
                   {hasImage ? (
                     <div className="relative aspect-square w-full overflow-hidden rounded-t-lg">
@@ -219,17 +263,33 @@ export default function MarketplaceApps() {
                     </div>
                   )}
 
-                  <div className="absolute hidden h-full w-full rounded-t-lg bg-gradient-to-b from-black/75 to-black/5 transition-all duration-200 group-hover:block">
-                    <div className="flex w-full items-center justify-end gap-1 pt-2 pr-2">
-                      <button
-                        onClick={() => setInfoIndex(index)}
-                        className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1a1a1a] bg-gray-500 p-1 hover:bg-gray-400 transition-colors"
-                        title="Info"
-                      >
-                        <FaInfoCircle />
-                      </button>
+                  {app.installed ? (
+                    <div className="absolute top-2 right-2">
+                      <div className="z-[96] flex h-8 items-center rounded-full border border-[#1a1a1a] bg-[#d63c6a] p-3 text-sm font-semibold">
+                        Installed
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="absolute hidden h-full w-full rounded-t-lg bg-gradient-to-b from-black/75 to-black/5 transition-all duration-200 group-hover:block">
+                      <div className="flex w-full items-center justify-end gap-1 pt-2 pr-2">
+                        <button
+                          onClick={() => setInfoIndex(index)}
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1a1a1a] bg-gray-500 p-1 hover:bg-gray-400 transition-colors"
+                          title="Info"
+                        >
+                          <FaInfoCircle />
+                        </button>
+                        <button
+                          onClick={() => handleInstallApp(app, index)}
+                          disabled={isInstalling}
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1a1a1a] bg-[#d63c6a] p-1 hover:bg-[#c52c5a] transition-colors disabled:opacity-50"
+                          title="Install"
+                        >
+                          {isInstalling ? <Spinner className="h-4 w-4" /> : <FaDownload />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex flex-col space-y-1 p-3 text-sm text-zinc-300">
                     <span className="text-md font-semibold text-white">{app.title}</span>
@@ -255,8 +315,11 @@ export default function MarketplaceApps() {
             stars: app.stargazers_count,
             lastUpdated: app.lastUpdated,
           };
-          return <AddonInfoModal info={infoData} onClose={() => setInfoIndex(null)} />;
+          return <AddonInfoModal info={infoData} onClose={() => setInfoIndex(null)} onInstall={() => handleInstallApp(app, infoIndex)} isInstalling={installingIndex === infoIndex} />;
         })()}
+      {applyModal && (
+        <ApplyModal action={applyModal.action} items={applyModal.items} isApplying={applyModal.isApplying} onClose={() => setApplyModal(null)} />
+      )}
     </div>
   ) : (
     <>
@@ -288,6 +351,7 @@ export default function MarketplaceApps() {
                   onToggle={handleToggleApp}
                   onDelete={handleDeleteApp}
                   isToggling={togglingId === app.id}
+                  imageURL={app.imageURL}
                 />
               ))
             ) : (
