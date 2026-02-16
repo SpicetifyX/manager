@@ -58,6 +58,19 @@ ipcMain.handle("get-spicetify-apps", async (): Promise<AppInfo[]> => {
           };
         }
 
+        let meta: any = null;
+        try {
+          const metaPath = path.join(customAppsDir, appId, "app.meta.json");
+          const metaContent = await fs.readFile(metaPath, "utf-8");
+          meta = JSON.parse(metaContent);
+        } catch (e) {
+          console.log(e);
+        }
+
+        if (meta?.imageURL) {
+          appInfo.imageURL = meta.imageURL;
+        }
+
         installedApps.push(appInfo);
       }
     } catch (e) {
