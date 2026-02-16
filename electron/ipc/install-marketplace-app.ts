@@ -1,11 +1,9 @@
 import { ipcMain } from "electron";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { unzipSync } from "fflate/node";
 import { spicetifyCommand } from "../utils/spicetifyCommand";
 import { getSpicetifyExec, getCustomAppsDir } from "../utils/paths";
-import { copyDirRecursive } from "../utils/fs-helpers";
 
 export type MarketplaceAppMeta = {
   name: string;
@@ -26,7 +24,6 @@ ipcMain.handle(
     branch?: string,
     meta?: MarketplaceAppMeta,
   ): Promise<boolean> => {
-    let tempDir: string | null = null;
     try {
       console.log(
         `[install-marketplace-app] Installing app "${appName}" from ${user}/${repo}`,
@@ -49,11 +46,53 @@ ipcMain.handle(
         archiveUrl = zipAsset
           ? zipAsset.browser_download_url
           : release.zipball_url;
-      } else {
-        archiveUrl = `https://api.github.com/repos/${user}/${repo}/zipball/${branch || "main"}`;
         console.log(
-          `[install-marketplace-app] No release found, falling back to repo zipball`,
+          `[install-marketplace-app] Using release archive`,
         );
+      } else {
+        console.log(
+          `[install-marketplace-app] No release found, scanning branches for built .js files`,
+        );
+
+        const branchesRes = await fetch(
+          `https://api.github.com/repos/${user}/${repo}/branches`,
+        );
+        if (!branchesRes.ok) {
+          throw new Error(
+            `Failed to fetch branches: HTTP ${branchesRes.status}`,
+          );
+        }
+        const branches = (await branchesRes.json()) as { name: string }[];
+
+        let foundBranch: string | null = null;
+        for (const b of branches) {
+          const treeRes = await fetch(
+            `https://api.github.com/repos/${user}/${repo}/git/trees/${b.name}?recursive=1`,
+          );
+          if (!treeRes.ok) continue;
+          const tree = (await treeRes.json()) as {
+            tree: { path: string; type: string }[];
+          };
+          const hasJs = tree.tree.some(
+            (entry) =>
+              entry.type === "blob" && entry.path.endsWith(".js"),
+          );
+          if (hasJs) {
+            foundBranch = b.name;
+            console.log(
+              `[install-marketplace-app] Found .js files in branch "${b.name}"`,
+            );
+            break;
+          }
+        }
+
+        if (!foundBranch) {
+          throw new Error(
+            `No release and no branch with built .js files found in ${user}/${repo}`,
+          );
+        }
+
+        archiveUrl = `https://api.github.com/repos/${user}/${repo}/zipball/${foundBranch}`;
       }
 
       console.log(
@@ -76,29 +115,25 @@ ipcMain.handle(
       const zipData = new Uint8Array(buf);
       const unzipped = unzipSync(zipData);
 
-      for (const [name, data] of Object.entries(unzipped)) {
-        const filePath = path.join(tempDir, name);
-        if (name.endsWith("/")) {
-          await fs.mkdir(filePath, { recursive: true });
-          continue;
-        }
-        await fs.mkdir(path.dirname(filePath), { recursive: true });
-        await fs.writeFile(filePath, Buffer.from(data));
-      }
-
-      const tempEntries = await fs.readdir(tempDir, { withFileTypes: true });
-      const dirs = tempEntries.filter((e) => e.isDirectory());
-      let sourceDir = tempDir;
-      if (dirs.length === 1 && tempEntries.filter((e) => e.isFile()).length === 0) {
-        sourceDir = path.join(tempDir, dirs[0].name);
-      }
-
       const customAppsDir = getCustomAppsDir();
       const destDir = path.join(customAppsDir, appName);
       await fs.mkdir(destDir, { recursive: true });
-      await copyDirRecursive(sourceDir, destDir);
+
+      let jsFileCount = 0;
+      for (const [name, data] of Object.entries(unzipped)) {
+        if (name.endsWith("/")) continue;
+        const basename = path.basename(name);
+        if (!basename.endsWith(".js")) continue;
+        await fs.writeFile(path.join(destDir, basename), Buffer.from(data));
+        jsFileCount++;
+      }
+
+      if (jsFileCount === 0) {
+        throw new Error("No .js files found in the archive");
+      }
+
       console.log(
-        `[install-marketplace-app] Copied app files to ${destDir}`,
+        `[install-marketplace-app] Copied ${jsFileCount} .js files to ${destDir}`,
       );
 
       if (meta) {
@@ -124,15 +159,6 @@ ipcMain.handle(
     } catch (error) {
       console.error(`[install-marketplace-app] Failed:`, error);
       return false;
-    } finally {
-
-      if (tempDir) {
-        try {
-          await fs.rm(tempDir, { recursive: true, force: true });
-        } catch {
-            // ignore
-        }
-      }
     }
   },
 );
