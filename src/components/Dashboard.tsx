@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaSync, FaCheckCircle, FaExclamationTriangle, FaPuzzlePiece, FaPalette, FaAppStore, FaCode, FaChevronRight } from "react-icons/fa";
+import { FaSync, FaCheckCircle, FaExclamationTriangle, FaPuzzlePiece, FaPalette, FaAppStore, FaChevronRight } from "react-icons/fa";
 import RestoreModal from "./RestoreModal";
 
 export default function Dashboard({
@@ -25,7 +25,6 @@ export default function Dashboard({
   const [appsCount, setAppsCount] = useState<number>(0);
   const [activeExtensions, setActiveExtensions] = useState<number>(0);
   const [activeApps, setActiveApps] = useState<number>(0);
-  const [activeThemeName, setActiveThemeName] = useState<string | null>(null);
 
   async function fetchVersions() {
     try {
@@ -56,8 +55,6 @@ export default function Dashboard({
       try {
         const themes = await window.electron.getSpicetifyThemes();
         setThemesCount(themes.length);
-        const active = themes.find((t: any) => t.isActive);
-        setActiveThemeName(active?.name || null);
       } catch (err) {
         console.error("Failed to fetch themes:", err);
       }
@@ -158,10 +155,11 @@ export default function Dashboard({
               <button
                 onClick={handleRestore}
                 disabled={isRestoringProcess}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${isRestoringProcess
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                  isRestoringProcess
                     ? "cursor-not-allowed bg-[#a02950] text-white"
                     : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:scale-95 active:bg-[#b51c4a]"
-                  }`}
+                }`}
               >
                 <FaSync className={isRestoringProcess ? "animate-spin" : ""} />
                 {isRestoringProcess ? "Restoring..." : "Restore"}
