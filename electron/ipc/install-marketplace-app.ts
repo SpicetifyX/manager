@@ -30,9 +30,12 @@ ipcMain.handle(
       );
 
       let archiveUrl: string;
+      let jsSubdir: string | null = null;
+
+      const ghHeaders = { "User-Agent": "SpicetifyX" };
 
       const apiUrl = `https://api.github.com/repos/${user}/${repo}/releases/latest`;
-      const releaseRes = await fetch(apiUrl);
+      const releaseRes = await fetch(apiUrl, { headers: ghHeaders });
 
       if (releaseRes.ok) {
         const release = (await releaseRes.json()) as {
@@ -56,6 +59,7 @@ ipcMain.handle(
 
         const branchesRes = await fetch(
           `https://api.github.com/repos/${user}/${repo}/branches`,
+          { headers: ghHeaders },
         );
         if (!branchesRes.ok) {
           throw new Error(
@@ -68,19 +72,40 @@ ipcMain.handle(
         for (const b of branches) {
           const treeRes = await fetch(
             `https://api.github.com/repos/${user}/${repo}/git/trees/${b.name}?recursive=1`,
+            { headers: ghHeaders },
           );
           if (!treeRes.ok) continue;
           const tree = (await treeRes.json()) as {
             tree: { path: string; type: string }[];
           };
-          const hasJs = tree.tree.some(
+          const jsFiles = tree.tree.filter(
             (entry) =>
               entry.type === "blob" && entry.path.endsWith(".js"),
           );
-          if (hasJs) {
+          if (jsFiles.length > 0) {
             foundBranch = b.name;
+
+            const dirs = new Set(
+              jsFiles.map((f) => {
+                const parts = f.path.split("/");
+                return parts.length > 1 ? parts[0] : "";
+              }),
+            );
+
+            if (dirs.size === 1 && !dirs.has("")) {
+              jsSubdir = [...dirs][0];
+            } else if (dirs.size > 1) {
+              const sanitized = appName.toLowerCase().replace(/[^a-z0-9]/g, "");
+              for (const d of dirs) {
+                if (d.toLowerCase().replace(/[^a-z0-9]/g, "") === sanitized) {
+                  jsSubdir = d;
+                  break;
+                }
+              }
+            }
+
             console.log(
-              `[install-marketplace-app] Found .js files in branch "${b.name}"`,
+              `[install-marketplace-app] Found .js files in branch "${b.name}"${jsSubdir ? ` subdir "${jsSubdir}"` : ""}`,
             );
             break;
           }
@@ -99,7 +124,7 @@ ipcMain.handle(
         `[install-marketplace-app] Downloading archive from ${archiveUrl}`,
       );
 
-      const archiveRes = await fetch(archiveUrl);
+      const archiveRes = await fetch(archiveUrl, { headers: ghHeaders });
       if (!archiveRes.ok) {
         throw new Error(
           `Failed to download archive: HTTP ${archiveRes.status}`,
@@ -108,10 +133,6 @@ ipcMain.handle(
 
       const buf = Buffer.from(await archiveRes.arrayBuffer());
 
-      tempDir = await fs.mkdtemp(
-        path.join(tmpdir(), "spicetifyx-app-"),
-      );
-
       const zipData = new Uint8Array(buf);
       const unzipped = unzipSync(zipData);
 
@@ -119,21 +140,33 @@ ipcMain.handle(
       const destDir = path.join(customAppsDir, appName);
       await fs.mkdir(destDir, { recursive: true });
 
-      let jsFileCount = 0;
+      let fileCount = 0;
       for (const [name, data] of Object.entries(unzipped)) {
         if (name.endsWith("/")) continue;
-        const basename = path.basename(name);
-        if (!basename.endsWith(".js")) continue;
-        await fs.writeFile(path.join(destDir, basename), Buffer.from(data));
-        jsFileCount++;
+
+        const parts = name.split("/");
+        const stripped = parts.length > 1 ? parts.slice(1).join("/") : name;
+
+        if (jsSubdir) {
+          if (!stripped.startsWith(jsSubdir + "/")) continue;
+          const relative = stripped.slice(jsSubdir.length + 1);
+          const destPath = path.join(destDir, relative);
+          await fs.mkdir(path.dirname(destPath), { recursive: true });
+          await fs.writeFile(destPath, Buffer.from(data));
+        } else {
+          const destPath = path.join(destDir, stripped);
+          await fs.mkdir(path.dirname(destPath), { recursive: true });
+          await fs.writeFile(destPath, Buffer.from(data));
+        }
+        fileCount++;
       }
 
-      if (jsFileCount === 0) {
-        throw new Error("No .js files found in the archive");
+      if (fileCount === 0) {
+        throw new Error("No files found in the archive");
       }
 
       console.log(
-        `[install-marketplace-app] Copied ${jsFileCount} .js files to ${destDir}`,
+        `[install-marketplace-app] Copied ${fileCount} files to ${destDir}`,
       );
 
       if (meta) {
