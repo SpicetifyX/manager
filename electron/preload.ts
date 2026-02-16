@@ -37,6 +37,8 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.invoke("install-marketplace-extension", extensionUrl, filename, meta),
   installMarketplaceTheme: (themeId: string, cssURL: string, schemesURL?: string, include?: string[], meta?: Record<string, any>) =>
     ipcRenderer.invoke("install-marketplace-theme", themeId, cssURL, schemesURL, include, meta),
+  installMarketplaceApp: (user: string, repo: string, appName: string, meta?: Record<string, any>) =>
+    ipcRenderer.invoke("install-marketplace-app", user, repo, appName, meta),
   deleteSpicetifyExtension: (addonFileName: string) => ipcRenderer.invoke("delete-spicetify-extension", addonFileName),
   deleteSpicetifyApp: (appId: string) => ipcRenderer.invoke("delete-spicetify-app", appId),
   deleteSpicetifyTheme: (themeId: string) => ipcRenderer.invoke("delete-spicetify-theme", themeId),
