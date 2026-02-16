@@ -104,6 +104,7 @@ app.whenReady().then(async () => {
   await import("./ipc/install-marketplace-theme.ts");
   await import("./ipc/delete-spicetify-extension.ts");
   await import("./ipc/delete-spicetify-app.ts");
+  await import("./ipc/open-external-link.ts");
   await import("./ipc/delete-spicetify-theme.ts");
   await import("./ipc/install-spicetify-binary.ts");
   await import("./ipc/setup-spicetify-assets.ts");
