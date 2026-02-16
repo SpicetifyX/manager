@@ -14,8 +14,8 @@
     publish: [
       {
         provider: "github",
-        owner: "Jeff53978",
-        repo: "spicetify-installer",
+        owner: "SpicetifyX",
+        repo: "manager",
       },
     ],
   },
@@ -29,8 +29,8 @@
     publish: [
       {
         provider: "github",
-        owner: "Jeff53978",
-        repo: "spicetify-installer",
+        owner: "SpicetifyX",
+        repo: "manager",
       },
     ],
     artifactName: "${productName}-Windows-${version}-Setup.${ext}",
