@@ -1,5 +1,3 @@
-// src/utils/github.ts
-
 export function getGitHubUsernameFromUrl(url: string): string | null {
   try {
     const urlObj = new URL(url);
