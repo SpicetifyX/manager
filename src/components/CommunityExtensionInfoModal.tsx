@@ -30,7 +30,6 @@ const CommunityExtensionInfoModal: React.FC<CommunityExtensionInfoModalProps> = 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
       <div className="flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#121418] shadow-xl">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-[#2a2a2a] p-5">
           <div className="flex-1 pr-12">
             <h2 className="text-xl font-bold text-white">{selectedExtension.title}</h2>
@@ -44,10 +43,8 @@ const CommunityExtensionInfoModal: React.FC<CommunityExtensionInfoModalProps> = 
           </button>
         </div>
 
-        {/* Content */}
         <div className="custom-scrollbar flex-1 overflow-y-auto p-5">
           <div className="space-y-4">
-            {/* Stats */}
             <div className="flex gap-4">
               <div className="flex items-center gap-2 rounded-lg border border-[#2a2a2a] bg-[#0c0e11] px-4 py-2">
                 <FaStar className="h-4 w-4 text-yellow-500" />
@@ -55,47 +52,43 @@ const CommunityExtensionInfoModal: React.FC<CommunityExtensionInfoModalProps> = 
               </div>
               <div className="flex items-center gap-2 rounded-lg border border-[#2a2a2a] bg-[#0c0e11] px-4 py-2">
                 <FaClock className="h-4 w-4 text-[#a0a0a0]" />
-                                  <span className="text-sm text-white">Updated {formatDate(selectedExtension.lastUpdated)}</span>
-                                  </div>
-                                </div>
-                
-                                {/* Author */}
-                                {selectedExtension.authors && selectedExtension.authors.length > 0 && (
-                                  <div>
-                                    <h3 className="mb-2 text-sm font-semibold text-white">Author</h3>
-                                    {selectedExtension.authors.map((author) => (
-                                      <a
-                                        key={author.name}
-                                        href={author.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 rounded-lg p-2 hover:bg-[#2a2a2a]"
-                                      >
-                                        <img src={`${author.url}.png`} alt={author.name} className="h-8 w-8 rounded-full" />
-                                        <span className="text-sm text-white">{author.name}</span>
-                                      </a>
-                                    ))}
-                                  </div>
-                                )}
-                
-                                {/* Preview Image - only show if image exists and has valid extension */}
-                                {selectedExtension.imageURL &&
-                                  (selectedExtension.imageURL.includes("png") ||
-                                    selectedExtension.imageURL.includes("jpg") ||
-                                    selectedExtension.imageURL.includes("gif") ||
-                                    selectedExtension.imageURL.includes("jpeg")) && (
-                                    <div>
-                                      <h3 className="mb-2 text-sm font-semibold text-white">Preview</h3>
-                                      <img
-                                        src={selectedExtension.imageURL}
-                                        alt={selectedExtension.title}
-                                        className="w-full rounded-lg border border-[#2a2a2a] object-contain"
-                                      />
-                                    </div>
-                                  )}
-                              </div>
-                            </div>
-        {/* Footer */}
+                <span className="text-sm text-white">Updated {formatDate(selectedExtension.lastUpdated)}</span>
+              </div>
+            </div>
+
+            {/* Author */}
+            {selectedExtension.authors && selectedExtension.authors.length > 0 && (
+              <div>
+                <h3 className="mb-2 text-sm font-semibold text-white">Author</h3>
+                {selectedExtension.authors.map((author) => (
+                  <button
+                    key={author.name}
+                    onClick={() => window.electron.openExternalLink(author.url)}
+                    className="flex items-center gap-2 rounded-lg p-2 hover:bg-[#2a2a2a]"
+                  >
+                    <img src={`${author.url}.png`} alt={author.name} className="h-8 w-8 rounded-full" />
+                    <span className="text-sm text-white">{author.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {selectedExtension.imageURL &&
+              (selectedExtension.imageURL.includes("png") ||
+                selectedExtension.imageURL.includes("jpg") ||
+                selectedExtension.imageURL.includes("gif") ||
+                selectedExtension.imageURL.includes("jpeg")) && (
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-white">Preview</h3>
+                  <img
+                    src={selectedExtension.imageURL}
+                    alt={selectedExtension.title}
+                    className="w-full rounded-lg border border-[#2a2a2a] object-contain"
+                  />
+                </div>
+              )}
+          </div>
+        </div>
         <div className="flex items-center justify-between border-t border-[#2a2a2a] p-5">
           <button
             onClick={() => setShowInfoModal(false)}
