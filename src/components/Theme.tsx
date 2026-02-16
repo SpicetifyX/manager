@@ -50,28 +50,16 @@ export default function Theme({
         <div className="flex min-w-0 flex-grow items-center">
           <div className="mr-4 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
             {previewSrc ? (
-              <img
-                src={previewSrc}
-                alt={`${theme.name} preview`}
-                className="h-full w-full object-cover"
-              />
+              <img src={previewSrc} alt={`${theme.name} preview`} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-[#1e2228]">
-                <img
-                  src="/spicetifyx-logo.png"
-                  alt=""
-                  className="h-8 w-8 opacity-40"
-                />
+                <img src="/spicetifyx-logo.png" alt="" className="h-8 w-8 opacity-40" />
               </div>
             )}
           </div>
           <div className="min-w-0">
-            <h3 className="truncate text-lg font-semibold text-white">
-              {theme.name}
-            </h3>
-            <p className="truncate text-sm text-[#a0a0a0]">
-              {theme.description}
-            </p>
+            <h3 className="truncate text-lg font-semibold text-white">{theme.name}</h3>
+            <p className="truncate text-sm text-[#a0a0a0]">{theme.description}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -110,9 +98,7 @@ export default function Theme({
         </div>
       </div>
 
-      {showInfo && (
-        <AddonInfoModal info={infoData} onClose={() => setShowInfo(false)} />
-      )}
+      {showInfo && <AddonInfoModal info={infoData} onClose={() => setShowInfo(false)} />}
     </>
   );
 }
