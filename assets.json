@@ -1,0 +1,70 @@
+{
+  "extensions": [
+    {
+      "name": "adblockify",
+      "repo": "https://github.com/rxri/spicetify-extensions",
+      "path": "adblock",
+      "branch": "main",
+      "raw_files": [
+        "https://raw.githubusercontent.com/rxri/spicetify-extensions/refs/heads/main/adblock/adblock.js"
+      ],
+      "raw_meta_url": null,
+      "raw_meta_content": {
+        "name": "adblockify",
+        "description": "Stream Spotify music without interruptions - Block ads instantly, with ease.",
+        "imageURL": "https://raw.githubusercontent.com/rxri/spicetify-extensions/main/adblock/assets/preview.png",
+        "authors": [
+          {
+            "name": "ririxi",
+            "url": "https://github.com/rxri"
+          }
+        ],
+        "tags": [
+          "ads",
+          "block",
+          "remove",
+          "disable"
+        ]
+      },
+      "authors": [
+        {
+          "name": "ririxi",
+          "url": "https://github.com/rxri"
+        }
+      ],
+      "tags": [
+        "ads",
+        "block",
+        "remove",
+        "disable"
+      ],
+      "file_name": "adblock.js"
+    }
+  ],
+  "snippets": [],
+  "themes": [
+    {
+      "name": "SpicetifyX",
+      "repo": "https://github.com/SpicetifyX/themes",
+      "path": "SpicetifyX",
+      "branch": "main",
+      "raw_files": [
+        "https://raw.githubusercontent.com/SpicetifyX/themes/refs/heads/main/SpicetifyX/color.ini",
+        "https://raw.githubusercontent.com/SpicetifyX/themes/refs/heads/main/SpicetifyX/theme.js",
+        "https://raw.githubusercontent.com/SpicetifyX/themes/refs/heads/main/SpicetifyX/user.css"
+      ],
+      "raw_meta_url": "https://raw.githubusercontent.com/SpicetifyX/themes/refs/heads/main/theme.meta.json",
+      "raw_meta_content": null,
+      "authors": [
+        {
+          "name": "Jeff53978",
+          "url": "https://github.com/Jeff53978"
+        }
+      ],
+      "tags": [
+        "official"
+      ]
+    }
+  ],
+  "apps": []
+}
