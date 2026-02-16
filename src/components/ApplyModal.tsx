@@ -9,12 +9,7 @@ interface ApplyModalProps {
   onClose: () => void;
 }
 
-export default function ApplyModal({
-  action,
-  items,
-  isApplying,
-  onClose,
-}: ApplyModalProps) {
+export default function ApplyModal({ action, items, isApplying, onClose }: ApplyModalProps) {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -30,9 +25,7 @@ export default function ApplyModal({
           <>
             <Spinner className="mb-6 h-12 w-12" />
             <h2 className="mb-2 text-lg font-bold text-white">{action}</h2>
-            <p className="text-sm text-[#a0a0a0]">
-              Spotify will restart automatically...
-            </p>
+            <p className="text-sm text-[#a0a0a0]">Spotify will restart automatically...</p>
           </>
         ) : (
           <>
@@ -42,15 +35,10 @@ export default function ApplyModal({
             <h2 className="mb-3 text-lg font-bold text-white">All Applied!</h2>
             {items.length > 0 && (
               <div className="mb-5 w-full rounded-lg bg-[#1e2228] p-3">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">
-                  Changes applied
-                </p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">Changes applied</p>
                 <ul className="space-y-1">
                   {items.map((item, i) => (
-                    <li
-                      key={i}
-                      className="flex items-center gap-2 text-sm text-white"
-                    >
+                    <li key={i} className="flex items-center gap-2 text-sm text-white">
                       <FaCheckCircle className="h-3 w-3 flex-shrink-0 text-green-400" />
                       {item}
                     </li>
