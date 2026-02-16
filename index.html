@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpicetifyX Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      .xterm {
+        user-select: text;
+        -webkit-user-select: text;
+      }
+
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #555;
+        border-radius: 4px;
+        border: 2px solid transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: #777;
+      }
+
+      .settings-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .settings-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .settings-scrollbar::-webkit-scrollbar-thumb {
+        background-color: transparent;
+        border-radius: 3px;
+        transition: background-color 0.3s ease;
+      }
+      .settings-scrollbar.scrollbar-visible::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+      .settings-scrollbar.scrollbar-visible::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.35);
+      }
+
+      .xterm .xterm-viewport {
+        scrollbar-width: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
