@@ -30,6 +30,7 @@ function createWindow() {
   win = new BrowserWindow({
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
+      webSecurity: false,
     },
     resizable: false,
     width: 916,
