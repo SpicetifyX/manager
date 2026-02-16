@@ -39,6 +39,42 @@
         "disable"
       ],
       "file_name": "adblock.js"
+    },
+    {
+      "name": "Better Spotify Genres",
+      "repo": "https://github.com/Vexcited/better-spotify-genres",
+      "path": ".",
+      "branch": "build",
+      "raw_files": [
+        "https://raw.githubusercontent.com/Vexcited/better-spotify-genres/refs/heads/build/spotifyGenres.js"
+      ],
+      "raw_meta_url": null,
+      "raw_meta_content": {
+        "name": "Better Spotify Genres",
+        "description": "See what genres you are listening to.",
+        "imageURL": "https://github.com/Vexcited/better-spotify-genres/blob/build/assets/preview.png?raw=true",
+        "authors": [
+          {
+            "name": "Vexcited",
+            "url": "https://github.com/Vexcited"
+          },
+          {
+            "name": "Tetrax-10",
+            "url": "https://github.com/Tetrax-10"
+          }
+        ]
+      },
+      "authors": [
+        {
+          "name": "Vexcited",
+          "url": "https://github.com/Vexcited"
+        },
+        {
+          "name": "Tetrax-10",
+          "url": "https://github.com/Tetrax-10"
+        }
+      ],
+      "file_name": "spotifyGenres.js"
     }
   ],
   "snippets": [],
