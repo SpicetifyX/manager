@@ -38,16 +38,9 @@ export default function InstallWizard({
 
       const text = data.toLowerCase();
 
-      if (
-        text.includes("appl") ||
-        text.includes("patch") ||
-        text.includes("overwriting")
-      ) {
+      if (text.includes("appl") || text.includes("patch") || text.includes("overwriting")) {
         updateStepStatus("apply", "active");
-      } else if (
-        text.includes("applied successfully") ||
-        text.includes("restart spotify")
-      ) {
+      } else if (text.includes("applied successfully") || text.includes("restart spotify")) {
         updateStepStatus("apply", "complete");
       }
 
@@ -85,51 +78,31 @@ export default function InstallWizard({
           <div className="flex h-full flex-col gap-3">
             <div className="flex items-center justify-between rounded-lg border border-[#2a2a2a] bg-[#121418] p-3.5">
               <div className="flex items-center gap-3">
-                <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full ${allComplete ? "bg-[#2a2a2a]" : "bg-[#d63c6a]"}`}
-                >
-                  {allComplete ? (
-                    <FaCheckCircle className="h-5 w-5 text-white" />
-                  ) : (
-                    <FaSpinner className="h-5 w-5 animate-spin text-white" />
-                  )}
+                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${allComplete ? "bg-[#2a2a2a]" : "bg-[#d63c6a]"}`}>
+                  {allComplete ? <FaCheckCircle className="h-5 w-5 text-white" /> : <FaSpinner className="h-5 w-5 animate-spin text-white" />}
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">
-                    {allComplete
-                      ? "Installation Complete"
-                      : "Installing Spicetify"}
-                  </h3>
-                  <p className="text-xs text-[#a0a0a0]">
-                    {allComplete
-                      ? "Restart Spotify to see changes"
-                      : "Customizing your Spotify client"}
-                  </p>
+                  <h3 className="text-sm font-semibold text-white">{allComplete ? "Installation Complete" : "Installing Spicetify"}</h3>
+                  <p className="text-xs text-[#a0a0a0]">{allComplete ? "Restart Spotify to see changes" : "Customizing your Spotify client"}</p>
                 </div>
               </div>
               <div className="flex gap-4">
                 {installStats.version && (
                   <div className="text-right">
                     <p className="text-xs text-[#a0a0a0]">Version</p>
-                    <p className="text-sm font-semibold text-white">
-                      {installStats.version}
-                    </p>
+                    <p className="text-sm font-semibold text-white">{installStats.version}</p>
                   </div>
                 )}
                 {installStats.extensions > 0 && (
                   <div className="text-right">
                     <p className="text-xs text-[#a0a0a0]">Extensions</p>
-                    <p className="text-sm font-semibold text-[#d63c6a]">
-                      {installStats.extensions}
-                    </p>
+                    <p className="text-sm font-semibold text-[#d63c6a]">{installStats.extensions}</p>
                   </div>
                 )}
                 {installStats.themes > 0 && (
                   <div className="text-right">
                     <p className="text-xs text-[#a0a0a0]">Themes</p>
-                    <p className="text-sm font-semibold text-[#d63c6a]">
-                      {installStats.themes}
-                    </p>
+                    <p className="text-sm font-semibold text-[#d63c6a]">{installStats.themes}</p>
                   </div>
                 )}
               </div>
@@ -155,11 +128,7 @@ export default function InstallWizard({
                     >
                       <div
                         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
-                          isActive
-                            ? "bg-[#d63c6a] shadow-lg shadow-[#d63c6a]/50"
-                            : isComplete
-                              ? "bg-[#2a2a2a]"
-                              : "bg-[#1a1a1a]"
+                          isActive ? "bg-[#d63c6a] shadow-lg shadow-[#d63c6a]/50" : isComplete ? "bg-[#2a2a2a]" : "bg-[#1a1a1a]"
                         }`}
                       >
                         {isComplete ? (
@@ -171,16 +140,8 @@ export default function InstallWizard({
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h4
-                          className={`text-sm font-semibold ${isActive || isComplete ? "text-white" : "text-[#666]"}`}
-                        >
-                          {step.title}
-                        </h4>
-                        <p
-                          className={`text-xs ${isActive ? "text-[#a0a0a0]" : "text-[#666]"}`}
-                        >
-                          {step.description}
-                        </p>
+                        <h4 className={`text-sm font-semibold ${isActive || isComplete ? "text-white" : "text-[#666]"}`}>{step.title}</h4>
+                        <p className={`text-xs ${isActive ? "text-[#a0a0a0]" : "text-[#666]"}`}>{step.description}</p>
                       </div>
                     </div>
                   );
@@ -189,9 +150,7 @@ export default function InstallWizard({
 
               <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#0c0e11]">
                 <div className="flex items-center justify-between border-b border-[#2a2a2a] px-3 py-2">
-                  <span className="text-xs font-medium text-white">
-                    Installation Log
-                  </span>
+                  <span className="text-xs font-medium text-white">Installation Log</span>
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 animate-pulse rounded-full bg-[#d63c6a]"></div>
                     <span className="text-xs text-[#a0a0a0]">Live</span>
@@ -206,29 +165,19 @@ export default function InstallWizard({
         ) : (
           <>
             <div className="mb-3 space-y-0.5">
-              <h2 className="text-sm font-medium text-white">
-                Installation Requirements
-              </h2>
-              <p className="text-xs text-[#999999]">
-                Check which components are installed
-              </p>
+              <h2 className="text-sm font-medium text-white">Installation Requirements</h2>
+              <p className="text-xs text-[#999999]">Check which components are installed</p>
             </div>
 
             <div className="flex-1 space-y-2 overflow-y-auto pr-1">
               <div className="flex shrink-0 items-center justify-between rounded-lg border border-[#2a2a2a] bg-[#121418] px-4 py-3 transition-all hover:border-[#d63c6a] hover:bg-[#1a1a1a]">
                 <div className="flex min-w-0 items-center space-x-2">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-white">
-                      Spotify
-                    </p>
-                    <p className="text-xs text-[#a0a0a0]">
-                      Required for Spicetify
-                    </p>
+                    <p className="truncate text-sm font-medium text-white">Spotify</p>
+                    <p className="text-xs text-[#a0a0a0]">Required for Spicetify</p>
                   </div>
                 </div>
-                <div
-                  className={`ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#d63c6a]`}
-                >
+                <div className={`ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#d63c6a]`}>
                   {installStatus.spotify_installed ? (
                     <RxCheck className="h-4 w-4 font-bold text-white" />
                   ) : (
@@ -240,17 +189,11 @@ export default function InstallWizard({
               <div className="flex shrink-0 items-center justify-between rounded-lg border border-[#2a2a2a] bg-[#121418] px-4 py-3 transition-all hover:border-[#d63c6a] hover:bg-[#1a1a1a]">
                 <div className="flex min-w-0 items-center space-x-2">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-white">
-                      Spicetify
-                    </p>
-                    <p className="text-xs text-[#a0a0a0]">
-                      Customization framework
-                    </p>
+                    <p className="truncate text-sm font-medium text-white">Spicetify</p>
+                    <p className="text-xs text-[#a0a0a0]">Customization framework</p>
                   </div>
                 </div>
-                <div
-                  className={`ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#d63c6a]`}
-                >
+                <div className={`ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#d63c6a]`}>
                   {installStatus.spicetify_installed ? (
                     <RxCheck className="h-4 w-4 font-bold text-white" />
                   ) : (
