@@ -8,13 +8,7 @@ interface ConfirmDeleteModalProps {
   onCancel: () => void;
 }
 
-export default function ConfirmDeleteModal({
-  show,
-  itemName,
-  itemType,
-  onConfirm,
-  onCancel,
-}: ConfirmDeleteModalProps) {
+export default function ConfirmDeleteModal({ show, itemName, itemType, onConfirm, onCancel }: ConfirmDeleteModalProps) {
   if (!show) return null;
 
   return (
@@ -26,17 +20,12 @@ export default function ConfirmDeleteModal({
               <FaTrashAlt className="h-5 w-5 text-red-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">
-                Delete {itemType.charAt(0).toUpperCase() + itemType.slice(1)}
-              </h2>
-              <p className="text-sm text-[#a0a0a0]">
-                This action cannot be undone
-              </p>
+              <h2 className="text-xl font-bold text-white">Delete {itemType.charAt(0).toUpperCase() + itemType.slice(1)}</h2>
+              <p className="text-sm text-[#a0a0a0]">This action cannot be undone</p>
             </div>
           </div>
           <p className="mb-2 text-[#a0a0a0]">
-            Are you sure you want to delete{" "}
-            <span className="font-semibold text-white">"{itemName}"</span>?
+            Are you sure you want to delete <span className="font-semibold text-white">"{itemName}"</span>?
           </p>
           <p className="text-sm text-[#666]">
             {itemType === "theme"
@@ -47,10 +36,7 @@ export default function ConfirmDeleteModal({
           </p>
         </div>
         <div className="mt-6 flex justify-end space-x-3">
-          <button
-            onClick={onCancel}
-            className="rounded-md bg-gray-600 px-4 py-2 text-white duration-150 hover:bg-gray-700"
-          >
+          <button onClick={onCancel} className="rounded-md bg-gray-600 px-4 py-2 text-white duration-150 hover:bg-gray-700">
             Cancel
           </button>
           <button
