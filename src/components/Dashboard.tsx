@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  FaSync,
-  FaCheckCircle,
-  FaExclamationTriangle,
-  FaPuzzlePiece,
-  FaPalette,
-  FaAppStore,
-  FaCode,
-  FaChevronRight,
-} from "react-icons/fa";
+import { FaSync, FaCheckCircle, FaExclamationTriangle, FaPuzzlePiece, FaPalette, FaAppStore, FaCode, FaChevronRight } from "react-icons/fa";
 import RestoreModal from "./RestoreModal";
 
 export default function Dashboard({
@@ -26,9 +17,7 @@ export default function Dashboard({
   const [spicetifyVersion, setSpicetifyVersion] = useState<string | null>(null);
   const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [isRestoringProcess, setIsRestoringProcess] = useState(false);
-  const [restoreOutputError, setRestoreOutputError] = useState<string | null>(
-    null,
-  );
+  const [restoreOutputError, setRestoreOutputError] = useState<string | null>(null);
   const [restoreSuccess, setRestoreSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [extensionsCount, setExtensionsCount] = useState<number>(0);
@@ -36,8 +25,6 @@ export default function Dashboard({
   const [appsCount, setAppsCount] = useState<number>(0);
   const [activeExtensions, setActiveExtensions] = useState<number>(0);
   const [activeApps, setActiveApps] = useState<number>(0);
-  const [snippetsCount, setSnippetsCount] = useState<number>(0);
-  const [activeSnippets, setActiveSnippets] = useState<number>(0);
   const [activeThemeName, setActiveThemeName] = useState<string | null>(null);
 
   async function fetchVersions() {
@@ -61,9 +48,7 @@ export default function Dashboard({
       try {
         const extensions = await window.electron.getSpicetifyExtensions();
         setExtensionsCount(extensions.length);
-        setActiveExtensions(
-          extensions.filter((ext: any) => ext.isEnabled).length,
-        );
+        setActiveExtensions(extensions.filter((ext: any) => ext.isEnabled).length);
       } catch (err) {
         console.error("Failed to fetch extensions:", err);
       }
@@ -83,15 +68,6 @@ export default function Dashboard({
         setActiveApps(apps.filter((app: any) => app.isEnabled).length);
       } catch (err) {
         console.error("Failed to fetch apps:", err);
-      }
-
-      // Fetch snippets
-      try {
-        const snippets = await window.electron.getInstalledSnippets();
-        setSnippetsCount(snippets.length);
-        setActiveSnippets(snippets.filter((s: any) => s.isEnabled).length);
-      } catch (err) {
-        console.error("Failed to fetch snippets:", err);
       }
     } catch (err) {
       console.error("Failed to fetch status or IPC not ready:", err);
@@ -125,24 +101,17 @@ export default function Dashboard({
   useEffect(() => {
     fetchVersions();
 
-    const handleRestoreComplete = (
-      _event: any,
-      { success, error }: { success: boolean; error?: string },
-    ) => {
+    const handleRestoreComplete = (_event: any, { success, error }: { success: boolean; error?: string }) => {
       setIsRestoringProcess(false);
       if (success) {
         console.log("Restore completed successfully.");
         setRestoreSuccess(true);
       } else {
-        setRestoreOutputError(
-          error || "An unknown error occurred during restoration.",
-        );
+        setRestoreOutputError(error || "An unknown error occurred during restoration.");
       }
     };
 
-    const unsubscribe = window.electron.onRestoreComplete(
-      handleRestoreComplete,
-    );
+    const unsubscribe = window.electron.onRestoreComplete(handleRestoreComplete);
 
     return () => {
       unsubscribe();
@@ -153,9 +122,7 @@ export default function Dashboard({
     <div className="flex h-full flex-1 flex-col overflow-x-hidden overflow-y-auto bg-[#171b20] p-5">
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="mt-1 text-sm text-[#a0a0a0]">
-          Overview of your Spicetify installation
-        </p>
+        <p className="mt-1 text-sm text-[#a0a0a0]">Overview of your Spicetify installation</p>
       </div>
 
       {loading ? (
@@ -174,24 +141,16 @@ export default function Dashboard({
                   <>
                     <FaCheckCircle className="h-7 w-7 text-[#d63c6a]" />
                     <div>
-                      <h2 className="text-xl font-bold text-white">
-                        Everything's Running
-                      </h2>
-                      <p className="text-sm text-[#a0a0a0]">
-                        Spicetify is active and patched
-                      </p>
+                      <h2 className="text-xl font-bold text-white">Everything's Running</h2>
+                      <p className="text-sm text-[#a0a0a0]">Spicetify is active and patched</p>
                     </div>
                   </>
                 ) : (
                   <>
                     <FaExclamationTriangle className="h-7 w-7 text-yellow-500" />
                     <div>
-                      <h2 className="text-xl font-bold text-white">
-                        Setup Required
-                      </h2>
-                      <p className="text-sm text-[#a0a0a0]">
-                        Spicetify needs to be installed
-                      </p>
+                      <h2 className="text-xl font-bold text-white">Setup Required</h2>
+                      <p className="text-sm text-[#a0a0a0]">Spicetify needs to be installed</p>
                     </div>
                   </>
                 )}
@@ -210,9 +169,7 @@ export default function Dashboard({
             </div>
           </div>
 
-          {/* Stats Grid — clickable quick actions */}
-          <div className="grid grid-cols-4 gap-4">
-            {/* Extensions Card */}
+          <div className="grid grid-cols-3 gap-4">
             <button
               onClick={() => onNavigate?.("addons")}
               className="group relative flex flex-col overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#121418] p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-[#d63c6a]/10 active:scale-[0.98]"
@@ -220,34 +177,24 @@ export default function Dashboard({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FaPuzzlePiece className="h-4 w-4 text-[#d63c6a]" />
-                  <p className="text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">
-                    Extensions
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">Extensions</p>
                 </div>
                 <FaChevronRight className="h-3 w-3 text-[#333] transition-colors group-hover:text-[#d63c6a]" />
               </div>
               <div className="mt-1.5 flex-1">
-                <p className="text-3xl font-bold text-white">
-                  {extensionsCount}
-                </p>
-                <p className="mt-1 text-sm text-[#a0a0a0]">
-                  {activeExtensions} active
-                </p>
+                <p className="text-3xl font-bold text-white">{extensionsCount}</p>
+                <p className="mt-1 text-sm text-[#a0a0a0]">{activeExtensions} active</p>
               </div>
               <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#2a2a2a]">
                 <div
                   className="h-full bg-[#d63c6a] transition-all duration-500"
                   style={{
-                    width:
-                      extensionsCount > 0
-                        ? `${(activeExtensions / extensionsCount) * 100}%`
-                        : "0%",
+                    width: extensionsCount > 0 ? `${(activeExtensions / extensionsCount) * 100}%` : "0%",
                   }}
                 ></div>
               </div>
             </button>
 
-            {/* Themes Card */}
             <button
               onClick={() => onNavigate?.("themes")}
               className="group relative flex flex-col overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#121418] p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-[#d63c6a]/10 active:scale-[0.98]"
@@ -255,9 +202,7 @@ export default function Dashboard({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FaPalette className="h-4 w-4 text-[#d63c6a]" />
-                  <p className="text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">
-                    Themes
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">Themes</p>
                 </div>
                 <FaChevronRight className="h-3 w-3 text-[#333] transition-colors group-hover:text-[#d63c6a]" />
               </div>
@@ -270,7 +215,6 @@ export default function Dashboard({
               </div>
             </button>
 
-            {/* Apps Card */}
             <button
               onClick={() => onNavigate?.("apps")}
               className="group relative flex flex-col overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#121418] p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-[#d63c6a]/10 active:scale-[0.98]"
@@ -278,59 +222,19 @@ export default function Dashboard({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FaAppStore className="h-4 w-4 text-[#d63c6a]" />
-                  <p className="text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">
-                    Apps
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">Apps</p>
                 </div>
                 <FaChevronRight className="h-3 w-3 text-[#333] transition-colors group-hover:text-[#d63c6a]" />
               </div>
               <div className="mt-1.5 flex-1">
                 <p className="text-3xl font-bold text-white">{appsCount}</p>
-                <p className="mt-1 text-sm text-[#a0a0a0]">
-                  {activeApps} active
-                </p>
+                <p className="mt-1 text-sm text-[#a0a0a0]">{activeApps} active</p>
               </div>
               <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#2a2a2a]">
                 <div
                   className="h-full bg-[#d63c6a] transition-all duration-500"
                   style={{
-                    width:
-                      appsCount > 0
-                        ? `${(activeApps / appsCount) * 100}%`
-                        : "0%",
-                  }}
-                ></div>
-              </div>
-            </button>
-
-            {/* Snippets Card */}
-            <button
-              onClick={() => onNavigate?.("snippets")}
-              className="group relative flex flex-col overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#121418] p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-[#d63c6a]/10 active:scale-[0.98]"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FaCode className="h-4 w-4 text-[#d63c6a]" />
-                  <p className="text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">
-                    Snippets
-                  </p>
-                </div>
-                <FaChevronRight className="h-3 w-3 text-[#333] transition-colors group-hover:text-[#d63c6a]" />
-              </div>
-              <div className="mt-1.5 flex-1">
-                <p className="text-3xl font-bold text-white">{snippetsCount}</p>
-                <p className="mt-1 text-sm text-[#a0a0a0]">
-                  {activeSnippets} active
-                </p>
-              </div>
-              <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#2a2a2a]">
-                <div
-                  className="h-full bg-[#d63c6a] transition-all duration-500"
-                  style={{
-                    width:
-                      snippetsCount > 0
-                        ? `${(activeSnippets / snippetsCount) * 100}%`
-                        : "0%",
+                    width: appsCount > 0 ? `${(activeApps / appsCount) * 100}%` : "0%",
                   }}
                 ></div>
               </div>
@@ -338,11 +242,8 @@ export default function Dashboard({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Spotify Card */}
-            <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5 transition-all hover:border-[#d63c6a]">
-              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">
-                Spotify Client
-              </p>
+            <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-4 transition-all">
+              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">Spotify Client</p>
               <div className="space-y-3">
                 <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
                   <span className="text-sm text-[#a0a0a0]">Status</span>
@@ -362,23 +263,13 @@ export default function Dashboard({
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
                   <span className="text-sm text-[#a0a0a0]">Version</span>
-                  <span className="text-sm font-semibold text-white">
-                    {spotifyVersion || "—"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f] p-3">
-                  <span className="text-sm text-[#a0a0a0]">Active Theme</span>
-                  <span className="text-sm font-semibold text-white">
-                    {activeThemeName || "None"}
-                  </span>
+                  <span className="text-sm font-semibold text-white">{spotifyVersion || "—"}</span>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5 transition-all hover:border-[#d63c6a]">
-              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">
-                Spicetify CLI
-              </p>
+            <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-4 transition-all">
+              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">Spicetify CLI</p>
               <div className="space-y-3">
                 <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
                   <span className="text-sm text-[#a0a0a0]">Status</span>
@@ -398,9 +289,7 @@ export default function Dashboard({
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
                   <span className="text-sm text-[#a0a0a0]">Version</span>
-                  <span className="text-sm font-semibold text-white">
-                    {spicetifyVersion || "—"}
-                  </span>
+                  <span className="text-sm font-semibold text-white">{spicetifyVersion || "—"}</span>
                 </div>
               </div>
             </div>
