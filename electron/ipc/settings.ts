@@ -32,26 +32,19 @@ export async function readSettings(): Promise<AppSettings> {
 export async function writeSettings(settings: AppSettings): Promise<void> {
   const dir = path.dirname(getSettingsPath());
   await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(
-    getSettingsPath(),
-    JSON.stringify(settings, null, 2),
-    "utf-8",
-  );
+  await fs.writeFile(getSettingsPath(), JSON.stringify(settings, null, 2), "utf-8");
 }
 
 ipcMain.handle("get-settings", async (): Promise<AppSettings> => {
   return readSettings();
 });
 
-ipcMain.handle(
-  "update-settings",
-  async (_, settings: Partial<AppSettings>): Promise<AppSettings> => {
-    const current = await readSettings();
-    const updated = { ...current, ...settings };
-    await writeSettings(updated);
-    return updated;
-  },
-);
+ipcMain.handle("update-settings", async (_, settings: Partial<AppSettings>): Promise<AppSettings> => {
+  const current = await readSettings();
+  const updated = { ...current, ...settings };
+  await writeSettings(updated);
+  return updated;
+});
 
 ipcMain.handle("open-config-folder", async (): Promise<boolean> => {
   try {
@@ -63,18 +56,3 @@ ipcMain.handle("open-config-folder", async (): Promise<boolean> => {
     return false;
   }
 });
-
-ipcMain.handle(
-  "open-external-link",
-  async (_, url: string): Promise<boolean> => {
-    try {
-      if (!url.startsWith("http://") && !url.startsWith("https://"))
-        return false;
-      await shell.openExternal(url);
-      return true;
-    } catch (error) {
-      console.error("Failed to open external link:", error);
-      return false;
-    }
-  },
-);
