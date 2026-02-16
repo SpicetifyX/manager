@@ -252,7 +252,7 @@ export default function MarketplaceApps() {
             imageURL: app.imageURL,
             authors: app.authors,
             tags: app.tags,
-            stars: app.stars || app.stargazers_count,
+            stars: app.stargazers_count,
             lastUpdated: app.lastUpdated,
           };
           return <AddonInfoModal info={infoData} onClose={() => setInfoIndex(null)} />;
