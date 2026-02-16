@@ -2,6 +2,7 @@ import { useState } from "react";
 import Spinner from "./Spinner";
 import { FaTrash, FaInfoCircle } from "react-icons/fa";
 import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
+import StaticImage from "./StaticImage";
 
 export default function App({
   name,
@@ -10,6 +11,7 @@ export default function App({
   onToggle,
   onDelete,
   isToggling,
+  imageURL,
 }: {
   name: string;
   appId: string;
@@ -17,6 +19,7 @@ export default function App({
   onToggle: (appId: string, enable: boolean) => void;
   onDelete: (appId: string) => void;
   isToggling: boolean;
+  imageURL?: string;
 }) {
   const [showInfo, setShowInfo] = useState(false);
 
@@ -31,9 +34,11 @@ export default function App({
       <div className="flex w-full items-center justify-between border-b border-[#2a2a2a] px-4 py-3 transition-colors duration-200 hover:bg-[#1e2228]">
         <div className="flex min-w-0 flex-grow items-center">
           <div className="mr-4 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
-            <div className="flex h-full w-full items-center justify-center bg-[#1e2228]">
-              <img src="/spicetifyx-logo.png" alt="" className="h-8 w-8 opacity-40" />
-            </div>
+            <StaticImage
+              src={imageURL}
+              alt={`${name} icon`}
+              className="h-full w-full object-cover"
+            />
           </div>
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold text-white">{name}</h3>
