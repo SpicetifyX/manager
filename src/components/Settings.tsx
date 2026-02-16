@@ -1,11 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import {
-  FaDiscord,
-  FaFolder,
-  FaTrashAlt,
-  FaExternalLinkAlt,
-  FaGithub,
-} from "react-icons/fa";
+import { FaDiscord, FaFolder, FaTrashAlt, FaExternalLinkAlt, FaGithub } from "react-icons/fa";
 
 interface AppSettings {
   discordRpc: boolean;
@@ -42,7 +36,6 @@ export default function Settings() {
     const onScroll = () => showScrollbar();
     const onMouseMove = (e: MouseEvent) => {
       const rect = el.getBoundingClientRect();
-      // Only trigger when hovering the rightmost 12px (scrollbar zone)
       if (e.clientX >= rect.right - 12) showScrollbar();
     };
 
@@ -58,10 +51,7 @@ export default function Settings() {
   useEffect(() => {
     (async () => {
       try {
-        const [fetched, version] = await Promise.all([
-          window.electron.getSettings(),
-          window.electron.getAppVersion(),
-        ]);
+        const [fetched, version] = await Promise.all([window.electron.getSettings(), window.electron.getAppVersion()]);
         setSettings({ ...DEFAULTS, ...fetched });
         setAppVersion(version);
       } catch (err) {
@@ -72,15 +62,11 @@ export default function Settings() {
     })();
   }, []);
 
-  const updateSetting = async <K extends keyof AppSettings>(
-    key: K,
-    value: AppSettings[K],
-  ) => {
+  const updateSetting = async <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     const updated = { ...settings, [key]: value };
     setSettings(updated);
     await window.electron.updateSettings({ [key]: value });
 
-    // Side-effects for certain settings
     if (key === "discordRpc") {
       await window.electron.toggleDiscordRpc(value as boolean);
     }
@@ -104,9 +90,7 @@ export default function Settings() {
   };
 
   const handleOpenGitHub = () => {
-    window.electron.openExternalLink(
-      "https://github.com/Jeff53978/spicetify-installer",
-    );
+    window.electron.openExternalLink("https://github.com/SpicetifyX");
   };
 
   if (loading) {
@@ -121,40 +105,28 @@ export default function Settings() {
   }
 
   return (
-    <div
-      ref={scrollRef}
-      className="settings-scrollbar flex h-full flex-1 flex-col overflow-y-auto overflow-x-hidden bg-[#171b20] p-5"
-    >
-      {/* Header */}
+    <div ref={scrollRef} className="settings-scrollbar flex h-full flex-1 flex-col overflow-y-auto overflow-x-hidden bg-[#171b20] p-5">
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="mt-1 text-sm text-[#a0a0a0]">
-          Configure SpicetifyX Manager preferences
-        </p>
+        <p className="mt-1 text-sm text-[#a0a0a0]">Configure SpicetifyX Manager preferences</p>
       </div>
 
       <div className="flex flex-1 flex-col space-y-4">
-        {/* General Settings */}
         <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">
-            General
-          </p>
+          <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">General</p>
           <div className="space-y-4">
-            {/* Discord RPC */}
             <ToggleSetting
               label="Discord Rich Presence"
               description="Show SpicetifyX activity on your Discord profile"
               checked={settings.discordRpc}
               onChange={(v) => updateSetting("discordRpc", v)}
             />
-            {/* Close to Tray */}
             <ToggleSetting
               label="Close to System Tray"
               description="Minimize to the system tray instead of quitting when you close the window"
               checked={settings.closeToTray}
               onChange={(v) => updateSetting("closeToTray", v)}
             />
-            {/* Check Updates */}
             <ToggleSetting
               label="Check for Updates on Launch"
               description="Automatically check for SpicetifyX updates when the app starts"
@@ -164,44 +136,28 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">
-            Actions
-          </p>
+          <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">Actions</p>
           <div className="space-y-3">
-            {/* Clear Marketplace Cache */}
             <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f] p-3">
               <div>
-                <p className="text-sm font-medium text-white">
-                  Clear Marketplace Cache
-                </p>
-                <p className="text-xs text-[#666]">
-                  Force re-fetch all community data on next browse
-                </p>
+                <p className="text-sm font-medium text-white">Clear Marketplace Cache</p>
+                <p className="text-xs text-[#666]">Force re-fetch all community data on next browse</p>
               </div>
               <button
                 onClick={handleClearCache}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${
-                  cacheCleared
-                    ? "bg-green-600 text-white"
-                    : "bg-[#2a2a2a] text-white hover:bg-[#3a3a3a] active:scale-95"
-                }`}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${cacheCleared ? "bg-green-600 text-white" : "bg-[#2a2a2a] text-white hover:bg-[#3a3a3a] active:scale-95"
+                  }`}
               >
                 <FaTrashAlt className="h-3 w-3" />
                 {cacheCleared ? "Cleared!" : "Clear Cache"}
               </button>
             </div>
 
-            {/* Open Config Folder */}
             <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f] p-3">
               <div>
-                <p className="text-sm font-medium text-white">
-                  Open Config Folder
-                </p>
-                <p className="text-xs text-[#666]">
-                  Open the Spicetify configuration directory in File Explorer
-                </p>
+                <p className="text-sm font-medium text-white">Open Config Folder</p>
+                <p className="text-xs text-[#666]">Open the Spicetify configuration directory in File Explorer</p>
               </div>
               <button
                 onClick={handleOpenConfigFolder}
@@ -214,17 +170,12 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* About / Support */}
         <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">
-            About
-          </p>
+          <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">About</p>
           <div className="space-y-3">
             <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f] p-3">
               <span className="text-sm text-[#a0a0a0]">Version</span>
-              <span className="text-sm font-semibold text-white">
-                {appVersion || "—"}
-              </span>
+              <span className="text-sm font-semibold text-white">{appVersion || "—"}</span>
             </div>
             <button
               onClick={handleOpenDiscord}
@@ -233,12 +184,8 @@ export default function Settings() {
               <div className="flex items-center gap-3">
                 <FaDiscord className="h-5 w-5 text-[#5865F2]" />
                 <div className="text-left">
-                  <p className="text-sm font-medium text-white">
-                    Join our Discord
-                  </p>
-                  <p className="text-xs text-[#666]">
-                    Get support, share feedback, and stay updated
-                  </p>
+                  <p className="text-sm font-medium text-white">Join our Discord</p>
+                  <p className="text-xs text-[#666]">Get support, share feedback, and stay updated</p>
                 </div>
               </div>
               <FaExternalLinkAlt className="h-3 w-3 text-[#666]" />
@@ -250,12 +197,8 @@ export default function Settings() {
               <div className="flex items-center gap-3">
                 <FaGithub className="h-5 w-5 text-white" />
                 <div className="text-left">
-                  <p className="text-sm font-medium text-white">
-                    GitHub Repository
-                  </p>
-                  <p className="text-xs text-[#666]">
-                    View source code, report issues, and contribute
-                  </p>
+                  <p className="text-sm font-medium text-white">GitHub Repository</p>
+                  <p className="text-xs text-[#666]">View source code, report issues, and contribute</p>
                 </div>
               </div>
               <FaExternalLinkAlt className="h-3 w-3 text-[#666]" />
@@ -267,7 +210,6 @@ export default function Settings() {
   );
 }
 
-/* ─── Toggle Switch Component ─── */
 function ToggleSetting({
   label,
   description,
@@ -287,14 +229,11 @@ function ToggleSetting({
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${
-          checked ? "bg-[#d63c6a]" : "bg-[#2a2a2a]"
-        }`}
+        className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${checked ? "bg-[#d63c6a]" : "bg-[#2a2a2a]"}`}
       >
         <span
-          className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${
-            checked ? "translate-x-5" : "translate-x-0"
-          }`}
+          className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${checked ? "translate-x-5" : "translate-x-0"
+            }`}
         />
       </button>
     </div>
