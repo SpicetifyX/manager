@@ -146,8 +146,9 @@ export default function Settings() {
               </div>
               <button
                 onClick={handleClearCache}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${cacheCleared ? "bg-green-600 text-white" : "bg-[#2a2a2a] text-white hover:bg-[#3a3a3a] active:scale-95"
-                  }`}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                  cacheCleared ? "bg-green-600 text-white" : "bg-[#2a2a2a] text-white hover:bg-[#3a3a3a] active:scale-95"
+                }`}
               >
                 <FaTrashAlt className="h-3 w-3" />
                 {cacheCleared ? "Cleared!" : "Clear Cache"}
@@ -232,8 +233,9 @@ function ToggleSetting({
         className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${checked ? "bg-[#d63c6a]" : "bg-[#2a2a2a]"}`}
       >
         <span
-          className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${checked ? "translate-x-5" : "translate-x-0"
-            }`}
+          className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${
+            checked ? "translate-x-5" : "translate-x-0"
+          }`}
         />
       </button>
     </div>
