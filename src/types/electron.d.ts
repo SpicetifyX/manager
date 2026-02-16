@@ -41,6 +41,7 @@ declare global {
         user: string,
         repo: string,
         appName: string,
+        branch?: string,
         meta?: Record<string, any>,
       ) => Promise<boolean>;
       deleteSpicetifyExtension: (addonFileName: string) => Promise<boolean>;
