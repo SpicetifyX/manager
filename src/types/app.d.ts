@@ -4,6 +4,7 @@ export type AppManifest = {
   activeIcon: string;
   subfiles: string[];
   subfiles_extension: string[];
+  imageURL?: string;
 };
 
 export type AppInfo = {
