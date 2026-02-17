@@ -5,9 +5,7 @@
       "repo": "https://github.com/rxri/spicetify-extensions",
       "path": "adblock",
       "branch": "main",
-      "raw_files": [
-        "https://raw.githubusercontent.com/rxri/spicetify-extensions/refs/heads/main/adblock/adblock.js"
-      ],
+      "raw_files": ["https://raw.githubusercontent.com/rxri/spicetify-extensions/refs/heads/main/adblock/adblock.js"],
       "raw_meta_url": null,
       "raw_meta_content": {
         "name": "adblockify",
@@ -19,12 +17,7 @@
             "url": "https://github.com/rxri"
           }
         ],
-        "tags": [
-          "ads",
-          "block",
-          "remove",
-          "disable"
-        ]
+        "tags": ["ads", "block", "remove", "disable"]
       },
       "authors": [
         {
@@ -32,12 +25,7 @@
           "url": "https://github.com/rxri"
         }
       ],
-      "tags": [
-        "ads",
-        "block",
-        "remove",
-        "disable"
-      ],
+      "tags": ["ads", "block", "remove", "disable"],
       "file_name": "adblock.js"
     },
     {
@@ -45,9 +33,7 @@
       "repo": "https://github.com/Vexcited/better-spotify-genres",
       "path": ".",
       "branch": "build",
-      "raw_files": [
-        "https://raw.githubusercontent.com/Vexcited/better-spotify-genres/refs/heads/build/spotifyGenres.js"
-      ],
+      "raw_files": ["https://raw.githubusercontent.com/Vexcited/better-spotify-genres/refs/heads/build/spotifyGenres.js"],
       "raw_meta_url": null,
       "raw_meta_content": {
         "name": "Better Spotify Genres",
@@ -97,9 +83,7 @@
           "url": "https://github.com/Jeff53978"
         }
       ],
-      "tags": [
-        "official"
-      ]
+      "tags": ["official"]
     }
   ],
   "apps": []
