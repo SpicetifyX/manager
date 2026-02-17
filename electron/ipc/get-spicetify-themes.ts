@@ -9,11 +9,16 @@ ipcMain.handle("get-spicetify-themes", async (): Promise<ThemeInfo[]> => {
     const configPath = getConfigFilePath();
 
     let currentTheme: string | null = null;
+    let currentColorScheme: string | null = null;
     try {
       const configContent = await fs.readFile(configPath, "utf-8");
       const themeMatch = configContent.match(/^current_theme\s*=\s*(.*)$/m);
       if (themeMatch && themeMatch[1]) {
         currentTheme = themeMatch[1].trim();
+      }
+      const schemeMatch = configContent.match(/^color_scheme\s*=\s*(.*)$/m);
+      if (schemeMatch && schemeMatch[1]) {
+        currentColorScheme = schemeMatch[1].trim();
       }
     } catch (error) {
       console.warn("Could not read Spicetify config-xpui.ini or current_theme not found:", error);
@@ -48,6 +53,19 @@ ipcMain.handle("get-spicetify-themes", async (): Promise<ThemeInfo[]> => {
 
         if (!hasUserCss && !hasColorIni) continue;
 
+        let colorSchemes: string[] = [];
+        if (hasColorIni) {
+          try {
+            const colorIniContent = await fs.readFile(path.join(themeDir, "color.ini"), "utf-8");
+            const schemeMatches = colorIniContent.matchAll(/^\[(.+)\]/gm);
+            for (const match of schemeMatches) {
+              colorSchemes.push(match[1].trim());
+            }
+          } catch (e) {
+            console.log(e);
+          }
+        }
+
         let meta: any = null;
         try {
           const metaPath = path.join(themeDir, "theme.meta.json");
@@ -68,6 +86,8 @@ ipcMain.handle("get-spicetify-themes", async (): Promise<ThemeInfo[]> => {
           id: themeId,
           isActive: themeId === currentTheme,
           isBundled: false,
+          colorSchemes: colorSchemes.length > 0 ? colorSchemes : undefined,
+          activeColorScheme: themeId === currentTheme && currentColorScheme ? currentColorScheme : undefined,
         });
       }
     } catch (e) {
