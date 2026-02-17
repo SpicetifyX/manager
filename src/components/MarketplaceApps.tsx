@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { AppInfo } from "../types/app.d";
 import { FaChevronLeft, FaDownload, FaInfoCircle } from "react-icons/fa";
 import App from "./App";
@@ -29,12 +29,24 @@ export default function MarketplaceApps() {
     id: string;
     name: string;
   } | null>(null);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const observer = useRef<IntersectionObserver>();
 
-  const fetchCommunityApps = async () => {
-    setCommunityLoading(true);
+  const fetchCommunityApps = async (loadMore = false) => {
+    const targetPage = loadMore ? page + 1 : 1;
+    if (targetPage === 1) {
+      setCommunityLoading(true);
+      setCommunityApps([]);
+      setHasMore(true);
+    } else {
+      setLoadingMore(true);
+    }
     setCommunityError(null);
+
     try {
-      const pageOfRepos = await getTaggedRepos("spicetify-apps", 1, [], false);
+      const pageOfRepos = await getTaggedRepos("spicetify-apps", targetPage, [], false);
       const results = await Promise.allSettled(
         pageOfRepos.items.map((repo: any) =>
           fetchAppManifest(repo.contents_url, repo.default_branch, repo.stargazers_count).then(
@@ -60,12 +72,20 @@ export default function MarketplaceApps() {
           );
         }
       }
-      setCommunityApps(allApps);
+      setCommunityApps((prev) => (targetPage === 1 ? allApps : [...prev, ...allApps]));
+      setPage(targetPage);
+      if (pageOfRepos.items.length === 0 || pageOfRepos.items.length < 30) {
+        setHasMore(false);
+      }
     } catch (err: any) {
       console.error("Failed to fetch community apps:", err);
       setCommunityError(err.message?.includes("403") ? "GitHub API rate limit reached. Try again later." : "Failed to load community apps.");
     } finally {
-      setCommunityLoading(false);
+      if (targetPage === 1) {
+        setCommunityLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
     }
   };
 
@@ -90,7 +110,7 @@ export default function MarketplaceApps() {
   }, []);
 
   useEffect(() => {
-    if (browsingContent && communityApps.length === 0 && !communityLoading) {
+    if (browsingContent) {
       fetchCommunityApps();
     }
   }, [browsingContent]);
@@ -205,6 +225,20 @@ export default function MarketplaceApps() {
     }
   };
 
+  const lastAppElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (communityLoading || loadingMore) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          fetchCommunityApps(true);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [communityLoading, loadingMore, hasMore],
+  );
+
   return browsingContent ? (
     <div className="flex h-full w-full flex-col overflow-hidden">
       <div className="flex h-12 w-full flex-shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-[#121418] pl-1 select-none">
@@ -224,7 +258,7 @@ export default function MarketplaceApps() {
         <div className="flex flex-1 items-center justify-center">
           <div className="flex flex-col items-center space-y-4">
             <span className="text-lg text-red-400">{communityError}</span>
-            <button onClick={fetchCommunityApps} className="rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c52c5a]">
+            <button onClick={() => fetchCommunityApps()} className="rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c52c5a]">
               Retry
             </button>
           </div>
@@ -249,6 +283,7 @@ export default function MarketplaceApps() {
 
               return (
                 <div
+                  ref={index === communityApps.length - 1 ? lastAppElementRef : null}
                   key={`${app.user}/${app.repo}/${app.title}`}
                   className={`group relative flex h-64 max-h-64 w-full flex-col rounded-lg border ${app.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
                 >
@@ -310,6 +345,11 @@ export default function MarketplaceApps() {
               );
             })}
           </div>
+          {loadingMore && (
+            <div className="mt-4 flex justify-center">
+              <Spinner />
+            </div>
+          )}
         </div>
       )}
 
