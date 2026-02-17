@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { ThemeInfo } from "../types/theme.d";
 import Theme from "./Theme";
 import { FaChevronLeft, FaDownload, FaInfoCircle } from "react-icons/fa";
@@ -30,12 +30,23 @@ export default function MarketplaceThemes() {
     name: string;
   } | null>(null);
   const themesRef = useRef<ThemeInfo[]>([]);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  const fetchCommunityThemes = async () => {
-    setCommunityLoading(true);
+  const fetchCommunityThemes = async (loadMore = false) => {
+    const targetPage = loadMore ? page + 1 : 1;
+    if (targetPage === 1) {
+      setCommunityLoading(true);
+      setCommunityThemes([]);
+      setHasMore(true);
+    } else {
+      setLoadingMore(true);
+    }
     setCommunityError(null);
+
     try {
-      const pageOfRepos = await getTaggedRepos("spicetify-themes", 1, [], false);
+      const pageOfRepos = await getTaggedRepos("spicetify-themes", targetPage, [], false);
       const results = await Promise.allSettled(
         pageOfRepos.items.map((repo: any) =>
           fetchThemeManifest(repo.contents_url, repo.default_branch, repo.stargazers_count).then(
@@ -61,12 +72,20 @@ export default function MarketplaceThemes() {
           );
         }
       }
-      setCommunityThemes(allThemes);
+      setCommunityThemes((prev) => (targetPage === 1 ? allThemes : [...prev, ...allThemes]));
+      setPage(targetPage);
+      if (pageOfRepos.items.length === 0 || pageOfRepos.items.length < 30) {
+        setHasMore(false);
+      }
     } catch (err: any) {
       console.error("Failed to fetch community themes:", err);
       setCommunityError(err.message?.includes("403") ? "GitHub API rate limit reached. Try again later." : "Failed to load community themes.");
     } finally {
-      setCommunityLoading(false);
+      if (targetPage === 1) {
+        setCommunityLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
     }
   };
 
@@ -92,7 +111,7 @@ export default function MarketplaceThemes() {
   }, []);
 
   useEffect(() => {
-    if (browsingContent && communityThemes.length === 0 && !communityLoading) {
+    if (browsingContent) {
       fetchCommunityThemes();
     }
   }, [browsingContent]);
@@ -200,6 +219,21 @@ export default function MarketplaceThemes() {
     }
   };
 
+  const observer = useRef<IntersectionObserver>();
+  const lastThemeElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (communityLoading || loadingMore) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          fetchCommunityThemes(true);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [communityLoading, loadingMore, hasMore],
+  );
+
   return browsingContent ? (
     <div className="flex h-full w-full flex-col overflow-hidden">
       <div className="flex h-12 w-full flex-shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-[#121418] pl-1 select-none">
@@ -220,7 +254,7 @@ export default function MarketplaceThemes() {
           <div className="flex flex-col items-center space-y-4">
             <span className="text-lg text-red-400">{communityError}</span>
             <button
-              onClick={fetchCommunityThemes}
+              onClick={() => fetchCommunityThemes()}
               className="rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c52c5a]"
             >
               Retry
@@ -247,6 +281,7 @@ export default function MarketplaceThemes() {
 
               return (
                 <div
+                  ref={index === communityThemes.length - 1 ? lastThemeElementRef : null}
                   key={`${ext.user}/${ext.repo}/${ext.title}`}
                   className={`group relative flex h-64 max-h-64 w-full flex-col rounded-lg border ${ext.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
                 >
@@ -308,6 +343,11 @@ export default function MarketplaceThemes() {
               );
             })}
           </div>
+          {loadingMore && (
+            <div className="mt-4 flex justify-center">
+              <Spinner />
+            </div>
+          )}
         </div>
       )}
 
