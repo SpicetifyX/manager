@@ -16,7 +16,8 @@ export type MarketplaceAppMeta = {
 
 ipcMain.handle("install-marketplace-app", async (_, user: string, repo: string, appName: string, meta?: MarketplaceAppMeta): Promise<boolean> => {
   try {
-    console.log(`[install-marketplace-app] Installing app "${appName}" from ${user}/${repo}`);
+    console.log(`Downloading from repo: https://github.com/${user}/${repo}`);
+    console.log(`[install-marketplace-app] Installing app "${appName}" from ${user}/${repo}, meta: ${meta}`);
 
     let archiveUrl: string;
     let jsSubdir: string | null = null;
