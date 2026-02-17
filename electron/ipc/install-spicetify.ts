@@ -15,9 +15,14 @@ ipcMain.on("start-install", async (event: IpcMainEvent) => {
 
     await spicetifyCommand(spicetifyExec, ["config", "always_enable_devtools", "1"]);
 
+    // Auto enable theme
     await spicetifyCommand(spicetifyExec, ["config", "current_theme", "SpicetifyX"]);
-    await spicetifyCommand(spicetifyExec, ["config", "extensions", "adblock.js"]);
     await spicetifyCommand(spicetifyExec, ["config", "color_scheme", "main"]);
+
+    // Auto enable extensions
+    await spicetifyCommand(spicetifyExec, ["config", "extensions", "adblock.js"]);
+    await spicetifyCommand(spicetifyExec, ["config", "extensions", "spotifyGenres.js"]);
+
     await spicetifyCommand(spicetifyExec, ["backup", "apply"], sendOutput);
 
     let spotifyPath;
