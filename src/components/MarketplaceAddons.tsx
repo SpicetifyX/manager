@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { AddonInfo } from "../types/addon.d";
 import Addon from "./Addon";
 import { FaChevronLeft, FaDownload, FaInfoCircle } from "react-icons/fa";
@@ -30,12 +30,24 @@ export default function MarketplaceAddons() {
     name: string;
   } | null>(null);
   const addonsRef = useRef<AddonInfo[]>([]);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  const fetchCommunityExtensions = async () => {
-    setCommunityLoading(true);
+  const fetchCommunityExtensions = async (loadMore = false) => {
+    const targetPage = loadMore ? page + 1 : 1;
+    if (targetPage === 1) {
+      setCommunityLoading(true);
+      setCommunityExtensions([]);
+      setHasMore(true);
+    } else {
+      setLoadingMore(true);
+    }
     setCommunityError(null);
+
     try {
-      const pageOfRepos = await getTaggedRepos("spicetify-extensions", 1, [], false);
+      const pageOfRepos = await getTaggedRepos("spicetify-extensions", targetPage, [], false);
+
       const results = await Promise.allSettled(
         pageOfRepos.items.map((repo: any) =>
           fetchExtensionManifest(repo.contents_url, repo.default_branch, repo.stargazers_count).then(
@@ -61,12 +73,20 @@ export default function MarketplaceAddons() {
           );
         }
       }
-      setCommunityExtensions(extensions);
+      setCommunityExtensions((prev) => (targetPage === 1 ? extensions : [...prev, ...extensions]));
+      setPage(targetPage);
+      if (pageOfRepos.items.length === 0 || pageOfRepos.items.length < 30) {
+        setHasMore(false);
+      }
     } catch (err: any) {
       console.error("Failed to fetch community extensions:", err);
       setCommunityError(err.message?.includes("403") ? "GitHub API rate limit reached. Try again later." : "Failed to load community extensions.");
     } finally {
-      setCommunityLoading(false);
+      if (targetPage === 1) {
+        setCommunityLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
     }
   };
 
@@ -92,7 +112,7 @@ export default function MarketplaceAddons() {
   }, []);
 
   useEffect(() => {
-    if (browsingContent && communityExtensions.length === 0 && !communityLoading) {
+    if (browsingContent) {
       fetchCommunityExtensions();
     }
   }, [browsingContent]);
@@ -208,6 +228,21 @@ export default function MarketplaceAddons() {
     }
   };
 
+  const observer = useRef<IntersectionObserver>();
+  const lastAddonElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (communityLoading || loadingMore) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          fetchCommunityExtensions(true);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [communityLoading, loadingMore, hasMore],
+  );
+
   return browsingContent ? (
     <div className="flex h-full w-full flex-col overflow-hidden">
       <div className="flex h-12 w-full flex-shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-[#121418] pl-1 select-none">
@@ -228,7 +263,7 @@ export default function MarketplaceAddons() {
           <div className="flex flex-col items-center space-y-4">
             <span className="text-lg text-red-400">{communityError}</span>
             <button
-              onClick={fetchCommunityExtensions}
+              onClick={() => fetchCommunityExtensions()}
               className="rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c52c5a]"
             >
               Retry
@@ -255,6 +290,7 @@ export default function MarketplaceAddons() {
 
               return (
                 <div
+                  ref={index === communityExtensions.length - 1 ? lastAddonElementRef : null}
                   key={`${ext.user}/${ext.repo}/${ext.title}`}
                   className={`group relative flex h-64 max-h-64 w-full flex-col rounded-lg border ${ext.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
                 >
@@ -316,6 +352,11 @@ export default function MarketplaceAddons() {
               );
             })}
           </div>
+          {loadingMore && (
+            <div className="mt-4 flex justify-center">
+              <Spinner />
+            </div>
+          )}
         </div>
       )}
 
