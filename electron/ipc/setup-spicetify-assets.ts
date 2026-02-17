@@ -94,7 +94,8 @@ ipcMain.handle("setup-spicetify-assets", async () => {
 
     try {
       await fs.rm(tempDir, { recursive: true, force: true });
-    } catch {
+    } catch (e) {
+      console.error(`Failed to remove temporary directory ${tempDir}:`, e);
     }
 
     console.log(`App "${app.name}" installed to ${destDir}`);
