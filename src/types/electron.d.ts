@@ -24,6 +24,7 @@ declare global {
       getThemeAssetPath: (relativePath: string) => Promise<string>;
       getSpicetifyThemes: () => Promise<ThemeInfo[]>;
       applySpicetifyTheme: (themeId: string) => Promise<boolean>;
+      setColorScheme: (themeId: string, scheme: string) => Promise<boolean>;
       setRpcActivity: (details: string) => Promise<void>;
       toggleSpicetifyApp: (appId: string, enable: boolean) => Promise<boolean>;
       getSpicetifyApps: () => Promise<AppInfo[]>;
