@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { ThemeInfo } from "../types/theme.d";
 import Theme from "./Theme";
-import { FaChevronLeft, FaDownload, FaInfoCircle } from "react-icons/fa";
+import { FaChevronLeft, FaDownload, FaInfoCircle, FaSearch, FaTimes } from "react-icons/fa";
 import { fetchThemeManifest, getTaggedRepos } from "../utils/fetchRemotes";
 import { CardItem } from "../utils/marketplace-types";
 import Spinner from "./Spinner";
@@ -33,6 +33,8 @@ export default function MarketplaceThemes() {
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const fetchCommunityThemes = async (loadMore = false) => {
     const targetPage = loadMore ? page + 1 : 1;
@@ -219,6 +221,40 @@ export default function MarketplaceThemes() {
     }
   };
 
+  const sortTags = ["Popular", "Newest", "Recently Updated"] as const;
+  const contentTags = ["Hazy", "Transparent", "Dark", "Minimal"] as const;
+  const smartTags = [...sortTags, ...contentTags];
+
+  const filteredThemes = useMemo(() => {
+    let result = communityThemes.map((t, idx) => ({ theme: t, origIdx: idx }));
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        ({ theme: t }) =>
+          t.title?.toLowerCase().includes(q) ||
+          t.subtitle?.toLowerCase().includes(q) ||
+          t.user?.toLowerCase().includes(q) ||
+          t.tags?.some((tag) => tag.toLowerCase().includes(q)),
+      );
+    }
+    // Content tag filtering (Dark, Colorful, Minimal)
+    const activeContentTags = selectedTags.filter((t) => (contentTags as readonly string[]).includes(t));
+    if (activeContentTags.length > 0) {
+      result = result.filter(({ theme: t }) =>
+        Array.isArray(t.tags) && activeContentTags.every((tag) => t.tags.some((tt) => tt.toLowerCase() === tag.toLowerCase())),
+      );
+    }
+    // Sort tag (mutually exclusive)
+    if (selectedTags.includes("Popular")) {
+      result.sort((a, b) => (b.theme.stargazers_count || 0) - (a.theme.stargazers_count || 0));
+    } else if (selectedTags.includes("Newest")) {
+      result.sort((a, b) => new Date(b.theme.created || 0).getTime() - new Date(a.theme.created || 0).getTime());
+    } else if (selectedTags.includes("Recently Updated")) {
+      result.sort((a, b) => new Date(b.theme.lastUpdated || 0).getTime() - new Date(a.theme.lastUpdated || 0).getTime());
+    }
+    return result;
+  }, [communityThemes, searchQuery, selectedTags]);
+
   const observer = useRef<IntersectionObserver>();
   const lastThemeElementRef = useCallback(
     (node: HTMLDivElement) => {
@@ -236,16 +272,51 @@ export default function MarketplaceThemes() {
 
   return browsingContent ? (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <div className="flex h-12 w-full flex-shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-[#121418] pl-1 select-none">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setBrowsingContent(false)}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2a2a] hover:text-white"
-            title="Back"
-          >
-            <FaChevronLeft />
-          </button>
-          <span className="text-gray-300">Browsing Community Themes</span>
+      <div className="flex w-full flex-shrink-0 flex-col border-b border-[#2a2a2a] bg-[#121418] select-none">
+        <div className="flex h-12 items-center justify-between pl-1 pr-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setBrowsingContent(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2a2a] hover:text-white"
+              title="Back"
+            >
+              <FaChevronLeft />
+            </button>
+            <span className="text-gray-300">Browsing Community Themes</span>
+          </div>
+          <div className="relative">
+            <FaSearch className="pointer-events-none absolute top-1/2 left-2.5 h-3 w-3 -translate-y-1/2 text-[#666]" />
+            <input
+              type="text"
+              placeholder="Search themes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8 w-72 rounded-full border border-[#2a2a2a] bg-[#1a1a1a] pl-8 pr-3 text-sm text-white placeholder-[#666] outline-none transition-colors focus:border-[#d63c6a]"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 px-3 pb-2">
+          {smartTags.map((tag) => {
+            const isSortTag = (sortTags as readonly string[]).includes(tag);
+            return (
+              <button
+                key={tag}
+                onClick={() => setSelectedTags((prev) => {
+                  if (prev.includes(tag)) return prev.filter((t) => t !== tag);
+                  if (isSortTag) return [...prev.filter((t) => !(sortTags as readonly string[]).includes(t)), tag];
+                  return [...prev, tag];
+                })}
+                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                  selectedTags.includes(tag)
+                    ? "bg-[#d63c6a] text-white"
+                    : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
+                }`}
+              >
+                {tag}
+                {selectedTags.includes(tag) && <FaTimes className="h-2.5 w-2.5" />}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -275,13 +346,13 @@ export default function MarketplaceThemes() {
       ) : (
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-6 text-white">
           <div className="grid w-full grid-cols-3 gap-4">
-            {communityThemes.map((ext, index) => {
+            {filteredThemes.map(({ theme: ext, origIdx }, i) => {
               const hasImage = ext.imageURL && /\.(png|jpg|jpeg|gif|webp|svg)/i.test(ext.imageURL);
-              const isInstalling = installingIndex === index;
+              const isInstalling = installingIndex === origIdx;
 
               return (
                 <div
-                  ref={index === communityThemes.length - 1 ? lastThemeElementRef : null}
+                  ref={i === filteredThemes.length - 1 ? lastThemeElementRef : null}
                   key={`${ext.user}/${ext.repo}/${ext.title}`}
                   className={`group relative flex h-64 max-h-64 w-full flex-col rounded-lg border ${ext.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
                 >
@@ -317,14 +388,14 @@ export default function MarketplaceThemes() {
                     <div className="absolute hidden h-full w-full rounded-t-lg bg-gradient-to-b from-black/75 to-black/5 transition-all duration-200 group-hover:block">
                       <div className="flex w-full items-center justify-end gap-1 pt-2 pr-2">
                         <button
-                          onClick={() => setInfoIndex(index)}
+                          onClick={() => setInfoIndex(origIdx)}
                           className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1a1a1a] bg-gray-500 p-1 hover:bg-gray-400 transition-colors"
                           title="Info"
                         >
                           <FaInfoCircle />
                         </button>
                         <button
-                          onClick={() => handleInstallTheme(ext, index)}
+                          onClick={() => handleInstallTheme(ext, origIdx)}
                           disabled={isInstalling}
                           className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1a1a1a] bg-[#d63c6a] p-1 hover:bg-[#c52c5a] transition-colors disabled:opacity-50"
                           title="Install"
