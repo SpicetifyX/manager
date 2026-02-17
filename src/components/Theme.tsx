@@ -96,7 +96,7 @@ export default function Theme({
               <FaTrash className="h-4 w-4" />
             </button>
           )}
-          {theme.isActive && (
+          {theme.isActive && theme.colorSchemes && theme.colorSchemes.length > 1 && (
           <div className="relative" ref={schemeRef}>
             <button
               onClick={() => !isApplying && !applyingScheme && setSchemeOpen(!schemeOpen)}
