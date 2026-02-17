@@ -38,7 +38,7 @@ ipcMain.handle("get-spicetify-apps", async (): Promise<AppInfo[]> => {
 
         const isEnabled = enabledApps.includes(appId);
 
-        let appInfo: AppInfo = {
+        const appInfo: AppInfo = {
           name: appId,
           icon: "",
           activeIcon: "",
