@@ -110,6 +110,7 @@ app.whenReady().then(async () => {
   await import("./ipc/delete-spicetify-theme.ts");
   await import("./ipc/install-spicetify-binary.ts");
   await import("./ipc/setup-spicetify-assets.ts");
+  await import("./ipc/set-color-scheme.ts");
 
   const { readSettings } = await import("./ipc/settings.ts");
   const appSettings = await readSettings();
