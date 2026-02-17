@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld("electron", {
   getThemeAssetPath: (relativePath: string) => ipcRenderer.invoke("get-theme-asset-path", relativePath),
   getSpicetifyThemes: () => ipcRenderer.invoke("get-spicetify-themes"),
   applySpicetifyTheme: (themeId: string) => ipcRenderer.invoke("apply-spicetify-theme", themeId),
+  setColorScheme: (themeId: string, scheme: string) => ipcRenderer.invoke("set-color-scheme", themeId, scheme),
   setRpcActivity: (details: string) => ipcRenderer.invoke("set-rpc-activity", details),
   toggleSpicetifyApp: (appId: string, enable: boolean) => ipcRenderer.invoke("toggle-spicetify-app", appId, enable),
   getSpicetifyApps: () => ipcRenderer.invoke("get-spicetify-apps"),
