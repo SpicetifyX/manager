@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { AddonInfo } from "../types/addon.d";
 import Addon from "./Addon";
-import { FaChevronLeft, FaDownload, FaInfoCircle } from "react-icons/fa";
+import { FaChevronLeft, FaDownload, FaInfoCircle, FaSearch, FaTimes } from "react-icons/fa";
 import { fetchExtensionManifest, getTaggedRepos } from "../utils/fetchRemotes";
 import { CardItem } from "../utils/marketplace-types";
 import Spinner from "./Spinner";
@@ -33,6 +33,8 @@ export default function MarketplaceAddons() {
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const fetchCommunityExtensions = async (loadMore = false) => {
     const targetPage = loadMore ? page + 1 : 1;
@@ -228,6 +230,38 @@ export default function MarketplaceAddons() {
     }
   };
 
+  const sortTags = ["Popular", "Newest", "Recently Updated"] as const;
+  const contentTags = ["Lyrics", "UI", "Utility", "Playback"] as const;
+  const smartTags = [...sortTags, ...contentTags];
+
+  const filteredExtensions = useMemo(() => {
+    let result = communityExtensions.map((ext, idx) => ({ ext, origIdx: idx }));
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        ({ ext }) =>
+          ext.title?.toLowerCase().includes(q) ||
+          ext.subtitle?.toLowerCase().includes(q) ||
+          ext.user?.toLowerCase().includes(q) ||
+          ext.tags?.some((t) => t.toLowerCase().includes(q)),
+      );
+    }
+    const activeContentTags = selectedTags.filter((t) => (contentTags as readonly string[]).includes(t));
+    if (activeContentTags.length > 0) {
+      result = result.filter(({ ext }) =>
+        Array.isArray(ext.tags) && activeContentTags.every((tag) => ext.tags.some((tt) => tt.toLowerCase() === tag.toLowerCase())),
+      );
+    }
+    if (selectedTags.includes("Popular")) {
+      result.sort((a, b) => (b.ext.stargazers_count || 0) - (a.ext.stargazers_count || 0));
+    } else if (selectedTags.includes("Newest")) {
+      result.sort((a, b) => new Date(b.ext.created || 0).getTime() - new Date(a.ext.created || 0).getTime());
+    } else if (selectedTags.includes("Recently Updated")) {
+      result.sort((a, b) => new Date(b.ext.lastUpdated || 0).getTime() - new Date(a.ext.lastUpdated || 0).getTime());
+    }
+    return result;
+  }, [communityExtensions, searchQuery, selectedTags]);
+
   const observer = useRef<IntersectionObserver>();
   const lastAddonElementRef = useCallback(
     (node: HTMLDivElement) => {
@@ -245,16 +279,51 @@ export default function MarketplaceAddons() {
 
   return browsingContent ? (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <div className="flex h-12 w-full flex-shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-[#121418] pl-1 select-none">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setBrowsingContent(false)}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2a2a] hover:text-white"
-            title="Back"
-          >
-            <FaChevronLeft />
-          </button>
-          <span className="text-gray-300">Browsing Community Extensions</span>
+      <div className="flex w-full flex-shrink-0 flex-col border-b border-[#2a2a2a] bg-[#121418] select-none">
+        <div className="flex h-12 items-center justify-between pl-1 pr-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setBrowsingContent(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2a2a] hover:text-white"
+              title="Back"
+            >
+              <FaChevronLeft />
+            </button>
+            <span className="text-gray-300">Browsing Community Extensions</span>
+          </div>
+          <div className="relative">
+            <FaSearch className="pointer-events-none absolute top-1/2 left-2.5 h-3 w-3 -translate-y-1/2 text-[#666]" />
+            <input
+              type="text"
+              placeholder="Search extensions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8 w-72 rounded-full border border-[#2a2a2a] bg-[#1a1a1a] pl-8 pr-3 text-sm text-white placeholder-[#666] outline-none transition-colors focus:border-[#d63c6a]"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 px-3 pb-2">
+          {smartTags.map((tag) => {
+            const isSortTag = (sortTags as readonly string[]).includes(tag);
+            return (
+            <button
+              key={tag}
+              onClick={() => setSelectedTags((prev) => {
+                if (prev.includes(tag)) return prev.filter((t) => t !== tag);
+                if (isSortTag) return [...prev.filter((t) => !(sortTags as readonly string[]).includes(t)), tag];
+                return [...prev, tag];
+              })}
+              className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                selectedTags.includes(tag)
+                  ? "bg-[#d63c6a] text-white"
+                  : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
+              }`}
+            >
+              {tag}
+              {selectedTags.includes(tag) && <FaTimes className="h-2.5 w-2.5" />}
+            </button>
+            );
+          })}
         </div>
       </div>
 
@@ -284,13 +353,13 @@ export default function MarketplaceAddons() {
       ) : (
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-6 text-white">
           <div className="grid w-full grid-cols-3 gap-4">
-            {communityExtensions.map((ext, index) => {
+            {filteredExtensions.map(({ ext, origIdx }, i) => {
               const hasImage = ext.imageURL && /\.(png|jpg|jpeg|gif|webp|svg)/i.test(ext.imageURL);
-              const isInstalling = installingIndex === index;
+              const isInstalling = installingIndex === origIdx;
 
               return (
                 <div
-                  ref={index === communityExtensions.length - 1 ? lastAddonElementRef : null}
+                  ref={i === filteredExtensions.length - 1 ? lastAddonElementRef : null}
                   key={`${ext.user}/${ext.repo}/${ext.title}`}
                   className={`group relative flex h-64 max-h-64 w-full flex-col rounded-lg border ${ext.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
                 >
@@ -326,14 +395,14 @@ export default function MarketplaceAddons() {
                     <div className="absolute hidden h-full w-full rounded-t-lg bg-gradient-to-b from-black/75 to-black/5 transition-all duration-200 group-hover:block">
                       <div className="flex w-full items-center justify-end gap-1 pt-2 pr-2">
                         <button
-                          onClick={() => setInfoIndex(index)}
+                          onClick={() => setInfoIndex(origIdx)}
                           className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1a1a1a] bg-gray-500 p-1 hover:bg-gray-400 transition-colors"
                           title="Info"
                         >
                           <FaInfoCircle />
                         </button>
                         <button
-                          onClick={() => handleInstallExtension(ext, index)}
+                          onClick={() => handleInstallExtension(ext, origIdx)}
                           disabled={isInstalling}
                           className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1a1a1a] bg-[#d63c6a] p-1 hover:bg-[#c52c5a] transition-colors disabled:opacity-50"
                           title="Install"
