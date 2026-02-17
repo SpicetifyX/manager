@@ -128,6 +128,8 @@ export async function fetchExtensionManifest(contents_url: string, branch: strin
 
     const manifests = await getRepoManifest(user, repo, branch);
 
+    if (!manifests) return [];
+
     const parsedManifests: CardItem[] = manifests.reduce((accum: any, manifest: any) => {
       if (manifest?.name && manifest.description && manifest.main) {
         const selectedBranch = manifest.branch || branch;
@@ -174,6 +176,8 @@ export async function fetchThemeManifest(contents_url: string, branch: string, s
 
     const manifests = await getRepoManifest(user, repo, branch);
 
+    if (!manifests) return [];
+
     const parsedManifests: CardItem[] = manifests.reduce((accum: any, manifest: any) => {
       if (manifest?.name && manifest?.usercss && manifest?.description) {
         const selectedBranch = manifest.branch || branch;
@@ -201,11 +205,12 @@ export async function fetchThemeManifest(contents_url: string, branch: string, s
               ? manifest.schemes
               : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.schemes}`
             : null,
-          include: manifest.include
-            ? manifest.include.map((inc: string) =>
-                inc.startsWith("http") ? inc : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${inc}`,
-              )
-            : undefined,
+          include:
+            manifest.include && Array.isArray(manifest.include)
+              ? manifest.include.map((inc: string) =>
+                  inc.startsWith("http") ? inc : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${inc}`,
+                )
+              : undefined,
         };
 
         accum.push(item);
@@ -227,6 +232,8 @@ export async function fetchAppManifest(contents_url: string, branch: string, sta
     const { user, repo } = regex_result.groups;
 
     const manifests = await getRepoManifest(user, repo, branch);
+
+    if (!manifests) return [];
 
     const parsedManifests: CardItem[] = manifests.reduce((accum: any, manifest: any) => {
       if (manifest?.name && manifest.description && !manifest.main && !manifest.usercss) {
