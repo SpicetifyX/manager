@@ -13,4 +13,6 @@ export type ThemeInfo = {
   id: string;
   isActive: boolean;
   isBundled?: boolean;
+  colorSchemes?: string[];
+  activeColorScheme?: string;
 } & ThemeManifestEntry;
