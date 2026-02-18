@@ -48,3 +48,4 @@ release/
 *.sln
 *.sw?
 package-lock.json
+build/darwin/Info.dev.plist
