@@ -15,6 +15,18 @@ dist-ssr
 /dist-electron
 dist-electron/
 
+# Wails build output
+build/bin/
+build/windows/
+build/wails/
+build/appicon.png
+frontend/dist/
+frontend/node_modules/
+
+# Go build artifacts
+*.exe
+manager.exe
+
 /.spicetify
 .spicetify/
 
