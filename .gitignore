@@ -49,3 +49,4 @@ release/
 *.sw?
 package-lock.json
 build/darwin/Info.dev.plist
+build/darwin/Info.plist
