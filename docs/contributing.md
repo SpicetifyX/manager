@@ -61,4 +61,4 @@ Open an issue on [GitHub](https://github.com/SpicetifyX/manager/issues) with:
 - Steps to reproduce it
 - Your operating system and app version
 
-For questions or general discussion, join the [Discord server](https://discord.gg/W8FQtPUEeT).
+For questions or general discussion, join the [Discord server](https://discord.gg/DqYSqeJz2M).
