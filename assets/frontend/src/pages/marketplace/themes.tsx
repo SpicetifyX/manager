@@ -4,28 +4,31 @@ import { Link } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Spinner from "../../components/Spinner";
 import { app } from "../../../wailsjs/go/models";
-import { fetchExtensionManifest, getTaggedRepos } from "../../utils/fetchRemotes";
+import { fetchThemeManifest, getTaggedRepos } from "../../utils/fetchRemotes";
 import * as backend from "../../../wailsjs/go/app/App";
-import ExtensionInfoModal from "../../components/ExtensionInfoModal";
+import AssetInfoModal from "../../components/AssetInfoModal";
+import { CardItem } from "../../utils/marketplace-types";
+import { useAppStore } from "../../hooks";
 
 export default function MarketplaceThemes() {
-  const [addons, setAddons] = useState<app.AddonInfo[]>([]);
-  const [communityExtensions, setCommunityExtensions] = useState<any[]>([]);
+  const [themes, setThemes] = useState<app.ThemeInfo[]>([]);
+  const [communityThemes, setCommunityThemes] = useState<any[]>([]);
   const [communityLoading, setCommunityLoading] = useState(false);
   const [communityError, setCommunityError] = useState<string | null>(null);
   const [installingIndex, setInstallingIndex] = useState<number | null>(null);
   const [infoIndex, setInfoIndex] = useState<number | null>(null);
-  const addonsRef = useRef<app.AddonInfo[]>([]);
+  const themesRef = useRef<app.ThemeInfo[]>([]);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const appState = useAppStore();
 
-  const fetchCommunityExtensions = async (loadMore = false) => {
+  const fetchCommunityThemes = async (loadMore = false) => {
     const targetPage = loadMore ? page + 1 : 1;
     if (targetPage === 1) {
       setCommunityLoading(true);
-      setCommunityExtensions([]);
+      setCommunityThemes([]);
       setHasMore(true);
     } else {
       setLoadingMore(true);
@@ -37,10 +40,10 @@ export default function MarketplaceThemes() {
 
       const results = await Promise.allSettled(
         pageOfRepos.items.map((repo: any) =>
-          fetchExtensionManifest(repo.contents_url, repo.default_branch, repo.stargazers_count).then(
+          fetchThemeManifest(repo.contents_url, repo.default_branch, repo.stargazers_count).then(
             (exts) =>
-              exts?.map((ext) => ({
-                ...ext,
+              exts?.map((t) => ({
+                ...t,
                 archived: repo.archived,
                 lastUpdated: repo.pushed_at,
                 created: repo.created_at,
@@ -48,19 +51,21 @@ export default function MarketplaceThemes() {
           ),
         ),
       );
-      const extensions: any[] = [];
-      const currentAddons = addonsRef.current;
+
+      const themes: any[] = [];
+      const currentThemes = themesRef.current;
+
       for (const result of results) {
         if (result.status === "fulfilled" && result.value.length) {
-          extensions.push(
+          themes.push(
             ...result.value.map((ext: any) => ({
               ...ext,
-              installed: currentAddons.some((a) => a.name === ext.title),
+              installed: currentThemes.some((a) => a.name === ext.title),
             })),
           );
         }
       }
-      setCommunityExtensions((prev) => (targetPage === 1 ? extensions : [...prev, ...extensions]));
+      setCommunityThemes((prev) => (targetPage === 1 ? themes : [...prev, ...themes]));
       setPage(targetPage);
       if (pageOfRepos.items.length === 0 || pageOfRepos.items.length < 30) {
         setHasMore(false);
@@ -77,28 +82,62 @@ export default function MarketplaceThemes() {
     }
   };
 
+  const handleInstallTheme = async (theme: CardItem, index: number) => {
+    if (!theme.cssURL || theme.installed) return;
+    setInstallingIndex(index);
+    setInfoIndex(null);
+    try {
+      const themeId = theme.title.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const meta = {
+        name: theme.title,
+        description: theme.subtitle,
+        imageURL: theme.imageURL,
+        authors: theme.authors,
+        tags: theme.tags,
+        stars: theme.stargazers_count,
+      };
+      const success = await backend.InstallMarketplaceTheme(themeId, theme.cssURL!, theme.schemesURL || "", theme.include || [], meta as any);
+      if (success) {
+        const themes = await backend.GetSpicetifyThemes();
+        appState.setThemes(themes);
+
+        setCommunityThemes((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
+      } else {
+        alert(`Failed to install ${theme.title}`);
+      }
+    } catch (err: any) {
+      alert(`Error installing ${theme.title}: ${err.message}`);
+    } finally {
+      setInstallingIndex(null);
+    }
+  };
+
   useEffect(() => {
-    if (communityExtensions.length > 0) {
-      setCommunityExtensions((prev) =>
+    if (communityThemes.length > 0) {
+      console.log("Community themes", communityThemes);
+      setCommunityThemes((prev) =>
         prev.map((ce) => ({
           ...ce,
-          installed: addons.some((a) => a.name === ce.title),
+          installed: themes.some((a) => a.name === ce.title),
         })),
       );
     }
-  }, [addons]);
+  }, [themes]);
 
   useEffect(() => {
     (async () => {
-      const resp = await backend.GetInstalledExtensions();
-      setAddons(resp);
+      const resp = await backend.GetSpicetifyThemes();
+      console.log("Themes", themes);
+      setThemes(resp);
     })();
 
-    fetchCommunityExtensions();
+    fetchCommunityThemes();
   }, []);
 
-  const filteredExtensions = useMemo(() => {
-    let result = communityExtensions.map((ext, idx) => ({ ext, origIdx: idx }));
+  const filteredThemes = useMemo(() => {
+    let result = communityThemes.map((ext, idx) => ({ ext, origIdx: idx }));
+    console.log(result);
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -112,7 +151,7 @@ export default function MarketplaceThemes() {
     }
 
     return result;
-  }, [communityExtensions, searchQuery]);
+  }, [communityThemes, searchQuery]);
 
   const observer = useRef<IntersectionObserver>();
   const lastAddonElementRef = useCallback(
@@ -121,42 +160,13 @@ export default function MarketplaceThemes() {
       if (observer.current) observer.current.disconnect();
       observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && hasMore) {
-          fetchCommunityExtensions(true);
+          fetchCommunityThemes(true);
         }
       });
       if (node) observer.current.observe(node);
     },
     [communityLoading, loadingMore, hasMore],
   );
-
-  const handleInstallExtension = async (ext: any, index: number) => {
-    if (!ext.extensionURL || ext.installed) return;
-    setInstallingIndex(index);
-    setInfoIndex(null);
-    try {
-      const urlParts = ext.extensionURL.split("/");
-      const filename = urlParts[urlParts.length - 1];
-      const meta = {
-        name: ext.title,
-        description: ext.subtitle,
-        imageURL: ext.imageURL,
-        authors: ext.authors,
-        tags: ext.tags,
-        stars: ext.stargazers_count,
-      };
-
-      const success = await backend.InstallMarketplaceExtension(ext.extensionURL, filename, meta as any);
-      if (success) {
-        setCommunityExtensions((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
-      } else {
-        alert(`Failed to install ${ext.title}`);
-      }
-    } catch (err: any) {
-      alert(`Error installing ${ext.title}: ${err.message}`);
-    } finally {
-      setInstallingIndex(null);
-    }
-  };
 
   return (
     <div className="flex h-full w-full flex-1">
@@ -167,13 +177,13 @@ export default function MarketplaceThemes() {
             <div className="flex h-12 items-center justify-between pl-1 pr-3">
               <div className="flex items-center gap-3">
                 <Link
-                  to={"/extensions"}
+                  to={"/themes"}
                   className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2a2a] hover:text-white"
                   title="Back"
                 >
                   <FaChevronLeft />
                 </Link>
-                <span className="text-gray-300">Browsing Community Extensions</span>
+                <span className="text-gray-300">Browsing Community Themes</span>
               </div>
               <div className="relative">
                 <FaSearch className="pointer-events-none absolute top-1/2 left-2.5 h-3 w-3 -translate-y-1/2 text-[#666]" />
@@ -192,7 +202,7 @@ export default function MarketplaceThemes() {
               <div className="flex flex-col items-center space-y-4">
                 <span className="text-lg text-red-400">{communityError}</span>
                 <button
-                  onClick={() => fetchCommunityExtensions()}
+                  onClick={() => fetchCommunityThemes()}
                   className="rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c52c5a]"
                 >
                   Retry
@@ -203,23 +213,23 @@ export default function MarketplaceThemes() {
             <div className="flex flex-1 items-center justify-center">
               <div className="flex flex-col items-center space-y-6">
                 <Spinner className="h-16 w-16" />
-                <span className="text-lg text-gray-100">Fetching Extensions</span>
+                <span className="text-lg text-gray-100">Fetching Themes</span>
               </div>
             </div>
-          ) : communityExtensions.length === 0 ? (
+          ) : communityThemes.length === 0 ? (
             <div className="flex flex-1 items-center justify-center">
-              <span className="text-lg text-[#a0a0a0]">No community extensions found.</span>
+              <span className="text-lg text-[#a0a0a0]">No community themes found.</span>
             </div>
           ) : (
             <div className="custom-scrollbar pb-16 min-h-0 flex-1 overflow-y-auto p-6 text-white">
               <div className="grid w-full grid-cols-3 gap-4">
-                {filteredExtensions.map(({ ext, origIdx }, i) => {
+                {filteredThemes.map(({ ext, origIdx }, i) => {
                   const hasImage = ext.imageURL && /\.(png|jpg|jpeg|gif|webp|svg)/i.test(ext.imageURL);
                   const isInstalling = installingIndex === origIdx;
 
                   return (
                     <div
-                      ref={i === filteredExtensions.length - 1 ? lastAddonElementRef : null}
+                      ref={i === filteredThemes.length - 1 ? lastAddonElementRef : null}
                       key={`${ext.user}/${ext.repo}/${ext.title}`}
                       className={`group relative flex h-64 max-h-64 w-full flex-col rounded-lg border ${ext.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
                     >
@@ -262,7 +272,7 @@ export default function MarketplaceThemes() {
                               <FaInfoCircle />
                             </button>
                             <button
-                              onClick={() => handleInstallExtension(ext, origIdx)}
+                              onClick={() => handleInstallTheme(ext, origIdx)}
                               disabled={isInstalling}
                               className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1a1a1a] bg-[#d63c6a] p-1 hover:bg-[#c52c5a] transition-colors disabled:opacity-50"
                               title="Install"
@@ -289,10 +299,10 @@ export default function MarketplaceThemes() {
             </div>
           )}
           {infoIndex !== null &&
-            communityExtensions[infoIndex] &&
+            communityThemes[infoIndex] &&
             (() => {
-              const ext = communityExtensions[infoIndex];
-              return <ExtensionInfoModal extension={ext} onClose={() => setInfoIndex(null)} />;
+              const ext = communityThemes[infoIndex];
+              return <AssetInfoModal asset={ext} onClose={() => setInfoIndex(null)} />;
             })()}
         </div>
       </div>
