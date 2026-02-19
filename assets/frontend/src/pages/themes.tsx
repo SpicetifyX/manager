@@ -29,7 +29,7 @@ export default function ThemesPage() {
               <p className="text-[#a0a0a0]">Manage your Spicetify themes.</p>
             </div>
             <Link
-              to={"/extensions/marketplace"}
+              to={"/themes/marketplace"}
               className="flex h-8 w-fit items-center gap-2 rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-all duration-200 hover:bg-[#c52c5a] active:bg-[#b51c4a]"
             >
               Browse marketplace
@@ -37,11 +37,11 @@ export default function ThemesPage() {
             </Link>
           </div>
 
-          {loading && <p className="text-[#a0a0a0]">Loading extensions...</p>}
+          {loading && <p className="text-[#a0a0a0]">Loading themes...</p>}
 
           {!loading && (
             <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-              {themes.length > 0 ? themes.map((theme) => <Theme theme={theme} />) : <p className="text-[#a0a0a0]">No extensions found.</p>}
+              {themes.length > 0 ? themes.map((theme) => <Theme theme={theme} />) : <p className="text-[#a0a0a0]">No themes found.</p>}
             </div>
           )}
         </div>
