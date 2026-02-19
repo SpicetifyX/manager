@@ -8,7 +8,7 @@
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "Jort",
-    "email": "stormkoning00@gmail.com"
+    "name": "SpicetifyX",
+    "email": "jreij@proton.me"
   }
 }
