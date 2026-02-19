@@ -21,6 +21,8 @@ dist/
 /dist-electron
 dist-electron/
 
+bun.lock
+
 # Wails build output
 frontend/dist/
 frontend/node_modules/
