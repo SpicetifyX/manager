@@ -231,7 +231,7 @@ export default function MarketplaceAddons() {
   };
 
   const sortTags = ["Popular", "Newest", "Recently Updated"] as const;
-  const contentTags = ["Lyrics", "UI", "Utility", "Playback"] as const;
+  const contentTags = ["Lyrics", "UI", "Utility", "Playback", "Official"] as const;
   const smartTags = [...sortTags, ...contentTags];
 
   const filteredExtensions = useMemo(() => {
@@ -248,8 +248,8 @@ export default function MarketplaceAddons() {
     }
     const activeContentTags = selectedTags.filter((t) => (contentTags as readonly string[]).includes(t));
     if (activeContentTags.length > 0) {
-      result = result.filter(({ ext }) =>
-        Array.isArray(ext.tags) && activeContentTags.every((tag) => ext.tags.some((tt) => tt.toLowerCase() === tag.toLowerCase())),
+      result = result.filter(
+        ({ ext }) => Array.isArray(ext.tags) && activeContentTags.every((tag) => ext.tags.some((tt) => tt.toLowerCase() === tag.toLowerCase())),
       );
     }
     if (selectedTags.includes("Popular")) {
@@ -306,22 +306,22 @@ export default function MarketplaceAddons() {
           {smartTags.map((tag) => {
             const isSortTag = (sortTags as readonly string[]).includes(tag);
             return (
-            <button
-              key={tag}
-              onClick={() => setSelectedTags((prev) => {
-                if (prev.includes(tag)) return prev.filter((t) => t !== tag);
-                if (isSortTag) return [...prev.filter((t) => !(sortTags as readonly string[]).includes(t)), tag];
-                return [...prev, tag];
-              })}
-              className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                selectedTags.includes(tag)
-                  ? "bg-[#d63c6a] text-white"
-                  : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
-              }`}
-            >
-              {tag}
-              {selectedTags.includes(tag) && <FaTimes className="h-2.5 w-2.5" />}
-            </button>
+              <button
+                key={tag}
+                onClick={() =>
+                  setSelectedTags((prev) => {
+                    if (prev.includes(tag)) return prev.filter((t) => t !== tag);
+                    if (isSortTag) return [...prev.filter((t) => !(sortTags as readonly string[]).includes(t)), tag];
+                    return [...prev, tag];
+                  })
+                }
+                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                  selectedTags.includes(tag) ? "bg-[#d63c6a] text-white" : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
+                }`}
+              >
+                {tag}
+                {selectedTags.includes(tag) && <FaTimes className="h-2.5 w-2.5" />}
+              </button>
             );
           })}
         </div>

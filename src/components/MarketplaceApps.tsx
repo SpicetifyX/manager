@@ -228,7 +228,7 @@ export default function MarketplaceApps() {
   };
 
   const sortTags = ["Popular", "Newest", "Recently Updated"] as const;
-  const contentTags = ["Stats", "Library", "Utility"] as const;
+  const contentTags = ["Stats", "Library", "Utility", "Official"] as const;
   const smartTags = [...sortTags, ...contentTags];
 
   const filteredApps = useMemo(() => {
@@ -245,8 +245,8 @@ export default function MarketplaceApps() {
     }
     const activeContentTags = selectedTags.filter((t) => (contentTags as readonly string[]).includes(t));
     if (activeContentTags.length > 0) {
-      result = result.filter(({ app }) =>
-        Array.isArray(app.tags) && activeContentTags.every((tag) => app.tags.some((tt) => tt.toLowerCase() === tag.toLowerCase())),
+      result = result.filter(
+        ({ app }) => Array.isArray(app.tags) && activeContentTags.every((tag) => app.tags.some((tt) => tt.toLowerCase() === tag.toLowerCase())),
       );
     }
     if (selectedTags.includes("Popular")) {
@@ -302,22 +302,22 @@ export default function MarketplaceApps() {
           {smartTags.map((tag) => {
             const isSortTag = (sortTags as readonly string[]).includes(tag);
             return (
-            <button
-              key={tag}
-              onClick={() => setSelectedTags((prev) => {
-                if (prev.includes(tag)) return prev.filter((t) => t !== tag);
-                if (isSortTag) return [...prev.filter((t) => !(sortTags as readonly string[]).includes(t)), tag];
-                return [...prev, tag];
-              })}
-              className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                selectedTags.includes(tag)
-                  ? "bg-[#d63c6a] text-white"
-                  : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
-              }`}
-            >
-              {tag}
-              {selectedTags.includes(tag) && <FaTimes className="h-2.5 w-2.5" />}
-            </button>
+              <button
+                key={tag}
+                onClick={() =>
+                  setSelectedTags((prev) => {
+                    if (prev.includes(tag)) return prev.filter((t) => t !== tag);
+                    if (isSortTag) return [...prev.filter((t) => !(sortTags as readonly string[]).includes(t)), tag];
+                    return [...prev, tag];
+                  })
+                }
+                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                  selectedTags.includes(tag) ? "bg-[#d63c6a] text-white" : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
+                }`}
+              >
+                {tag}
+                {selectedTags.includes(tag) && <FaTimes className="h-2.5 w-2.5" />}
+              </button>
             );
           })}
         </div>
@@ -327,7 +327,10 @@ export default function MarketplaceApps() {
         <div className="flex flex-1 items-center justify-center">
           <div className="flex flex-col items-center space-y-4">
             <span className="text-lg text-red-400">{communityError}</span>
-            <button onClick={() => fetchCommunityApps()} className="rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c52c5a]">
+            <button
+              onClick={() => fetchCommunityApps()}
+              className="rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c52c5a]"
+            >
               Retry
             </button>
           </div>
@@ -435,7 +438,14 @@ export default function MarketplaceApps() {
             stars: app.stargazers_count,
             lastUpdated: app.lastUpdated,
           };
-          return <AddonInfoModal info={infoData} onClose={() => setInfoIndex(null)} onInstall={() => handleInstallApp(app, infoIndex)} isInstalling={installingIndex === infoIndex} />;
+          return (
+            <AddonInfoModal
+              info={infoData}
+              onClose={() => setInfoIndex(null)}
+              onInstall={() => handleInstallApp(app, infoIndex)}
+              isInstalling={installingIndex === infoIndex}
+            />
+          );
         })()}
       {applyModal && (
         <ApplyModal action={applyModal.action} items={applyModal.items} isApplying={applyModal.isApplying} onClose={() => setApplyModal(null)} />

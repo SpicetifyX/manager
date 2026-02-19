@@ -222,7 +222,7 @@ export default function MarketplaceThemes() {
   };
 
   const sortTags = ["Popular", "Newest", "Recently Updated"] as const;
-  const contentTags = ["Hazy", "Transparent", "Dark", "Minimal"] as const;
+  const contentTags = ["Hazy", "Transparent", "Dark", "Minimal", "Official"] as const;
   const smartTags = [...sortTags, ...contentTags];
 
   const filteredThemes = useMemo(() => {
@@ -240,8 +240,8 @@ export default function MarketplaceThemes() {
     // Content tag filtering (Dark, Colorful, Minimal)
     const activeContentTags = selectedTags.filter((t) => (contentTags as readonly string[]).includes(t));
     if (activeContentTags.length > 0) {
-      result = result.filter(({ theme: t }) =>
-        Array.isArray(t.tags) && activeContentTags.every((tag) => t.tags.some((tt) => tt.toLowerCase() === tag.toLowerCase())),
+      result = result.filter(
+        ({ theme: t }) => Array.isArray(t.tags) && activeContentTags.every((tag) => t.tags.some((tt) => tt.toLowerCase() === tag.toLowerCase())),
       );
     }
     // Sort tag (mutually exclusive)
@@ -301,15 +301,15 @@ export default function MarketplaceThemes() {
             return (
               <button
                 key={tag}
-                onClick={() => setSelectedTags((prev) => {
-                  if (prev.includes(tag)) return prev.filter((t) => t !== tag);
-                  if (isSortTag) return [...prev.filter((t) => !(sortTags as readonly string[]).includes(t)), tag];
-                  return [...prev, tag];
-                })}
+                onClick={() =>
+                  setSelectedTags((prev) => {
+                    if (prev.includes(tag)) return prev.filter((t) => t !== tag);
+                    if (isSortTag) return [...prev.filter((t) => !(sortTags as readonly string[]).includes(t)), tag];
+                    return [...prev, tag];
+                  })
+                }
                 className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                  selectedTags.includes(tag)
-                    ? "bg-[#d63c6a] text-white"
-                    : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
+                  selectedTags.includes(tag) ? "bg-[#d63c6a] text-white" : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
                 }`}
               >
                 {tag}
