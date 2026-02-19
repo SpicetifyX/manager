@@ -24,8 +24,7 @@ func main() {
 		Frameless:        true,
 		BackgroundColour: &options.RGBA{R: 23, G: 27, B: 32, A: 255},
 		AssetServer: &assetserver.Options{
-			Assets:  assets.Assets,
-			Handler: appInterface.AssetHandler,
+			Assets: assets.Assets,
 		},
 		OnStartup:  appInterface.Startup,
 		OnShutdown: appInterface.Shutdown,
