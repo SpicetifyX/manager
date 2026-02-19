@@ -10,7 +10,7 @@ import (
 type InstallStatus struct {
 	Spotify   bool `json:"spotify"`
 	Spicetify bool `json:"spicetify"`
-	Patched     bool `json:"patched"`
+	Patched   bool `json:"patched"`
 }
 
 func (a *App) CheckInstallation() InstallStatus {
@@ -35,6 +35,6 @@ func (a *App) CheckInstallation() InstallStatus {
 	return InstallStatus{
 		Spotify:   spotifyInstalled,
 		Spicetify: spicetifyInstalled,
-		Patched:     alreadyPatched,
+		Patched:   alreadyPatched,
 	}
 }
