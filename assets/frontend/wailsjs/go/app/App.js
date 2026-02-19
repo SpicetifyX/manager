@@ -86,16 +86,8 @@ export function ReloadSpicetify() {
   return window['go']['app']['App']['ReloadSpicetify']();
 }
 
-export function SetCloseToTray(arg1) {
-  return window['go']['app']['App']['SetCloseToTray'](arg1);
-}
-
 export function SetColorScheme(arg1, arg2) {
   return window['go']['app']['App']['SetColorScheme'](arg1, arg2);
-}
-
-export function SetRpcActivity(arg1) {
-  return window['go']['app']['App']['SetRpcActivity'](arg1);
 }
 
 export function SetupSpicetifyAssets() {
@@ -108,10 +100,6 @@ export function StartInstall() {
 
 export function StartRestore() {
   return window['go']['app']['App']['StartRestore']();
-}
-
-export function ToggleDiscordRpc(arg1) {
-  return window['go']['app']['App']['ToggleDiscordRpc'](arg1);
 }
 
 export function ToggleSpicetifyApp(arg1, arg2) {
