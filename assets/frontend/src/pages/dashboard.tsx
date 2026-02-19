@@ -10,24 +10,38 @@ export default function DashboardPage() {
     spicetify: boolean;
     patched: boolean;
   } | null>(null);
+  const [info, setInfo] = useState<{
+    spotifyVersion: string;
+    spicetifyVersion: string;
+    extensionsCount: number;
+    enabledExtensions: number;
+    themesCount: number;
+    appsCount: number;
+    enabledApps: number;
+  } | null>(null);
 
   useEffect(() => {
     (async () => {
-      const resp = await backend.CheckInstallation();
-      setStatus(resp);
+      const status = await backend.CheckInstallation();
+      setStatus(status);
+
+      const apps = await backend.GetSpicetifyApps();
+      const themes = await backend.GetSpicetifyThemes();
+      const extensions = await backend.GetInstalledExtensions();
+      const spotifyVersion = await backend.GetSpotifyVersion();
+      const spicetifyVersion = await backend.GetSpicetifyVersion();
+
+      setInfo({
+        appsCount: apps.length,
+        enabledApps: apps.filter((app) => app.isEnabled).length,
+        enabledExtensions: extensions.filter((ext) => ext.isEnabled).length,
+        extensionsCount: extensions.length,
+        themesCount: themes.length,
+        spicetifyVersion: spicetifyVersion,
+        spotifyVersion: spotifyVersion,
+      });
     })();
   }, []);
-
-  let spotifyVersion = "0.0.0";
-  let spicetifyVersion = "0.0.0";
-
-  let extensionsCount = 5;
-  let activeExtensions = 3;
-
-  let themesCount = 3;
-
-  let appsCount = 2;
-  let activeApps = 1;
 
   return (
     <div className="flex h-full w-full flex-1">
@@ -85,14 +99,14 @@ export default function DashboardPage() {
                     <FaChevronRight className="h-3 w-3 text-[#333] transition-colors group-hover:text-[#d63c6a]" />
                   </div>
                   <div className="mt-1.5 flex-1">
-                    <p className="text-3xl font-bold text-white">{extensionsCount}</p>
-                    <p className="mt-1 text-sm text-[#a0a0a0]">{activeExtensions} active</p>
+                    <p className="text-3xl font-bold text-white">{info?.extensionsCount}</p>
+                    <p className="mt-1 text-sm text-[#a0a0a0]">{info?.enabledExtensions} active</p>
                   </div>
                   <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#2a2a2a]">
                     <div
                       className="h-full bg-[#d63c6a] transition-all duration-500"
                       style={{
-                        width: extensionsCount > 0 ? `${(activeExtensions / extensionsCount) * 100}%` : "0%",
+                        width: info?.extensionsCount! > 0 ? `${(info?.enabledExtensions! / info?.extensionsCount!) * 100}%` : "0%",
                       }}
                     ></div>
                   </div>
@@ -110,7 +124,7 @@ export default function DashboardPage() {
                     <FaChevronRight className="h-3 w-3 text-[#333] transition-colors group-hover:text-[#d63c6a]" />
                   </div>
                   <div className="mt-1.5 flex-1">
-                    <p className="text-3xl font-bold text-white">{themesCount}</p>
+                    <p className="text-3xl font-bold text-white">{info?.themesCount}</p>
                     <p className="mt-1 text-sm text-[#a0a0a0]">Available</p>
                   </div>
                   <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#2a2a2a]">
@@ -130,14 +144,14 @@ export default function DashboardPage() {
                     <FaChevronRight className="h-3 w-3 text-[#333] transition-colors group-hover:text-[#d63c6a]" />
                   </div>
                   <div className="mt-1.5 flex-1">
-                    <p className="text-3xl font-bold text-white">{appsCount}</p>
-                    <p className="mt-1 text-sm text-[#a0a0a0]">{activeApps} active</p>
+                    <p className="text-3xl font-bold text-white">{info?.appsCount}</p>
+                    <p className="mt-1 text-sm text-[#a0a0a0]">{info?.enabledApps} active</p>
                   </div>
                   <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#2a2a2a]">
                     <div
                       className="h-full bg-[#d63c6a] transition-all duration-500"
                       style={{
-                        width: appsCount > 0 ? `${(activeApps / appsCount) * 100}%` : "0%",
+                        width: info?.appsCount! > 0 ? `${(info?.enabledApps! / info?.appsCount!) * 100}%` : "0%",
                       }}
                     ></div>
                   </div>
@@ -166,7 +180,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
                       <span className="text-sm text-[#a0a0a0]">Version</span>
-                      <span className="text-sm font-semibold text-white">{spotifyVersion || "—"}</span>
+                      <span className="text-sm font-semibold text-white">{info?.spotifyVersion || "—"}</span>
                     </div>
                   </div>
                 </div>
@@ -192,7 +206,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
                       <span className="text-sm text-[#a0a0a0]">Version</span>
-                      <span className="text-sm font-semibold text-white">{spicetifyVersion || "—"}</span>
+                      <span className="text-sm font-semibold text-white">{info?.spicetifyVersion || "—"}</span>
                     </div>
                   </div>
                 </div>
