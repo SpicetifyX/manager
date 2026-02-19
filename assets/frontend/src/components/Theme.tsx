@@ -131,7 +131,6 @@ export default function Theme({ theme }: { theme: app.ThemeInfo }) {
             </div>
           )}
 
-          {/* SELECT BUTTON */}
           <div className="relative ml-1">
             {isApplying ? (
               <div className="flex h-8 w-16 items-center justify-center">
