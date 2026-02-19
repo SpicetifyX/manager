@@ -4,8 +4,6 @@ import { Link, useLocation } from "react-router-dom";
 export default function Sidebar() {
   const location = useLocation();
 
-  console.log(location);
-
   return (
     <div className="flex w-16 flex-col items-center bg-[#121418] p-4">
       <Link
