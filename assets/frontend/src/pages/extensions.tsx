@@ -33,7 +33,7 @@ export default function ExtensionsPage() {
         <div className="flex h-full flex-col p-4">
           <div className="mb-6 flex w-full items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">Installed Addons</h1>
+              <h1 className="text-2xl font-bold text-white">Installed Extensions</h1>
               <p className="text-[#a0a0a0]">Manage your Spicetify extensions.</p>
             </div>
             <Link
