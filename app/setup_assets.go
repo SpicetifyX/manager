@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"manager/assets"
+	"manager/internal/helpers"
 	"os"
 	"path/filepath"
 	"strings"
@@ -38,10 +39,7 @@ type assetsFile struct {
 	Apps       []assetApp       `json:"apps"`
 }
 
-// SetupSpicetifyAssets downloads and installs the bundled default assets
 func (a *App) SetupSpicetifyAssets() error {
-	// Read assets.json from the binary's embedded data
-	// We use the assets.json from the frontend directory (copied at build time)
 	assetsData, err := assets.PreinstallAssetsJSON.ReadFile("preinstall.json")
 	if err != nil {
 		return fmt.Errorf("could not read assets.json: %w", err)
@@ -52,9 +50,8 @@ func (a *App) SetupSpicetifyAssets() error {
 		return fmt.Errorf("could not parse assets.json: %w", err)
 	}
 
-	spicetifyPath := getSpicetifyConfigDir()
+	spicetifyPath := helpers.GetSpicetifyConfigDir()
 
-	// Install themes
 	for _, theme := range assets.Themes {
 		themeDir := filepath.Join(spicetifyPath, "Themes", theme.Name)
 		if err := os.MkdirAll(themeDir, 0755); err != nil {
@@ -88,7 +85,6 @@ func (a *App) SetupSpicetifyAssets() error {
 		}
 	}
 
-	// Install extensions
 	extDir := filepath.Join(spicetifyPath, "Extensions")
 	if err := os.MkdirAll(extDir, 0755); err != nil {
 		return err
@@ -122,14 +118,13 @@ func (a *App) SetupSpicetifyAssets() error {
 		}
 	}
 
-	// Install apps
 	for _, app := range assets.Apps {
 		if app.RawArchiveURL == "" {
 			continue
 		}
 		fmt.Printf("[setup-assets] Downloading app: %s from %s\n", app.Name, app.RawArchiveURL)
 
-		resp, err := httpGet(app.RawArchiveURL)
+		resp, err := helpers.HttpGet(app.RawArchiveURL)
 		if err != nil {
 			fmt.Printf("[setup-assets] Warning: failed to download app %s: %v\n", app.Name, err)
 			continue
@@ -145,7 +140,7 @@ func (a *App) SetupSpicetifyAssets() error {
 			return err
 		}
 
-		if err := extractZipToDir(data, destDir, true); err != nil {
+		if err := helpers.ExtractZipToDir(data, destDir, true); err != nil {
 			fmt.Printf("[setup-assets] Warning: failed to extract app %s: %v\n", app.Name, err)
 			continue
 		}
