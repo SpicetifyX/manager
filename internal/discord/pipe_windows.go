@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func winDialPipe(pipeName string) (net.Conn, error) {
+func DialPipe(pipeName string) (net.Conn, error) {
 	f, err := os.OpenFile(pipeName, os.O_RDWR, os.ModeNamedPipe)
 	if err != nil {
 		return nil, err
