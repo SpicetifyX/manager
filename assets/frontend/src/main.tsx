@@ -12,6 +12,7 @@ import AppsPage from "./pages/apps";
 import SettingsPage from "./pages/settings";
 import MarketplaceExtensions from "./pages/marketplace/extensions";
 import MarketplaceThemes from "./pages/marketplace/themes";
+import MarketplaceApps from "./pages/marketplace/apps";
 
 function App() {
   useEffect(() => {
@@ -36,6 +37,7 @@ function App() {
           <Route path="/themes/marketplace" element={<MarketplaceThemes />} />
           <Route path="/themes" element={<ThemesPage />} />
           <Route path="/apps" element={<AppsPage />} />
+          <Route path="/apps/marketplace" element={<MarketplaceApps />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </div>
