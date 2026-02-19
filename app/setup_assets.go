@@ -42,7 +42,7 @@ type assetsFile struct {
 func (a *App) SetupSpicetifyAssets() error {
 	// Read assets.json from the binary's embedded data
 	// We use the assets.json from the frontend directory (copied at build time)
-	assetsData, err := assets.PreinstallAssetsJSON.ReadFile("assets.json")
+	assetsData, err := assets.PreinstallAssetsJSON.ReadFile("preinstall.json")
 	if err != nil {
 		return fmt.Errorf("could not read assets.json: %w", err)
 	}
