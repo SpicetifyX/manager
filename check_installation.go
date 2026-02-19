@@ -6,14 +6,12 @@ import (
 	"runtime"
 )
 
-// InstallStatus is returned by CheckInstallation
 type InstallStatus struct {
-	SpotifyInstalled   bool `json:"spotify_installed"`
-	SpicetifyInstalled bool `json:"spicetify_installed"`
-	AlreadyPatched     bool `json:"already_patched"`
+	Spotify   bool `json:"spotify"`
+	Spicetify bool `json:"spicetify"`
+	Patched     bool `json:"patched"`
 }
 
-// CheckInstallation checks whether Spotify and Spicetify are installed
 func (a *App) CheckInstallation() InstallStatus {
 	var spotifyPath string
 	var alreadyPatchedPath string
@@ -34,8 +32,8 @@ func (a *App) CheckInstallation() InstallStatus {
 	spicetifyInstalled := binaryExists && configExists
 
 	return InstallStatus{
-		SpotifyInstalled:   spotifyInstalled,
-		SpicetifyInstalled: spicetifyInstalled,
-		AlreadyPatched:     alreadyPatched,
+		Spotify:   spotifyInstalled,
+		Spicetify: spicetifyInstalled,
+		Patched:     alreadyPatched,
 	}
 }
