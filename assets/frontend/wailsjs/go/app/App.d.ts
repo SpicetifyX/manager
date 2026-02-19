@@ -12,9 +12,9 @@ export function DeleteSpicetifyExtension(arg1:string):Promise<boolean>;
 
 export function DeleteSpicetifyTheme(arg1:string):Promise<boolean>;
 
-export function GetAddonAssetPath(arg1:string):Promise<string>;
-
 export function GetAppVersion():Promise<string>;
+
+export function GetExternalImageBase64(arg1:string):Promise<string>;
 
 export function GetInstalledExtensions():Promise<Array<app.AddonInfo>>;
 
@@ -27,8 +27,6 @@ export function GetSpicetifyThemes():Promise<Array<app.ThemeInfo>>;
 export function GetSpicetifyVersion():Promise<string>;
 
 export function GetSpotifyVersion():Promise<string>;
-
-export function GetThemeAssetPath(arg1:string):Promise<string>;
 
 export function InstallMarketplaceApp(arg1:string,arg2:string,arg3:string,arg4:any,arg5:app.MarketplaceMeta):Promise<boolean>;
 
