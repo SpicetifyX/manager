@@ -2,13 +2,13 @@ package app
 
 import (
 	"encoding/json"
+	"manager/internal/helpers"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
 
-// AppInfo represents an installed Spicetify custom app
 type AppInfo struct {
 	Name              string   `json:"name"`
 	Icon              string   `json:"icon"`
@@ -25,9 +25,8 @@ type appMeta struct {
 	ImageURL string `json:"imageURL"`
 }
 
-// GetSpicetifyApps returns all installed Spicetify custom apps
 func (a *App) GetSpicetifyApps() []AppInfo {
-	configPath := getConfigFilePath()
+	configPath := helpers.GetConfigFilePath()
 	var enabledApps []string
 
 	if data, err := os.ReadFile(configPath); err == nil {
@@ -42,7 +41,7 @@ func (a *App) GetSpicetifyApps() []AppInfo {
 		}
 	}
 
-	customAppsDir := getCustomAppsDir()
+	customAppsDir := helpers.GetCustomAppsDir()
 	apps := []AppInfo{}
 
 	entries, err := os.ReadDir(customAppsDir)
@@ -67,7 +66,6 @@ func (a *App) GetSpicetifyApps() []AppInfo {
 			IsEnabled:         isEnabled,
 		}
 
-		// Read meta
 		metaPath := filepath.Join(customAppsDir, appID, "app.meta.json")
 		if data, err := os.ReadFile(metaPath); err == nil {
 			var meta appMeta
@@ -87,9 +85,8 @@ func (a *App) GetSpicetifyApps() []AppInfo {
 	return apps
 }
 
-// ToggleSpicetifyApp enables or disables a custom app
 func (a *App) ToggleSpicetifyApp(appID string, enable bool) bool {
-	exec := getSpicetifyExec()
+	exec := helpers.GetSpicetifyExec()
 
 	var args []string
 	if enable {
@@ -98,21 +95,20 @@ func (a *App) ToggleSpicetifyApp(appID string, enable bool) bool {
 		args = []string{"config", "custom_apps", appID + "-"}
 	}
 
-	if err := spicetifyCommand(exec, args, nil); err != nil {
+	if err := helpers.SpicetifyCommand(exec, args, nil); err != nil {
 		return false
 	}
-	if err := spicetifyCommand(exec, []string{"apply"}, nil); err != nil {
+	if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
 		return false
 	}
 	return true
 }
 
-// DeleteSpicetifyApp removes a custom app and applies changes
 func (a *App) DeleteSpicetifyApp(appID string) bool {
-	exec := getSpicetifyExec()
+	exec := helpers.GetSpicetifyExec()
 
-	_ = spicetifyCommand(exec, []string{"config", "custom_apps", appID + "-"}, nil)
-	_ = os.RemoveAll(filepath.Join(getCustomAppsDir(), appID))
-	_ = spicetifyCommand(exec, []string{"apply"}, nil)
+	_ = helpers.SpicetifyCommand(exec, []string{"config", "custom_apps", appID + "-"}, nil)
+	_ = os.RemoveAll(filepath.Join(helpers.GetCustomAppsDir(), appID))
+	_ = helpers.SpicetifyCommand(exec, []string{"apply"}, nil)
 	return true
 }
