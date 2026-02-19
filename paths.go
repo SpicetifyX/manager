@@ -48,7 +48,5 @@ func getSettingsPath() string {
 }
 
 func getAppPath() string {
-	// The bundled assets are embedded, but we need the spicetifyx dir for
-	// themes/extensions that were set up via setupSpicetifyAssets
 	return getSpicetifyConfigDir()
 }
