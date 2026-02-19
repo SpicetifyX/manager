@@ -44,19 +44,13 @@ export function OpenExternalLink(arg1:string):Promise<boolean>;
 
 export function ReloadSpicetify():Promise<boolean>;
 
-export function SetCloseToTray(arg1:boolean):Promise<void>;
-
 export function SetColorScheme(arg1:string,arg2:string):Promise<boolean>;
-
-export function SetRpcActivity(arg1:string):Promise<void>;
 
 export function SetupSpicetifyAssets():Promise<void>;
 
 export function StartInstall():Promise<void>;
 
 export function StartRestore():Promise<void>;
-
-export function ToggleDiscordRpc(arg1:boolean):Promise<void>;
 
 export function ToggleSpicetifyApp(arg1:string,arg2:boolean):Promise<boolean>;
 
