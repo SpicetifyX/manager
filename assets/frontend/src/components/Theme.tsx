@@ -14,7 +14,6 @@ export default function Theme({ theme }: { theme: app.ThemeInfo }) {
   const [isToggling, setIsToggling] = useState(false);
 
   const schemeRef = useRef<HTMLDivElement>(null);
-
   const schemes = theme.colorSchemes && theme.colorSchemes.length > 0 ? theme.colorSchemes : ["Default"];
 
   const [selectedScheme, setSelectedScheme] = useState(theme.activeColorScheme || schemes[0]);
