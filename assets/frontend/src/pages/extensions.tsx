@@ -4,6 +4,7 @@ import { FaDownload } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import * as backend from "../../wailsjs/go/app/App";
 import { app } from "../../wailsjs/go/models";
+import Extension from "../components/Extension";
 
 export default function ExtensionsPage() {
   const [loading, setLoading] = useState(true);
@@ -41,22 +42,7 @@ export default function ExtensionsPage() {
           {!loading && (
             <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
               {extensions.length > 0 ? (
-                extensions.map((extension) => (
-                  <span>{JSON.stringify(extension)}</span>
-                  // <Addon
-                  //   key={addon.id}
-                  //   name={addon.name}
-                  //   description={addon.description}
-                  //   isEnabled={addon.isEnabled}
-                  //   onToggle={handleToggleAddon}
-                  //   onDelete={handleDeleteAddon}
-                  //   preview={addon.preview ? addon.preview : undefined}
-                  //   isToggling={togglingId === addon.addonFileName}
-                  //   addonFileName={addon.addonFileName}
-                  //   authors={addon.authors}
-                  //   tags={addon.tags}
-                  // />
-                ))
+                extensions.map((extension) => <Extension extension={extension} />)
               ) : (
                 <p className="text-[#a0a0a0]">No extensions found.</p>
               )}
