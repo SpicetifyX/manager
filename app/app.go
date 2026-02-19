@@ -18,10 +18,8 @@ type App struct {
 	AssetHandler http.Handler
 }
 
-func  New() *App {
-	return &App{
-		AssetHandler: helpers.NewAssetHandler(),
-	}
+func New() *App {
+	return &App{}
 }
 
 func (a *App) Startup(ctx context.Context) {
