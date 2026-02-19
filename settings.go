@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 )
 
-// AppSettings mirrors the frontend settings structure
 type AppSettings struct {
 	DiscordRpc           bool `json:"discordRpc"`
 	CloseToTray          bool `json:"closeToTray"`
@@ -22,7 +21,6 @@ var defaultSettings = AppSettings{
 	CheckUpdatesOnLaunch: true,
 }
 
-// ReadSettings reads settings from disk, falling back to defaults
 func ReadSettings() (AppSettings, error) {
 	data, err := os.ReadFile(getSettingsPath())
 	if err != nil {
@@ -32,7 +30,6 @@ func ReadSettings() (AppSettings, error) {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return defaultSettings, nil
 	}
-	// merge with defaults for missing keys
 	result := defaultSettings
 	result.DiscordRpc = s.DiscordRpc
 	result.CloseToTray = s.CloseToTray
@@ -40,7 +37,6 @@ func ReadSettings() (AppSettings, error) {
 	return result, nil
 }
 
-// WriteSettings persists settings to disk
 func WriteSettings(s AppSettings) error {
 	dir := filepath.Dir(getSettingsPath())
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -53,12 +49,10 @@ func WriteSettings(s AppSettings) error {
 	return os.WriteFile(getSettingsPath(), data, 0644)
 }
 
-// GetSettings returns the current settings
 func (a *App) GetSettings() (AppSettings, error) {
 	return ReadSettings()
 }
 
-// UpdateSettings merges partial settings and saves
 func (a *App) UpdateSettings(partial map[string]interface{}) (AppSettings, error) {
 	current, _ := ReadSettings()
 
@@ -76,13 +70,11 @@ func (a *App) UpdateSettings(partial map[string]interface{}) (AppSettings, error
 	return current, WriteSettings(current)
 }
 
-// OpenConfigFolder opens the Spicetify config directory in the file explorer
 func (a *App) OpenConfigFolder() bool {
 	dir := getSpicetifyConfigDir()
 	return openPath(dir)
 }
 
-// GetAppVersion returns the app version from wails
 func (a *App) GetAppVersion() string {
 	return "1.0.0"
 }
@@ -97,7 +89,6 @@ func toBool(v interface{}) bool {
 	return false
 }
 
-// copyDirRecursive copies src directory to dest recursively
 func copyDirRecursive(src, dest string) error {
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
