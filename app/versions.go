@@ -1,6 +1,7 @@
 package app
 
 import (
+	"manager/internal/helpers"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -9,12 +10,11 @@ import (
 	"strings"
 )
 
-// GetSpicetifyVersion returns the installed Spicetify version
 func (a *App) GetSpicetifyVersion() string {
-	if !fileExists(getSpicetifyConfigDir()) {
+	if !fileExists(helpers.GetSpicetifyConfigDir()) {
 		return "Unknown"
 	}
-	execPath := getSpicetifyExec()
+	execPath := helpers.GetSpicetifyExec()
 	out, err := exec.Command(execPath, "-v").Output()
 	if err != nil {
 		return "Unknown"
@@ -22,7 +22,6 @@ func (a *App) GetSpicetifyVersion() string {
 	return strings.TrimSpace(string(out))
 }
 
-// GetSpotifyVersion reads the Spotify version from prefs
 func (a *App) GetSpotifyVersion() string {
 	var prefsPath string
 	home, _ := os.UserHomeDir()
@@ -42,15 +41,12 @@ func (a *App) GetSpotifyVersion() string {
 	return "Unknown"
 }
 
-// ReloadSpicetify runs `spicetify apply` using the system spicetify on PATH
 func (a *App) ReloadSpicetify() bool {
-	spicetifyPath, err := exec.LookPath("spicetify")
-	if err != nil {
-		// fall back to our bundled binary
-		spicetifyPath = getSpicetifyExec()
-	}
-	if err := spicetifyCommand(spicetifyPath, []string{"apply"}, nil); err != nil {
+	spicetifyPath := helpers.GetSpicetifyExec()
+
+	if err := helpers.SpicetifyCommand(spicetifyPath, []string{"apply"}, nil); err != nil {
 		return false
 	}
+
 	return true
 }
