@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"manager/internal/discord"
 	"net/http"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -9,7 +10,7 @@ import (
 
 type App struct {
 	ctx          context.Context
-	discord      *DiscordRPC
+	discord      *discord.DiscordRPC
 	rpcStart     int64
 	rpcConnected bool
 	closeToTray  bool
@@ -24,7 +25,7 @@ func  New() *App {
 
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
-	a.discord = NewDiscordRPC("1470628543938433034")
+	a.discord = discord.NewDiscordRPC("1470628543938433034")
 	a.rpcStart = currentTimeMillis()
 
 	settings, err := ReadSettings()
@@ -34,7 +35,7 @@ func (a *App) Startup(ctx context.Context) {
 			go func() {
 				if err := a.discord.Connect(); err == nil {
 					a.rpcConnected = true
-					_ = a.discord.SetActivity(Activity{
+					_ = a.discord.SetActivity(discord.Activity{
 						Name:      "SpicetifyX Manager",
 						Details:   "Viewing Dashboard",
 						CreatedAt: a.rpcStart,
