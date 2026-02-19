@@ -18,7 +18,6 @@ export default function StaticImage({
   const isGif = src ? /\.gif(\?|$)/i.test(src) : false;
 
   useEffect(() => {
-    console.log(src);
     setErrored(false);
     setUseCanvas(false);
   }, [src]);
