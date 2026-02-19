@@ -47,4 +47,4 @@ Browse community-published extensions, themes, and apps directly from within the
 SpicetifyX Manager is open source and developed by [Jeff53978](https://github.com/Jeff53978) and [jorthans](https://github.com/jorthans).
 
 - GitHub: [github.com/SpicetifyX/manager](https://github.com/SpicetifyX/manager)
-- Discord: [discord.gg/W8FQtPUEeT](https://discord.gg/W8FQtPUEeT)
+- Discord: [discord.gg/DqYSqeJz2M](https://discord.gg/DqYSqeJz2M)
