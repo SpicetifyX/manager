@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"manager/internal/helpers"
 	"os"
 	"path/filepath"
 )
@@ -22,7 +23,7 @@ var defaultSettings = AppSettings{
 }
 
 func ReadSettings() (AppSettings, error) {
-	data, err := os.ReadFile(getSettingsPath())
+	data, err := os.ReadFile(helpers.GetSettingsPath())
 	if err != nil {
 		return defaultSettings, nil
 	}
@@ -38,7 +39,7 @@ func ReadSettings() (AppSettings, error) {
 }
 
 func WriteSettings(s AppSettings) error {
-	dir := filepath.Dir(getSettingsPath())
+	dir := filepath.Dir(helpers.GetSettingsPath())
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
@@ -46,7 +47,7 @@ func WriteSettings(s AppSettings) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(getSettingsPath(), data, 0644)
+	return os.WriteFile(helpers.GetSettingsPath(), data, 0644)
 }
 
 func (a *App) GetSettings() (AppSettings, error) {
@@ -71,8 +72,8 @@ func (a *App) UpdateSettings(partial map[string]interface{}) (AppSettings, error
 }
 
 func (a *App) OpenConfigFolder() bool {
-	dir := getSpicetifyConfigDir()
-	return openPath(dir)
+	dir := helpers.GetSpicetifyConfigDir()
+	return helpers.OpenPath(dir)
 }
 
 func (a *App) GetAppVersion() string {
@@ -130,7 +131,7 @@ func fileExists(path string) bool {
 }
 
 func downloadText(url string) (string, error) {
-	resp, err := httpGet(url)
+	resp, err := helpers.HttpGet(url)
 	if err != nil {
 		return "", err
 	}
