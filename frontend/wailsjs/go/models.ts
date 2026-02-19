@@ -106,9 +106,9 @@ export namespace main {
 	}
 	
 	export class InstallStatus {
-	    spotify_installed: boolean;
-	    spicetify_installed: boolean;
-	    already_patched: boolean;
+	    spotify: boolean;
+	    spicetify: boolean;
+	    patched: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new InstallStatus(source);
@@ -116,9 +116,9 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.spotify_installed = source["spotify_installed"];
-	        this.spicetify_installed = source["spicetify_installed"];
-	        this.already_patched = source["already_patched"];
+	        this.spotify = source["spotify"];
+	        this.spicetify = source["spicetify"];
+	        this.patched = source["patched"];
 	    }
 	}
 	export class MarketplaceMeta {
