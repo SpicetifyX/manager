@@ -11,6 +11,7 @@ import ThemesPage from "./pages/themes";
 import AppsPage from "./pages/apps";
 import SettingsPage from "./pages/settings";
 import MarketplaceExtensions from "./pages/marketplace/extensions";
+import MarketplaceThemes from "./pages/marketplace/themes";
 
 function App() {
   useEffect(() => {
@@ -32,6 +33,7 @@ function App() {
           <Route path="/install" element={<InstallPage />} />
           <Route path="/extensions" element={<ExtensionsPage />} />
           <Route path="/extensions/marketplace" element={<MarketplaceExtensions />} />
+          <Route path="/themes/marketplace" element={<MarketplaceThemes />} />
           <Route path="/themes" element={<ThemesPage />} />
           <Route path="/apps" element={<AppsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
