@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+build/
+/build
+
+dist/
+/dist
+
 /dist-electron
 dist-electron/
 
