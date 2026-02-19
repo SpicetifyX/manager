@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"manager/internal/helpers"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -35,7 +36,7 @@ type addonMeta struct {
 }
 
 func (a *App) GetInstalledExtensions() []AddonInfo {
-	configPath := getConfigFilePath()
+	configPath := helpers.GetConfigFilePath()
 	var enabledExtensions []string
 
 	if data, err := os.ReadFile(configPath); err == nil {
@@ -50,7 +51,7 @@ func (a *App) GetInstalledExtensions() []AddonInfo {
 		}
 	}
 
-	extensionsDir := getExtensionsDir()
+	extensionsDir := helpers.GetExtensionsDir()
 	addons := []AddonInfo{}
 
 	entries, err := os.ReadDir(extensionsDir)
@@ -100,13 +101,11 @@ func (a *App) GetInstalledExtensions() []AddonInfo {
 	return addons
 }
 
-// ToggleSpicetifyExtension enables or disables a Spicetify extension
 func (a *App) ToggleSpicetifyExtension(addonFileName string, enable bool) bool {
-	exec := getSpicetifyExec()
+	exec := helpers.GetSpicetifyExec()
 
-	// If enabling, try to copy from bundled assets
 	if enable {
-		extDir := getExtensionsDir()
+		extDir := helpers.GetExtensionsDir()
 		_ = os.MkdirAll(extDir, 0755)
 	}
 
@@ -117,31 +116,26 @@ func (a *App) ToggleSpicetifyExtension(addonFileName string, enable bool) bool {
 		args = []string{"config", "extensions", addonFileName + "-"}
 	}
 
-	if err := spicetifyCommand(exec, args, nil); err != nil {
+	if err := helpers.SpicetifyCommand(exec, args, nil); err != nil {
 		return false
 	}
-	if err := spicetifyCommand(exec, []string{"apply"}, nil); err != nil {
+	if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
 		return false
 	}
 	return true
 }
 
-// DeleteSpicetifyExtension removes an extension and applies changes
 func (a *App) DeleteSpicetifyExtension(addonFileName string) bool {
-	exec := getSpicetifyExec()
+	exec := helpers.GetSpicetifyExec()
 
-	// Disable in config first
-	_ = spicetifyCommand(exec, []string{"config", "extensions", addonFileName + "-"}, nil)
+	_ = helpers.SpicetifyCommand(exec, []string{"config", "extensions", addonFileName + "-"}, nil)
 
-	// Delete the file
-	extPath := filepath.Join(getExtensionsDir(), addonFileName)
+	extPath := filepath.Join(helpers.GetExtensionsDir(), addonFileName)
 	_ = os.Remove(extPath)
 
-	// Delete meta
 	_ = os.Remove(extPath + ".meta.json")
 
-	// Apply
-	_ = spicetifyCommand(exec, []string{"apply"}, nil)
+	_ = helpers.SpicetifyCommand(exec, []string{"apply"}, nil)
 	return true
 }
 
