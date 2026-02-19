@@ -33,7 +33,7 @@ export default function MarketplaceThemes() {
     setCommunityError(null);
 
     try {
-      const pageOfRepos = await getTaggedRepos("spicetify-extensions", targetPage, [], false);
+      const pageOfRepos = await getTaggedRepos("spicetify-themes", targetPage, [], false);
 
       const results = await Promise.allSettled(
         pageOfRepos.items.map((repo: any) =>
