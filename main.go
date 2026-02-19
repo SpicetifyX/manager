@@ -1,7 +1,8 @@
 package main
 
 import (
-	"embed"
+	"manager/app"
+	"manager/assets"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -9,11 +10,8 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 )
 
-//go:embed all:frontend/dist
-var assets embed.FS
-
 func main() {
-	app := NewApp()
+	appInterface := app.New()
 
 	err := wails.Run(&options.App{
 		Title:            "SpicetifyX Manager",
@@ -26,13 +24,13 @@ func main() {
 		Frameless:        true,
 		BackgroundColour: &options.RGBA{R: 23, G: 27, B: 32, A: 255},
 		AssetServer: &assetserver.Options{
-			Assets:  assets,
-			Handler: app.assetHandler,
+			Assets:  assets.Assets,
+			Handler: appInterface.AssetHandler,
 		},
-		OnStartup:  app.startup,
-		OnShutdown: app.shutdown,
+		OnStartup:  appInterface.Startup,
+		OnShutdown: appInterface.Shutdown,
 		Bind: []interface{}{
-			app,
+			appInterface,
 		},
 		Windows: &windows.Options{
 			WebviewIsTransparent: false,
