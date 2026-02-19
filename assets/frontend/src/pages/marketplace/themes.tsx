@@ -71,8 +71,8 @@ export default function MarketplaceThemes() {
         setHasMore(false);
       }
     } catch (err: any) {
-      console.error("Failed to fetch community extensions:", err);
-      setCommunityError(err.message?.includes("403") ? "GitHub API rate limit reached. Try again later." : "Failed to load community extensions.");
+      console.error("Failed to fetch community themes:", err);
+      setCommunityError(err.message?.includes("403") ? "GitHub API rate limit reached. Try again later." : "Failed to load community themes.");
     } finally {
       if (targetPage === 1) {
         setCommunityLoading(false);
