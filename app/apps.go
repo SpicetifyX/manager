@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -54,7 +55,7 @@ func (a *App) GetSpicetifyApps() []AppInfo {
 			continue
 		}
 		appID := entry.Name()
-		isEnabled := contains(enabledApps, appID)
+		isEnabled := slices.Contains(enabledApps, appID)
 
 		info := AppInfo{
 			Name:              appID,
