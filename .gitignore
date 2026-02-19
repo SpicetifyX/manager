@@ -12,8 +12,8 @@ dist
 dist-ssr
 *.local
 
-build/
-/build
+bin/
+/bin
 
 dist/
 /dist
@@ -22,10 +22,6 @@ dist/
 dist-electron/
 
 # Wails build output
-build/bin/
-build/windows/
-build/wails/
-build/appicon.png
 frontend/dist/
 frontend/node_modules/
 
