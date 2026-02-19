@@ -5,8 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Spinner from "../../components/Spinner";
 import { app } from "../../../wailsjs/go/models";
 import { fetchExtensionManifest, getTaggedRepos } from "../../utils/fetchRemotes";
+import AssetInfoModal from "../../components/AssetInfoModal";
 import * as backend from "../../../wailsjs/go/app/App";
-import ExtensionInfoModal from "../../components/ExtensionInfoModal";
 
 export default function MarketplaceExtensions() {
   const [addons, setAddons] = useState<app.AddonInfo[]>([]);
@@ -292,7 +292,7 @@ export default function MarketplaceExtensions() {
             communityExtensions[infoIndex] &&
             (() => {
               const ext = communityExtensions[infoIndex];
-              return <ExtensionInfoModal extension={ext} onClose={() => setInfoIndex(null)} />;
+              return <AssetInfoModal asset={ext} onClose={() => setInfoIndex(null)} />;
             })()}
         </div>
       </div>
