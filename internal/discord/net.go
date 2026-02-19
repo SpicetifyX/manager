@@ -13,7 +13,7 @@ import (
 func (d *DiscordRPC) dialPipe(i int) (net.Conn, error) {
 	if runtime.GOOS == "windows" {
 		pipeName := fmt.Sprintf(`\\.\pipe\discord-ipc-%d`, i)
-		return winDialPipe(pipeName)
+		return DialPipe(pipeName)
 	}
 	var sockPath string
 	if runtime.GOOS == "darwin" {
@@ -22,7 +22,7 @@ func (d *DiscordRPC) dialPipe(i int) (net.Conn, error) {
 	} else {
 		sockPath = fmt.Sprintf("/tmp/discord-ipc-%d", i)
 	}
-	return net.Dial("unix", sockPath)
+	return DialPipe(sockPath)
 }
 
 func (d *DiscordRPC) encode(op uint32, data interface{}) ([]byte, error) {
