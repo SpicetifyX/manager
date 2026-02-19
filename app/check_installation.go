@@ -1,6 +1,7 @@
 package app
 
 import (
+	"manager/internal/helpers"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -26,8 +27,8 @@ func (a *App) CheckInstallation() InstallStatus {
 	alreadyPatchedPath = filepath.Join(spotifyPath, ".spicetify")
 
 	spotifyInstalled := fileExists(spotifyPath)
-	binaryExists := fileExists(getSpicetifyExec())
-	configExists := fileExists(getConfigFilePath())
+	binaryExists := fileExists(helpers.GetSpicetifyExec())
+	configExists := fileExists(helpers.GetConfigFilePath())
 	alreadyPatched := fileExists(alreadyPatchedPath)
 	spicetifyInstalled := binaryExists && configExists
 
