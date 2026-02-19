@@ -3,8 +3,10 @@ import Sidebar from "../components/Sidebar";
 import { FaAppStore, FaCheckCircle, FaChevronRight, FaExclamationTriangle, FaPalette, FaPuzzlePiece, FaSync } from "react-icons/fa";
 import * as backend from "../../wailsjs/go/app/App";
 import { Link } from "react-router-dom";
+import { useAppStore } from "../hooks";
 
 export default function DashboardPage() {
+  const appState = useAppStore();
   const [status, setStatus] = useState<{
     spotify: boolean;
     spicetify: boolean;
@@ -18,7 +20,15 @@ export default function DashboardPage() {
     themesCount: number;
     appsCount: number;
     enabledApps: number;
-  } | null>(null);
+  } | null>({
+    appsCount: appState.apps.length,
+    enabledApps: appState.apps.filter((app) => app.isEnabled).length,
+    enabledExtensions: appState.extensions.filter((ext) => ext.isEnabled).length,
+    extensionsCount: appState.extensions.length,
+    themesCount: appState.themes.length,
+    spicetifyVersion: appState.spicetifyVersion || "",
+    spotifyVersion: appState.spotifyVersion || "",
+  });
 
   useEffect(() => {
     (async () => {
@@ -31,14 +41,21 @@ export default function DashboardPage() {
       const spotifyVersion = await backend.GetSpotifyVersion();
       const spicetifyVersion = await backend.GetSpicetifyVersion();
 
+      appState.setSpicetifyVersion(spicetifyVersion);
+      appState.setApps(apps);
+      appState.setThemes(themes);
+      appState.setExtensions(extensions);
+      appState.setSpicetifyVersion(spicetifyVersion);
+      appState.setSpotifyVersion(spotifyVersion);
+
       setInfo({
-        appsCount: apps.length,
-        enabledApps: apps.filter((app) => app.isEnabled).length,
-        enabledExtensions: extensions.filter((ext) => ext.isEnabled).length,
-        extensionsCount: extensions.length,
-        themesCount: themes.length,
-        spicetifyVersion: spicetifyVersion,
-        spotifyVersion: spotifyVersion,
+        appsCount: appState.apps.length,
+        enabledApps: appState.apps.filter((app) => app.isEnabled).length,
+        enabledExtensions: appState.extensions.filter((ext) => ext.isEnabled).length,
+        extensionsCount: appState.extensions.length,
+        themesCount: appState.themes.length,
+        spicetifyVersion: appState.spicetifyVersion || "",
+        spotifyVersion: appState.spotifyVersion || "",
       });
     })();
   }, []);
