@@ -63,3 +63,6 @@ frontend/wailsjs/runtime/runtime.js
 frontend/wailsjs/runtime/package.json
 frontend/wailsjs/runtime/runtime.d.ts
 frontend/wailsjs/runtime/runtime.js
+assets/frontend/wailsjs/runtime/package.json
+assets/frontend/wailsjs/runtime/runtime.d.ts
+assets/frontend/wailsjs/runtime/runtime.js
