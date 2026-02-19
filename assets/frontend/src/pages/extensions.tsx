@@ -5,14 +5,22 @@ import { useEffect, useState } from "react";
 import * as backend from "../../wailsjs/go/app/App";
 import { app } from "../../wailsjs/go/models";
 import Extension from "../components/Extension";
+import { useAppStore } from "../hooks";
 
 export default function ExtensionsPage() {
   const [loading, setLoading] = useState(true);
   const [extensions, setExtensions] = useState<app.AddonInfo[]>([]);
+  const appState = useAppStore();
 
   useEffect(() => {
     (async () => {
+      setExtensions(appState.extensions);
+      if (appState.extensions.length > 0) {
+        setLoading(false);
+      }
+
       const resp = await backend.GetInstalledExtensions();
+
       setExtensions(resp);
       setLoading(false);
     })();
@@ -42,7 +50,7 @@ export default function ExtensionsPage() {
           {!loading && (
             <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
               {extensions.length > 0 ? (
-                extensions.map((extension) => <Extension extension={extension} />)
+                extensions.map((extension, index) => <Extension key={index} extension={extension} />)
               ) : (
                 <p className="text-[#a0a0a0]">No extensions found.</p>
               )}
