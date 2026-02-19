@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"manager/internal/discord"
+	"manager/internal/helpers"
 	"net/http"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -19,14 +20,14 @@ type App struct {
 
 func  New() *App {
 	return &App{
-		AssetHandler: newAssetHandler(),
+		AssetHandler: helpers.NewAssetHandler(),
 	}
 }
 
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	a.discord = discord.NewDiscordRPC("1470628543938433034")
-	a.rpcStart = currentTimeMillis()
+	a.rpcStart = helpers.CurrentTimeMillis()
 
 	settings, err := ReadSettings()
 	if err == nil {
