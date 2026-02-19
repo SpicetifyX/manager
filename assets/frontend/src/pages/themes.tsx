@@ -5,14 +5,22 @@ import { useEffect, useState } from "react";
 import * as backend from "../../wailsjs/go/app/App";
 import { app } from "../../wailsjs/go/models";
 import Theme from "../components/Theme";
+import { useAppStore } from "../hooks";
 
 export default function ThemesPage() {
   const [loading, setLoading] = useState(true);
   const [themes, setThemes] = useState<app.ThemeInfo[]>([]);
+  const appState = useAppStore();
 
   useEffect(() => {
     (async () => {
+      setThemes(appState.themes);
+      if (appState.themes.length > 0) {
+        setLoading(false);
+      }
+
       const resp = await backend.GetSpicetifyThemes();
+
       setThemes(resp);
       setLoading(false);
     })();
@@ -41,7 +49,11 @@ export default function ThemesPage() {
 
           {!loading && (
             <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-              {themes.length > 0 ? themes.map((theme) => <Theme theme={theme} />) : <p className="text-[#a0a0a0]">No themes found.</p>}
+              {themes.length > 0 ? (
+                themes.map((theme, index) => <Theme key={index} theme={theme} />)
+              ) : (
+                <p className="text-[#a0a0a0]">No themes found.</p>
+              )}
             </div>
           )}
         </div>
