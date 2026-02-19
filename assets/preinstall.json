@@ -1,0 +1,90 @@
+{
+  "extensions": [
+    {
+      "name": "adblockify",
+      "repo": "https://github.com/rxri/spicetify-extensions",
+      "path": "adblock",
+      "branch": "main",
+      "raw_files": ["https://raw.githubusercontent.com/rxri/spicetify-extensions/refs/heads/main/adblock/adblock.js"],
+      "raw_meta_url": null,
+      "raw_meta_content": {
+        "name": "adblockify",
+        "description": "Stream Spotify music without interruptions - Block ads instantly, with ease.",
+        "imageURL": "https://raw.githubusercontent.com/rxri/spicetify-extensions/main/adblock/assets/preview.png",
+        "authors": [
+          {
+            "name": "ririxi",
+            "url": "https://github.com/rxri"
+          }
+        ],
+        "tags": ["ads", "block", "remove", "disable"]
+      },
+      "authors": [
+        {
+          "name": "ririxi",
+          "url": "https://github.com/rxri"
+        }
+      ],
+      "tags": ["ads", "block", "remove", "disable"],
+      "file_name": "adblock.js"
+    },
+    {
+      "name": "Better Spotify Genres",
+      "repo": "https://github.com/Vexcited/better-spotify-genres",
+      "path": ".",
+      "branch": "build",
+      "raw_files": ["https://raw.githubusercontent.com/Vexcited/better-spotify-genres/refs/heads/build/spotifyGenres.js"],
+      "raw_meta_url": null,
+      "raw_meta_content": {
+        "name": "Better Spotify Genres",
+        "description": "See what genres you are listening to.",
+        "imageURL": "https://github.com/Vexcited/better-spotify-genres/blob/build/assets/preview.png?raw=true",
+        "authors": [
+          {
+            "name": "Vexcited",
+            "url": "https://github.com/Vexcited"
+          },
+          {
+            "name": "Tetrax-10",
+            "url": "https://github.com/Tetrax-10"
+          }
+        ]
+      },
+      "authors": [
+        {
+          "name": "Vexcited",
+          "url": "https://github.com/Vexcited"
+        },
+        {
+          "name": "Tetrax-10",
+          "url": "https://github.com/Tetrax-10"
+        }
+      ],
+      "file_name": "spotifyGenres.js"
+    }
+  ],
+  "snippets": [],
+  "themes": [
+    {
+      "name": "SpicetifyX",
+      "repo": "https://github.com/SpicetifyX/themes",
+      "path": "SpicetifyX",
+      "branch": "main",
+      "raw_files": [
+        "https://raw.githubusercontent.com/SpicetifyX/themes/refs/heads/main/SpicetifyX/color.ini",
+        "https://raw.githubusercontent.com/SpicetifyX/themes/refs/heads/main/SpicetifyX/theme.js",
+        "https://raw.githubusercontent.com/SpicetifyX/themes/refs/heads/main/SpicetifyX/user.css"
+      ],
+      "raw_meta_url": "https://raw.githubusercontent.com/SpicetifyX/themes/refs/heads/main/theme.meta.json",
+      "raw_meta_content": null,
+      "authors": [
+        {
+          "name": "Jeff53978",
+          "url": "https://github.com/Jeff53978"
+        }
+      ],
+      "tags": ["official"]
+    }
+  ],
+  "apps": []
+}
