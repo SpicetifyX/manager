@@ -22,12 +22,12 @@ export function DeleteSpicetifyTheme(arg1) {
   return window['go']['app']['App']['DeleteSpicetifyTheme'](arg1);
 }
 
-export function GetAddonAssetPath(arg1) {
-  return window['go']['app']['App']['GetAddonAssetPath'](arg1);
-}
-
 export function GetAppVersion() {
   return window['go']['app']['App']['GetAppVersion']();
+}
+
+export function GetExternalImageBase64(arg1) {
+  return window['go']['app']['App']['GetExternalImageBase64'](arg1);
 }
 
 export function GetInstalledExtensions() {
@@ -52,10 +52,6 @@ export function GetSpicetifyVersion() {
 
 export function GetSpotifyVersion() {
   return window['go']['app']['App']['GetSpotifyVersion']();
-}
-
-export function GetThemeAssetPath(arg1) {
-  return window['go']['app']['App']['GetThemeAssetPath'](arg1);
 }
 
 export function InstallMarketplaceApp(arg1, arg2, arg3, arg4, arg5) {
