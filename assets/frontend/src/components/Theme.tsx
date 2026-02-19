@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { FaTrash, FaPalette, FaChevronDown } from "react-icons/fa";
 import Spinner from "./Spinner";
 import * as backend from "../../wailsjs/go/app/App";
+import { useAppStore } from "../hooks";
 
 export default function Theme({ theme }: { theme: app.ThemeInfo }) {
   const [schemeOpen, setSchemeOpen] = useState(false);
@@ -15,8 +16,16 @@ export default function Theme({ theme }: { theme: app.ThemeInfo }) {
 
   const schemeRef = useRef<HTMLDivElement>(null);
   const schemes = theme.colorSchemes && theme.colorSchemes.length > 0 ? theme.colorSchemes : ["Default"];
+  const appState = useAppStore();
 
   const [selectedScheme, setSelectedScheme] = useState(theme.activeColorScheme || schemes[0]);
+
+  useEffect(() => {
+    console.log(appState.themes);
+    console.log(appState.themes.filter((t) => t.isActive && t.id === theme.id));
+
+    setIsEnabled(appState.themes.filter((t) => t.isActive && t.id === theme.id).length > 0 ? true : false);
+  }, [appState]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -48,6 +57,10 @@ export default function Theme({ theme }: { theme: app.ThemeInfo }) {
     setIsApplying(true);
     try {
       await backend.ApplySpicetifyTheme(themeId);
+
+      const themes = await backend.GetSpicetifyThemes();
+      appState.setThemes(themes);
+
       setIsEnabled(true);
     } finally {
       setIsApplying(false);
@@ -112,13 +125,14 @@ export default function Theme({ theme }: { theme: app.ThemeInfo }) {
 
                           try {
                             await backend.SetColorScheme(theme.id, scheme);
+                            const themes = await backend.GetSpicetifyThemes();
+                            appState.setThemes(themes);
                           } finally {
                             setApplyingScheme(false);
                           }
                         }}
-                        className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors ${
-                          selectedScheme === scheme ? "bg-[#d63c6a]/15 text-[#d63c6a]" : "text-[#ccc] hover:bg-[#1e2228] hover:text-white"
-                        }`}
+                        className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors ${selectedScheme === scheme ? "bg-[#d63c6a]/15 text-[#d63c6a]" : "text-[#ccc] hover:bg-[#1e2228] hover:text-white"
+                          }`}
                       >
                         <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${selectedScheme === scheme ? "bg-[#d63c6a]" : "bg-transparent"}`} />
                         <span className="truncate">{scheme}</span>
@@ -139,9 +153,8 @@ export default function Theme({ theme }: { theme: app.ThemeInfo }) {
               <button
                 onClick={() => onSelect(theme.id)}
                 disabled={isEnabled}
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                  isEnabled ? "cursor-not-allowed bg-[#d63c6a] text-white" : "bg-[#2a2e34] text-[#a0a0a0] hover:bg-[#d63c6a] hover:text-white"
-                }`}
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${isEnabled ? "cursor-not-allowed bg-[#d63c6a] text-white" : "bg-[#2a2e34] text-[#a0a0a0] hover:bg-[#d63c6a] hover:text-white"
+                  }`}
               >
                 {isEnabled ? "Active" : "Select"}
               </button>
