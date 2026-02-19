@@ -2,13 +2,13 @@ package app
 
 import (
 	"encoding/json"
+	"manager/internal/helpers"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
 
-// ThemeInfo represents an installed Spicetify theme
 type ThemeInfo struct {
 	Name              string       `json:"name"`
 	Description       string       `json:"description"`
@@ -33,9 +33,8 @@ type themeMeta struct {
 	Tags        []string     `json:"tags"`
 }
 
-// GetSpicetifyThemes returns all installed Spicetify themes
 func (a *App) GetSpicetifyThemes() []ThemeInfo {
-	configPath := getConfigFilePath()
+	configPath := helpers.GetConfigFilePath()
 	var currentTheme, currentColorScheme string
 
 	if data, err := os.ReadFile(configPath); err == nil {
@@ -49,7 +48,7 @@ func (a *App) GetSpicetifyThemes() []ThemeInfo {
 		}
 	}
 
-	themesDir := getThemesDir()
+	themesDir := helpers.GetThemesDir()
 	themes := []ThemeInfo{}
 
 	entries, err := os.ReadDir(themesDir)
@@ -130,16 +129,14 @@ func (a *App) GetSpicetifyThemes() []ThemeInfo {
 	return themes
 }
 
-// ApplySpicetifyTheme applies a theme by ID
 func (a *App) ApplySpicetifyTheme(themeID string) bool {
-	exec := getSpicetifyExec()
-	themesDir := getThemesDir()
+	exec := helpers.GetSpicetifyExec()
+	themesDir := helpers.GetThemesDir()
 
-	if err := spicetifyCommand(exec, []string{"config", "current_theme", themeID}, nil); err != nil {
+	if err := helpers.SpicetifyCommand(exec, []string{"config", "current_theme", themeID}, nil); err != nil {
 		return false
 	}
 
-	// Detect first color scheme
 	firstScheme := ""
 	colorIniPath := filepath.Join(themesDir, themeID, "color.ini")
 	if data, err := os.ReadFile(colorIniPath); err == nil {
@@ -149,46 +146,41 @@ func (a *App) ApplySpicetifyTheme(themeID string) bool {
 		}
 	}
 
-	if err := spicetifyCommand(exec, []string{"config", "color_scheme", firstScheme}, nil); err != nil {
+	if err := helpers.SpicetifyCommand(exec, []string{"config", "color_scheme", firstScheme}, nil); err != nil {
 		return false
 	}
-	if err := spicetifyCommand(exec, []string{"apply"}, nil); err != nil {
+	if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
 		return false
 	}
 	return true
 }
 
-// SetColorScheme sets a color scheme for the active theme
 func (a *App) SetColorScheme(themeID, scheme string) bool {
-	exec := getSpicetifyExec()
-	if err := spicetifyCommand(exec, []string{"config", "color_scheme", scheme}, nil); err != nil {
+	exec := helpers.GetSpicetifyExec()
+	if err := helpers.SpicetifyCommand(exec, []string{"config", "color_scheme", scheme}, nil); err != nil {
 		return false
 	}
-	if err := spicetifyCommand(exec, []string{"apply"}, nil); err != nil {
+	if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
 		return false
 	}
 	return true
 }
 
-// DeleteSpicetifyTheme removes a theme and applies changes
 func (a *App) DeleteSpicetifyTheme(themeID string) bool {
-	exec := getSpicetifyExec()
-	themesDir := getThemesDir()
+	exec := helpers.GetSpicetifyExec()
+	themesDir := helpers.GetThemesDir()
 
-	// If it's the current theme, reset
-	if data, err := os.ReadFile(getConfigFilePath()); err == nil {
+	if data, err := os.ReadFile(helpers.GetConfigFilePath()); err == nil {
 		re := regexp.MustCompile(`(?m)^current_theme\s*=\s*(.*)$`)
 		if m := re.FindSubmatch(data); len(m) > 1 {
 			if strings.TrimSpace(string(m[1])) == themeID {
-				_ = spicetifyCommand(exec, []string{"config", "current_theme", ""}, nil)
+				_ = helpers.SpicetifyCommand(exec, []string{"config", "current_theme", ""}, nil)
 			}
 		}
 	}
 
-	// Remove directory
 	_ = os.RemoveAll(filepath.Join(themesDir, themeID))
-
-	// Apply
-	_ = spicetifyCommand(exec, []string{"apply"}, nil)
+	_ = helpers.SpicetifyCommand(exec, []string{"apply"}, nil)
+	
 	return true
 }
