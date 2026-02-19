@@ -6,7 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
+	"sync"
 )
 
 type AddonInfo struct {
@@ -59,44 +61,60 @@ func (a *App) GetInstalledExtensions() []AddonInfo {
 		return addons
 	}
 
+	var mut sync.Mutex
+	var wg sync.WaitGroup
+
 	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		file := entry.Name()
-		if !strings.HasSuffix(file, ".js") {
-			continue
-		}
-		nameWithoutExt := strings.TrimSuffix(file, ".js")
-		isEnabled := contains(enabledExtensions, file) || contains(enabledExtensions, nameWithoutExt)
+		wg.Add(1)
+		go func() {
+			if entry.IsDir() {
+				wg.Done()
+				return
+			}
+			file := entry.Name()
+			if !strings.HasSuffix(file, ".js") {
+				wg.Done()
+				return
+			}
+			nameWithoutExt := strings.TrimSuffix(file, ".js")
+			isEnabled := slices.Contains(enabledExtensions, file) || slices.Contains(enabledExtensions, nameWithoutExt)
 
-		var meta addonMeta
-		metaPath := filepath.Join(extensionsDir, file+".meta.json")
-		if data, err := os.ReadFile(metaPath); err == nil {
-			_ = json.Unmarshal(data, &meta)
-		}
+			var meta addonMeta
+			metaPath := filepath.Join(extensionsDir, file+".meta.json")
+			if data, err := os.ReadFile(metaPath); err == nil {
+				_ = json.Unmarshal(data, &meta)
+			}
 
-		name := meta.Name
-		if name == "" {
-			name = nameWithoutExt
-		}
-		desc := meta.Description
-		if desc == "" {
-			desc = "User-installed extension"
-		}
+			name := meta.Name
+			if name == "" {
+				name = nameWithoutExt
+			}
+			desc := meta.Description
+			if desc == "" {
+				desc = "User-installed extension"
+			}
 
-		addons = append(addons, AddonInfo{
-			Name:          name,
-			Description:   desc,
-			Preview:       meta.ImageURL,
-			Main:          file,
-			ID:            nameWithoutExt,
-			AddonFileName: file,
-			IsEnabled:     isEnabled,
-			Authors:       meta.Authors,
-			Tags:          meta.Tags,
-		})
+			base64Preview := a.GetExternalImageBase64(meta.ImageURL)
+
+			mut.Lock()
+			addons = append(addons, AddonInfo{
+				Name:          name,
+				Description:   desc,
+				Preview:       base64Preview,
+				Main:          file,
+				ID:            nameWithoutExt,
+				AddonFileName: file,
+				IsEnabled:     isEnabled,
+				Authors:       meta.Authors,
+				Tags:          meta.Tags,
+			})
+			mut.Unlock()
+
+			wg.Done()
+		}()
 	}
+
+	wg.Wait()
 
 	return addons
 }
@@ -137,13 +155,4 @@ func (a *App) DeleteSpicetifyExtension(addonFileName string) bool {
 
 	_ = helpers.SpicetifyCommand(exec, []string{"apply"}, nil)
 	return true
-}
-
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
 }
