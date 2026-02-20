@@ -8,7 +8,15 @@ import Spinner from "./Spinner";
 import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
-export default function MarketplaceThemes({ markDirty }: { markDirty: () => void }) {
+export default function MarketplaceThemes({
+  onDirtyChange,
+  resetKey,
+  snapshotKey,
+}: {
+  onDirtyChange: (dirty: boolean) => void;
+  resetKey: number;
+  snapshotKey: number;
+}) {
   const [themes, setThemes] = useState<ThemeInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +32,8 @@ export default function MarketplaceThemes({ markDirty }: { markDirty: () => void
     name: string;
   } | null>(null);
   const themesRef = useRef<ThemeInfo[]>([]);
+  const captureBaselineRef = useRef(true);
+  const baselineRef = useRef<{ activeThemeId: string; colorScheme: string } | null>(null);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -94,6 +104,17 @@ export default function MarketplaceThemes({ markDirty }: { markDirty: () => void
       const fetchedThemes = await window.electron.getSpicetifyThemes();
       setThemes(fetchedThemes);
       themesRef.current = fetchedThemes;
+      const activeTheme = fetchedThemes.find((t) => t.isActive);
+      const currentId = activeTheme?.id ?? "";
+      const currentScheme = activeTheme?.activeColorScheme ?? "";
+      if (captureBaselineRef.current) {
+        baselineRef.current = { activeThemeId: currentId, colorScheme: currentScheme };
+        captureBaselineRef.current = false;
+        onDirtyChange(false);
+      } else if (baselineRef.current) {
+        const isDirty = currentId !== baselineRef.current.activeThemeId || currentScheme !== baselineRef.current.colorScheme;
+        onDirtyChange(isDirty);
+      }
     } catch (err: any) {
       if (!silent) setError(err.message || "Failed to fetch themes.");
       console.error("Error fetching themes:", err);
@@ -123,14 +144,41 @@ export default function MarketplaceThemes({ markDirty }: { markDirty: () => void
     }
   }, [themes]);
 
+  // Recapture baseline after Apply
+  useEffect(() => {
+    if (snapshotKey === 0) return;
+    captureBaselineRef.current = true;
+    fetchThemes(true);
+  }, [snapshotKey]);
+
+  // Undo theme/scheme changes on Reset
+  useEffect(() => {
+    if (resetKey === 0 || !baselineRef.current) return;
+    const { activeThemeId, colorScheme } = baselineRef.current;
+    (async () => {
+      try {
+        const current = await window.electron.getSpicetifyThemes();
+        const activeTheme = current.find((t) => t.isActive);
+        const currentId = activeTheme?.id ?? "";
+        const currentScheme = activeTheme?.activeColorScheme ?? "";
+        if (currentId !== activeThemeId) {
+          if (activeThemeId) await window.electron.applySpicetifyTheme(activeThemeId);
+        } else if (currentScheme !== colorScheme) {
+          await window.electron.setColorScheme(activeThemeId, colorScheme);
+        }
+        await fetchThemes(true);
+      } catch (err) {
+        console.error("[MarketplaceThemes] Reset failed:", err);
+      }
+    })();
+  }, [resetKey]);
+
   const handleSelectTheme = async (themeId: string) => {
     setApplyingThemeId(themeId);
     try {
       const success = await window.electron.applySpicetifyTheme(themeId);
       if (!success) {
         alert(`Failed to apply theme: ${themeId}`);
-      } else {
-        markDirty();
       }
       fetchThemes(true);
     } catch (err: any) {
@@ -153,7 +201,6 @@ export default function MarketplaceThemes({ markDirty }: { markDirty: () => void
     try {
       const success = await window.electron.deleteSpicetifyTheme(themeId);
       if (success) {
-        markDirty();
         fetchThemes(true);
         setCommunityThemes((prev) => prev.map((t) => (t.title === themeName ? { ...t, installed: false } : t)));
       } else {
@@ -182,7 +229,6 @@ export default function MarketplaceThemes({ markDirty }: { markDirty: () => void
       if (success) {
         setCommunityThemes((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
         fetchThemes(true);
-        markDirty();
       } else {
         alert(`Failed to install ${ext.title}`);
       }
@@ -451,7 +497,7 @@ export default function MarketplaceThemes({ markDirty }: { markDirty: () => void
                   onSelect={handleSelectTheme}
                   onDelete={!theme.isBundled ? handleDeleteTheme : undefined}
                   isApplying={applyingThemeId === theme.id}
-                  markDirty={markDirty}
+                  markDirty={() => fetchThemes(true)}
                 />
               ))
             ) : (
