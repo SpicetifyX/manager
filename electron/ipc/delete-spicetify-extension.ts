@@ -35,13 +35,6 @@ ipcMain.handle("delete-spicetify-extension", async (_, addonFileName: string): P
       console.log(e);
     }
 
-    try {
-      await spicetifyCommand(spicetifyExec, ["apply"]);
-      console.log(`[delete-spicetify-extension] Applied changes after deletion.`);
-    } catch (applyErr) {
-      console.warn(`[delete-spicetify-extension] Apply after delete failed (non-fatal):`, applyErr);
-    }
-
     return true;
   } catch (error) {
     console.error(`[delete-spicetify-extension] Failed to delete extension "${addonFileName}":`, error);
