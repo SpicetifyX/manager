@@ -8,6 +8,7 @@ import Spinner from "./Spinner";
 import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import * as backend from "../../wailsjs/go/app/App";
+import { useSpicetify } from "../context/SpicetifyContext";
 
 export default function MarketplaceApps({
   onDirtyChange,
@@ -18,8 +19,10 @@ export default function MarketplaceApps({
   resetKey: number;
   snapshotKey: number;
 }) {
-  const [apps, setApps] = useState<AppInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { apps: contextApps, appsLoaded, refreshApps } = useSpicetify();
+
+  const [apps, setApps] = useState<AppInfo[]>(contextApps);
+  const [loading, setLoading] = useState(!appsLoaded);
   const [error, setError] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [browsingContent, setBrowsingContent] = useState(false);
@@ -102,21 +105,7 @@ export default function MarketplaceApps({
       setError(null);
     }
     try {
-      const fetchedApps = await backend.GetSpicetifyApps();
-      setApps(fetchedApps);
-      if (captureBaselineRef.current) {
-        baselineRef.current = new Map(fetchedApps.map((a) => [a.id, a.isEnabled]));
-        captureBaselineRef.current = false;
-        onDirtyChange(false);
-      } else if (baselineRef.current) {
-        const bl = baselineRef.current;
-        const isDirty =
-          fetchedApps.some((a) => {
-            const base = bl.get(a.id);
-            return base === undefined || base !== a.isEnabled;
-          }) || [...bl.keys()].some((k) => !fetchedApps.find((a) => a.id === k));
-        onDirtyChange(isDirty);
-      }
+      await refreshApps();
     } catch (err: any) {
       if (!silent) setError(err.message || "Failed to fetch apps.");
       console.error("Error fetching apps:", err);
@@ -125,9 +114,25 @@ export default function MarketplaceApps({
     }
   };
 
+  // Sync from global context → local state + baseline / dirty check
   useEffect(() => {
-    fetchApps();
-  }, []);
+    if (!appsLoaded) return;
+    setApps(contextApps);
+    if (captureBaselineRef.current) {
+      baselineRef.current = new Map(contextApps.map((a) => [a.id, a.isEnabled]));
+      captureBaselineRef.current = false;
+      onDirtyChange(false);
+    } else if (baselineRef.current) {
+      const bl = baselineRef.current;
+      const isDirty =
+        contextApps.some((a) => {
+          const base = bl.get(a.id);
+          return base === undefined || base !== a.isEnabled;
+        }) || [...bl.keys()].some((k) => !contextApps.find((a) => a.id === k));
+      onDirtyChange(isDirty);
+    }
+    setLoading(false);
+  }, [contextApps, appsLoaded]);
 
   useEffect(() => {
     if (browsingContent) {
@@ -162,7 +167,11 @@ export default function MarketplaceApps({
         const current = await backend.GetSpicetifyApps();
         for (const app of current) {
           const baselineEnabled = baseline.get(app.id);
-          if (baselineEnabled !== undefined && app.isEnabled !== baselineEnabled) {
+          if (baselineEnabled === undefined) {
+            // Installed after baseline – delete it
+            await backend.DeleteSpicetifyApp(app.id);
+          } else if (app.isEnabled !== baselineEnabled) {
+            // Toggle state changed – restore it
             await backend.ToggleSpicetifyApp(app.id, baselineEnabled);
           }
         }
@@ -374,10 +383,10 @@ export default function MarketplaceApps({
                 <div
                   ref={i === filteredApps.length - 1 ? lastAppElementRef : null}
                   key={`${app.user}/${app.repo}/${app.title}`}
-                  className={`group relative flex h-64 max-h-64 w-full flex-col rounded-lg border ${app.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
+                  className={`group relative flex h-64 max-h-64 w-full flex-col overflow-hidden rounded-lg border ${app.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
                 >
                   {hasImage ? (
-                    <div className="relative aspect-square w-full overflow-hidden rounded-t-lg">
+                    <div className="relative min-h-0 flex-1 overflow-hidden rounded-t-lg">
                       <div
                         className="absolute inset-0 scale-125 rounded-t-lg bg-cover bg-center blur-2xl"
                         style={{ backgroundImage: `url(${app.imageURL})` }}
@@ -393,7 +402,7 @@ export default function MarketplaceApps({
                       />
                     </div>
                   ) : (
-                    <div className="flex aspect-square w-full items-center justify-center rounded-t-lg bg-gradient-to-br from-[#1e2228] to-[#121418]">
+                    <div className="flex min-h-0 flex-1 items-center justify-center rounded-t-lg bg-gradient-to-br from-[#1e2228] to-[#121418]">
                       <img src="/spicetifyx-logo.png" alt="" className="h-12 w-12 opacity-30" />
                     </div>
                   )}
