@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { FaSync, FaCheckCircle, FaExclamationTriangle, FaPuzzlePiece, FaPalette, FaAppStore, FaChevronRight } from "react-icons/fa";
+import { FaSync, FaCheckCircle, FaExclamationTriangle, FaPuzzlePiece, FaPalette, FaAppStore, FaChevronRight, FaRocket } from "react-icons/fa";
 import RestoreModal from "./RestoreModal";
 import * as backend from "../../wailsjs/go/app/App";
 import { onRestoreComplete } from "../utils/bridge";
+import { useSpicetify } from "../context/SpicetifyContext";
 
 export default function Dashboard({
   installStatus,
@@ -15,65 +16,31 @@ export default function Dashboard({
   };
   onNavigate?: (tab: string) => void;
 }) {
-  const [spotifyVersion, setSpotifyVersion] = useState<string | null>(null);
-  const [spicetifyVersion, setSpicetifyVersion] = useState<string | null>(null);
   const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [isRestoringProcess, setIsRestoringProcess] = useState(false);
   const [restoreOutputError, setRestoreOutputError] = useState<string | null>(null);
   const [restoreSuccess, setRestoreSuccess] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [extensionsCount, setExtensionsCount] = useState<number>(0);
-  const [themesCount, setThemesCount] = useState<number>(0);
-  const [appsCount, setAppsCount] = useState<number>(0);
-  const [activeExtensions, setActiveExtensions] = useState<number>(0);
-  const [activeApps, setActiveApps] = useState<number>(0);
+  const [isReloading, setIsReloading] = useState(false);
 
-  async function fetchVersions() {
+  const handleReload = async () => {
+    setIsReloading(true);
     try {
-      setLoading(true);
-
-      try {
-        const spotifyVer = await backend.GetSpotifyVersion();
-        setSpotifyVersion(spotifyVer);
-      } catch (err) {
-        setSpotifyVersion("Unknown");
-      }
-
-      try {
-        const spicetifyVer = await backend.GetSpicetifyVersion();
-        setSpicetifyVersion(spicetifyVer);
-      } catch (err) {
-        setSpicetifyVersion("Unknown");
-      }
-
-      try {
-        const extensions = await backend.GetInstalledExtensions();
-        setExtensionsCount(extensions.length);
-        setActiveExtensions(extensions.filter((ext: any) => ext.isEnabled).length);
-      } catch (err) {
-        console.error("Failed to fetch extensions:", err);
-      }
-
-      try {
-        const themes = await backend.GetSpicetifyThemes();
-        setThemesCount(themes.length);
-      } catch (err) {
-        console.error("Failed to fetch themes:", err);
-      }
-
-      try {
-        const apps = await backend.GetSpicetifyApps();
-        setAppsCount(apps.length);
-        setActiveApps(apps.filter((app: any) => app.isEnabled).length);
-      } catch (err) {
-        console.error("Failed to fetch apps:", err);
-      }
+      await backend.ReloadSpicetify();
     } catch (err) {
-      console.error("Failed to fetch status or IPC not ready:", err);
+      console.error("Reload failed:", err);
     } finally {
-      setLoading(false);
+      setIsReloading(false);
     }
-  }
+  };
+
+  const { extensions, themes, apps, spotifyVersion, spicetifyVersion, extensionsLoaded, themesLoaded, appsLoaded } = useSpicetify();
+
+  const extensionsCount = extensions.length;
+  const activeExtensions = extensions.filter((ext) => ext.isEnabled).length;
+  const themesCount = themes.length;
+  const appsCount = apps.length;
+  const activeApps = apps.filter((a) => a.isEnabled).length;
+  const loading = !extensionsLoaded && !themesLoaded && !appsLoaded && spotifyVersion === null;
 
   const handleRestore = () => {
     setShowRestoreModal(true);
@@ -98,8 +65,6 @@ export default function Dashboard({
   };
 
   useEffect(() => {
-    fetchVersions();
-
     const handleRestoreComplete = (_event: any, { success, error }: { success: boolean; error?: string }) => {
       setIsRestoringProcess(false);
       if (success) {
@@ -154,17 +119,32 @@ export default function Dashboard({
                   </>
                 )}
               </div>
-              <button
-                onClick={handleRestore}
-                disabled={isRestoringProcess}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${isRestoringProcess
-                    ? "cursor-not-allowed bg-[#a02950] text-white"
-                    : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:scale-95 active:bg-[#b51c4a]"
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleReload}
+                  disabled={isReloading}
+                  className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                    isReloading
+                      ? "cursor-not-allowed bg-[#1e2228] text-[#a0a0a0]"
+                      : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white active:scale-95"
                   }`}
-              >
-                <FaSync className={isRestoringProcess ? "animate-spin" : ""} />
-                {isRestoringProcess ? "Restoring..." : "Restore"}
-              </button>
+                >
+                  <FaRocket className={isReloading ? "animate-pulse" : ""} />
+                  {isReloading ? "Reloading..." : "Reload"}
+                </button>
+                <button
+                  onClick={handleRestore}
+                  disabled={isRestoringProcess}
+                  className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                    isRestoringProcess
+                      ? "cursor-not-allowed bg-[#a02950] text-white"
+                      : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:scale-95 active:bg-[#b51c4a]"
+                  }`}
+                >
+                  <FaSync className={isRestoringProcess ? "animate-spin" : ""} />
+                  {isRestoringProcess ? "Restoring..." : "Restore"}
+                </button>
+              </div>
             </div>
           </div>
 
