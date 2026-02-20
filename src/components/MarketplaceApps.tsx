@@ -6,10 +6,9 @@ import { fetchAppManifest, getTaggedRepos } from "../utils/fetchRemotes";
 import { CardItem } from "../utils/marketplace-types";
 import Spinner from "./Spinner";
 import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
-import ApplyModal from "./ApplyModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
-export default function MarketplaceApps() {
+export default function MarketplaceApps({ markDirty }: { markDirty: () => void }) {
   const [apps, setApps] = useState<AppInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,11 +19,6 @@ export default function MarketplaceApps() {
   const [communityError, setCommunityError] = useState<string | null>(null);
   const [installingIndex, setInstallingIndex] = useState<number | null>(null);
   const [infoIndex, setInfoIndex] = useState<number | null>(null);
-  const [applyModal, setApplyModal] = useState<{
-    action: string;
-    items: string[];
-    isApplying: boolean;
-  } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{
     id: string;
     name: string;
@@ -129,12 +123,6 @@ export default function MarketplaceApps() {
   }, [apps]);
 
   const handleToggleApp = async (appId: string, enable: boolean) => {
-    const appName = apps.find((a) => a.id === appId)?.name || appId;
-    setApplyModal({
-      action: enable ? "Enabling App" : "Disabling App",
-      items: [appName],
-      isApplying: true,
-    });
     setTogglingId(appId);
     setApps((prevApps) => prevApps.map((app) => (app.id === appId ? { ...app, isEnabled: enable } : app)));
 
@@ -142,16 +130,14 @@ export default function MarketplaceApps() {
       const success = await window.electron.toggleSpicetifyApp(appId, enable);
       if (!success) {
         setApps((prevApps) => prevApps.map((app) => (app.id === appId ? { ...app, isEnabled: !enable } : app)));
-        setApplyModal(null);
         alert(`Failed to toggle app: ${appId}`);
       } else {
-        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+        markDirty();
       }
       fetchApps(true);
     } catch (err: any) {
       console.error(`Error toggling app ${appId}:`, err);
       setApps((prevApps) => prevApps.map((app) => (app.id === appId ? { ...app, isEnabled: !enable } : app)));
-      setApplyModal(null);
       alert(`Error toggling app: ${err.message}`);
     } finally {
       setTogglingId(null);
@@ -165,26 +151,19 @@ export default function MarketplaceApps() {
 
   const confirmDeleteApp = async () => {
     if (!pendingDelete) return;
-    const { id: appId, name: appName } = pendingDelete;
+    const { id: appId } = pendingDelete;
     setPendingDelete(null);
-    setApplyModal({
-      action: "Deleting App",
-      items: [appName],
-      isApplying: true,
-    });
     setTogglingId(appId);
     try {
       const success = await window.electron.deleteSpicetifyApp(appId);
       if (!success) {
-        setApplyModal(null);
         alert(`Failed to delete app: ${appId}`);
       } else {
-        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+        markDirty();
       }
       fetchApps(true);
     } catch (err: any) {
       console.error(`Error deleting app ${appId}:`, err);
-      setApplyModal(null);
       alert(`Error deleting app: ${err.message}`);
     } finally {
       setTogglingId(null);
@@ -195,11 +174,6 @@ export default function MarketplaceApps() {
     if (app.installed) return;
     setInstallingIndex(index);
     setInfoIndex(null);
-    setApplyModal({
-      action: "Installing App",
-      items: [app.title],
-      isApplying: true,
-    });
     try {
       const appName = app.title.replace(/[^a-zA-Z0-9_-]/g, "_");
       const meta = {
@@ -214,13 +188,11 @@ export default function MarketplaceApps() {
       if (success) {
         setCommunityApps((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
         fetchApps(true);
-        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+        markDirty();
       } else {
-        setApplyModal(null);
         alert(`Failed to install ${app.title}`);
       }
     } catch (err: any) {
-      setApplyModal(null);
       alert(`Error installing ${app.title}: ${err.message}`);
     } finally {
       setInstallingIndex(null);
@@ -447,9 +419,6 @@ export default function MarketplaceApps() {
             />
           );
         })()}
-      {applyModal && (
-        <ApplyModal action={applyModal.action} items={applyModal.items} isApplying={applyModal.isApplying} onClose={() => setApplyModal(null)} />
-      )}
     </div>
   ) : (
     <>
@@ -490,9 +459,6 @@ export default function MarketplaceApps() {
           </div>
         )}
       </div>
-      {applyModal && (
-        <ApplyModal action={applyModal.action} items={applyModal.items} isApplying={applyModal.isApplying} onClose={() => setApplyModal(null)} />
-      )}
       <ConfirmDeleteModal
         show={!!pendingDelete}
         itemName={pendingDelete?.name || ""}
