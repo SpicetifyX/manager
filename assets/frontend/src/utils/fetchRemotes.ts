@@ -103,21 +103,78 @@ async function getRepoManifest(user: string, repo: string, branch: string) {
   const failedKey = "noManifests";
   const failedSessionStorageItems: string[] = JSON.parse(window.sessionStorage.getItem(failedKey) || "[]");
 
-  const url = `https://raw.githubusercontent.com/${user}/${repo}/${branch}/manifest.json`;
-  if (failedSessionStorageItems.includes(url)) return null;
-
-  let manifest = await fetchRepoManifest(url);
-
-  if (!manifest) {
-    failedSessionStorageItems.push(url);
-    window.sessionStorage.setItem(failedKey, JSON.stringify(failedSessionStorageItems));
-    return null;
+  // ── Step 1: try root manifest.json on the given (default) branch ─────────
+  const rootUrl = `https://raw.githubusercontent.com/${user}/${repo}/${branch}/manifest.json`;
+  if (!failedSessionStorageItems.includes(rootUrl)) {
+    let manifest = await fetchRepoManifest(rootUrl);
+    if (manifest) {
+      if (!Array.isArray(manifest)) manifest = [manifest];
+      window.sessionStorage.setItem(key, JSON.stringify(manifest));
+      return manifest;
+    }
   }
 
-  if (!Array.isArray(manifest)) manifest = [manifest];
+  // ── Step 2: try root manifest.json on every other branch ─────────────────
+  let branches: string[] = [];
+  try {
+    const branchData = await fetch(
+      `https://api.github.com/repos/${user}/${repo}/branches?per_page=100`,
+    ).then((r) => r.json());
+    if (Array.isArray(branchData)) {
+      branches = branchData.map((b: any) => b.name).filter((b: string) => b !== branch);
+    }
+  } catch {
+    // ignore – proceed with empty list
+  }
 
-  window.sessionStorage.setItem(key, JSON.stringify(manifest));
-  return manifest;
+  for (const b of branches) {
+    const url = `https://raw.githubusercontent.com/${user}/${repo}/${b}/manifest.json`;
+    if (failedSessionStorageItems.includes(url)) continue;
+    let manifest = await fetchRepoManifest(url);
+    if (manifest) {
+      if (!Array.isArray(manifest)) manifest = [manifest];
+      window.sessionStorage.setItem(key, JSON.stringify(manifest));
+      return manifest;
+    }
+    failedSessionStorageItems.push(url);
+  }
+
+  // ── Step 3: walk every branch's full file tree looking for manifest.json ──
+  const allBranches = [branch, ...branches];
+  for (const b of allBranches) {
+    let tree: any[] = [];
+    try {
+      const treeData = await fetch(
+        `https://api.github.com/repos/${user}/${repo}/git/trees/${b}?recursive=1`,
+      ).then((r) => r.json());
+      if (Array.isArray(treeData?.tree)) {
+        tree = treeData.tree.filter(
+          (node: any) => node.type === "blob" && node.path.endsWith("manifest.json"),
+        );
+      }
+    } catch {
+      continue;
+    }
+
+    for (const node of tree) {
+      // skip root – already tried above
+      if (node.path === "manifest.json") continue;
+      const url = `https://raw.githubusercontent.com/${user}/${repo}/${b}/${node.path}`;
+      if (failedSessionStorageItems.includes(url)) continue;
+      let manifest = await fetchRepoManifest(url);
+      if (manifest) {
+        if (!Array.isArray(manifest)) manifest = [manifest];
+        window.sessionStorage.setItem(key, JSON.stringify(manifest));
+        return manifest;
+      }
+      failedSessionStorageItems.push(url);
+    }
+  }
+
+  // Nothing found anywhere
+  failedSessionStorageItems.push(rootUrl);
+  window.sessionStorage.setItem(failedKey, JSON.stringify(failedSessionStorageItems));
+  return null;
 }
 
 export async function fetchExtensionManifest(contents_url: string, branch: string, stars: number, hideInstalled = false) {
