@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Spinner from "./Spinner";
 import { FaTrash, FaInfoCircle } from "react-icons/fa";
 import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
