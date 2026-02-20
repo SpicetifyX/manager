@@ -59,7 +59,6 @@ ipcMain.handle(
         "extensions",
         ...commandArgs,
       ]);
-      await spicetifyCommand(spicetifyExec, ["apply"]);
 
       return true;
     } catch (error) {
