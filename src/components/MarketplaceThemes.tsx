@@ -6,10 +6,9 @@ import { fetchThemeManifest, getTaggedRepos } from "../utils/fetchRemotes";
 import { CardItem } from "../utils/marketplace-types";
 import Spinner from "./Spinner";
 import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
-import ApplyModal from "./ApplyModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
-export default function MarketplaceThemes() {
+export default function MarketplaceThemes({ markDirty }: { markDirty: () => void }) {
   const [themes, setThemes] = useState<ThemeInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,11 +19,6 @@ export default function MarketplaceThemes() {
   const [communityError, setCommunityError] = useState<string | null>(null);
   const [installingIndex, setInstallingIndex] = useState<number | null>(null);
   const [infoIndex, setInfoIndex] = useState<number | null>(null);
-  const [applyModal, setApplyModal] = useState<{
-    action: string;
-    items: string[];
-    isApplying: boolean;
-  } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{
     id: string;
     name: string;
@@ -130,25 +124,17 @@ export default function MarketplaceThemes() {
   }, [themes]);
 
   const handleSelectTheme = async (themeId: string) => {
-    const themeName = themes.find((t) => t.id === themeId)?.name || themeId;
-    setApplyModal({
-      action: "Applying Theme",
-      items: [themeName],
-      isApplying: true,
-    });
     setApplyingThemeId(themeId);
     try {
       const success = await window.electron.applySpicetifyTheme(themeId);
       if (!success) {
-        setApplyModal(null);
         alert(`Failed to apply theme: ${themeId}`);
       } else {
-        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+        markDirty();
       }
       fetchThemes(true);
     } catch (err: any) {
       console.error(`Error applying theme ${themeId}:`, err);
-      setApplyModal(null);
       alert(`Error applying theme: ${err.message}`);
     } finally {
       setApplyingThemeId(null);
@@ -164,23 +150,16 @@ export default function MarketplaceThemes() {
     if (!pendingDelete) return;
     const { id: themeId, name: themeName } = pendingDelete;
     setPendingDelete(null);
-    setApplyModal({
-      action: "Deleting Theme",
-      items: [themeName],
-      isApplying: true,
-    });
     try {
       const success = await window.electron.deleteSpicetifyTheme(themeId);
       if (success) {
-        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+        markDirty();
         fetchThemes(true);
         setCommunityThemes((prev) => prev.map((t) => (t.title === themeName ? { ...t, installed: false } : t)));
       } else {
-        setApplyModal(null);
         alert(`Failed to delete theme: ${themeName}`);
       }
     } catch (err: any) {
-      setApplyModal(null);
       alert(`Error deleting theme: ${err.message}`);
     }
   };
@@ -189,11 +168,6 @@ export default function MarketplaceThemes() {
     if (!ext.cssURL || ext.installed) return;
     setInstallingIndex(index);
     setInfoIndex(null);
-    setApplyModal({
-      action: "Installing Theme",
-      items: [ext.title],
-      isApplying: true,
-    });
     try {
       const themeId = ext.title.replace(/[^a-zA-Z0-9_-]/g, "_");
       const meta = {
@@ -208,13 +182,11 @@ export default function MarketplaceThemes() {
       if (success) {
         setCommunityThemes((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
         fetchThemes(true);
-        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+        markDirty();
       } else {
-        setApplyModal(null);
         alert(`Failed to install ${ext.title}`);
       }
     } catch (err: any) {
-      setApplyModal(null);
       alert(`Error installing ${ext.title}: ${err.message}`);
     } finally {
       setInstallingIndex(null);
@@ -448,9 +420,6 @@ export default function MarketplaceThemes() {
             />
           );
         })()}
-      {applyModal && (
-        <ApplyModal action={applyModal.action} items={applyModal.items} isApplying={applyModal.isApplying} onClose={() => setApplyModal(null)} />
-      )}
     </div>
   ) : (
     <>
@@ -482,6 +451,7 @@ export default function MarketplaceThemes() {
                   onSelect={handleSelectTheme}
                   onDelete={!theme.isBundled ? handleDeleteTheme : undefined}
                   isApplying={applyingThemeId === theme.id}
+                  markDirty={markDirty}
                 />
               ))
             ) : (
@@ -490,9 +460,6 @@ export default function MarketplaceThemes() {
           </div>
         )}
       </div>
-      {applyModal && (
-        <ApplyModal action={applyModal.action} items={applyModal.items} isApplying={applyModal.isApplying} onClose={() => setApplyModal(null)} />
-      )}
       <ConfirmDeleteModal
         show={!!pendingDelete}
         itemName={pendingDelete?.name || ""}
