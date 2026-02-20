@@ -33,13 +33,6 @@ ipcMain.handle("delete-spicetify-theme", async (_, themeId: string): Promise<boo
       }
     }
 
-    try {
-      await spicetifyCommand(spicetifyExec, ["apply"]);
-      console.log(`[delete-spicetify-theme] Applied changes after deletion.`);
-    } catch (applyErr) {
-      console.warn(`[delete-spicetify-theme] Apply after delete failed (non-fatal):`, applyErr);
-    }
-
     return true;
   } catch (error) {
     console.error(`[delete-spicetify-theme] Failed to delete theme "${themeId}":`, error);
