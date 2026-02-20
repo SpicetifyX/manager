@@ -33,6 +33,7 @@ export default function PendingChangesBar({ onApplied, onReset }: { onApplied: (
               Unsaved changes, Spotify needs to restart to apply them.
             </span>
           </div>
+          <div className="flex items-center gap-2">
           <button
             onClick={onReset}
             disabled={isApplying}
@@ -57,6 +58,7 @@ export default function PendingChangesBar({ onApplied, onReset }: { onApplied: (
               </>
             )}
           </button>
+          </div>
         </div>
       </div>
       {showModal && (
