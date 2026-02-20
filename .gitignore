@@ -12,8 +12,24 @@ dist
 dist-ssr
 *.local
 
+bin/
+/bin
+
+dist/
+/dist
+
 /dist-electron
 dist-electron/
+
+bun.lock
+
+# Wails build output
+frontend/dist/
+frontend/node_modules/
+
+# Go build artifacts
+*.exe
+manager.exe
 
 /.spicetify
 .spicetify/
@@ -36,3 +52,17 @@ release/
 *.sln
 *.sw?
 package-lock.json
+build/darwin/Info.dev.plist
+build/darwin/Info.plist
+frontend/wailsjs/go/main/App.js
+frontend/wailsjs/go/main/App.js
+frontend/wailsjs/go/main/App.js
+frontend/wailsjs/runtime/package.json
+frontend/wailsjs/runtime/runtime.d.ts
+frontend/wailsjs/runtime/runtime.js
+frontend/wailsjs/runtime/package.json
+frontend/wailsjs/runtime/runtime.d.ts
+frontend/wailsjs/runtime/runtime.js
+assets/frontend/wailsjs/runtime/package.json
+assets/frontend/wailsjs/runtime/runtime.d.ts
+assets/frontend/wailsjs/runtime/runtime.js
