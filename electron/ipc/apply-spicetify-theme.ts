@@ -71,8 +71,7 @@ ipcMain.handle("apply-spicetify-theme", async (_, themeId: string): Promise<bool
 
     await spicetifyCommand(spicetifyExec, ["config", "color_scheme", firstScheme]);
 
-    await spicetifyCommand(spicetifyExec, ["apply"]);
-    console.log(`[apply-spicetify-theme] Theme ${themeId} applied successfully.`);
+    console.log(`[apply-spicetify-theme] Theme ${themeId} configured successfully.`);
 
     return true;
   } catch (error) {
