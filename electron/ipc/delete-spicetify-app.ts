@@ -28,13 +28,6 @@ ipcMain.handle("delete-spicetify-app", async (_, appId: string): Promise<boolean
       }
     }
 
-    try {
-      await spicetifyCommand(spicetifyExec, ["apply"]);
-      console.log(`[delete-spicetify-app] Applied changes after deletion.`);
-    } catch (applyErr) {
-      console.warn(`[delete-spicetify-app] Apply after delete failed (non-fatal):`, applyErr);
-    }
-
     return true;
   } catch (error) {
     console.error(`[delete-spicetify-app] Failed to delete app "${appId}":`, error);
