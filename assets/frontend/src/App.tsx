@@ -15,6 +15,7 @@ import MarketplaceAddons from "./components/MarketplaceAddons";
 import PendingChangesBar from "./components/PendingChangesBar";
 import * as backend from "../wailsjs/go/app/App";
 import { onInstallComplete } from "./utils/bridge";
+import { SpicetifyProvider } from "./context/SpicetifyContext";
 
 export type StepStatus = "pending" | "active" | "complete" | "error";
 
@@ -43,6 +44,9 @@ export default function App() {
   const hasPendingChanges = addonsDirty || themesDirty || appsDirty;
   const [resetKey, setResetKey] = useState(0);
   const [snapshotKey, setSnapshotKey] = useState(0);
+  // Track which marketplace tabs have been mounted so they are never unmounted
+  // (prevents dirty state / baselines from being lost on tab switch)
+  const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set());
   const [steps, setSteps] = useState<InstallStep[]>([
     {
       id: "install",
@@ -160,6 +164,20 @@ export default function App() {
     };
   }, []);
 
+  // Once a marketplace tab is visited, keep it mounted (hidden with CSS) so
+  // dirty-state baselines are never lost when the user switches tabs.
+  useEffect(() => {
+    const marketplaceTabs = ["addons", "themes", "apps"];
+    if (marketplaceTabs.includes(activeTab)) {
+      setMountedTabs((prev) => {
+        if (prev.has(activeTab)) return prev;
+        const next = new Set(prev);
+        next.add(activeTab);
+        return next;
+      });
+    }
+  }, [activeTab]);
+
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#171b20]">
       <TitleBar />
@@ -193,6 +211,7 @@ export default function App() {
             </Footer>
           </>
         ) : (
+          <SpicetifyProvider>
           <div className="flex h-full w-full flex-1">
             <div className="flex w-16 flex-col items-center bg-[#121418] p-4">
               <button
@@ -231,13 +250,21 @@ export default function App() {
             <div className="relative flex flex-1 flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto">
                 {installStatus && activeTab === "dashboard" && <Dashboard installStatus={installStatus} onNavigate={setActiveTab} />}
-                {activeTab === "addons" && (
-                  <MarketplaceAddons onDirtyChange={(d) => setAddonsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
+                {mountedTabs.has("addons") && (
+                  <div className={activeTab === "addons" ? "block" : "hidden"}>
+                    <MarketplaceAddons onDirtyChange={(d) => setAddonsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
+                  </div>
                 )}
-                {activeTab === "themes" && (
-                  <MarketplaceThemes onDirtyChange={(d) => setThemesDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
+                {mountedTabs.has("themes") && (
+                  <div className={activeTab === "themes" ? "block" : "hidden"}>
+                    <MarketplaceThemes onDirtyChange={(d) => setThemesDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
+                  </div>
                 )}
-                {activeTab === "apps" && <MarketplaceApps onDirtyChange={(d) => setAppsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />}
+                {mountedTabs.has("apps") && (
+                  <div className={activeTab === "apps" ? "block" : "hidden"}>
+                    <MarketplaceApps onDirtyChange={(d) => setAppsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
+                  </div>
+                )}
                 {activeTab === "settings" && <Settings />}
               </div>
               {hasPendingChanges && (
@@ -253,6 +280,7 @@ export default function App() {
               )}
             </div>
           </div>
+          </SpicetifyProvider>
         )}
       </div>
     </div>
