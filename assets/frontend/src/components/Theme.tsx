@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ThemeInfo } from "../types/theme.d";
 import Spinner from "./Spinner";
 import { FaInfoCircle, FaTrash, FaPalette, FaChevronDown } from "react-icons/fa";
@@ -23,13 +24,30 @@ export default function Theme({
   const [schemeOpen, setSchemeOpen] = useState(false);
   const [applyingScheme, setApplyingScheme] = useState(false);
   const schemeRef = useRef<HTMLDivElement>(null);
+  const schemeButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
   const schemes = theme.colorSchemes && theme.colorSchemes.length > 0 ? theme.colorSchemes : ["Default"];
   const [selectedScheme, setSelectedScheme] = useState(theme.activeColorScheme || schemes[0]);
+
+  const openDropdown = () => {
+    if (isApplying || applyingScheme) return;
+    if (schemeButtonRef.current) {
+      const rect = schemeButtonRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + 6,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setSchemeOpen((o) => !o);
+  };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (schemeRef.current && !schemeRef.current.contains(e.target as Node)) {
-        setSchemeOpen(false);
-      }
+      const target = e.target as Node;
+      const insideButton = schemeRef.current?.contains(target);
+      const insideDropdown = dropdownRef.current?.contains(target);
+      if (!insideButton && !insideDropdown) setSchemeOpen(false);
     };
     if (schemeOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -75,9 +93,10 @@ export default function Theme({
             </button>
           )}
           {theme.isActive && theme.colorSchemes && theme.colorSchemes.length > 1 && (
-            <div className="relative" ref={schemeRef}>
+            <div ref={schemeRef}>
               <button
-                onClick={() => !isApplying && !applyingScheme && setSchemeOpen(!schemeOpen)}
+                ref={schemeButtonRef}
+                onClick={openDropdown}
                 disabled={isApplying || applyingScheme}
                 className="flex h-8 items-center gap-1.5 rounded-full border border-[#2a2a2a] bg-[#1a1a1a] pr-2.5 pl-2.5 text-sm text-white transition-all hover:border-[#3a3a3a] hover:bg-[#1e2228] disabled:opacity-50"
                 title="Color scheme"
@@ -86,8 +105,12 @@ export default function Theme({
                 <span className="max-w-[80px] truncate text-[#ccc]">{selectedScheme}</span>
                 <FaChevronDown className={`h-2.5 w-2.5 text-[#666] transition-transform duration-200 ${schemeOpen ? "rotate-180" : ""}`} />
               </button>
-              {schemeOpen && (
-                <div className="absolute right-0 z-50 mt-1.5 min-w-[140px] rounded-lg border border-[#2a2a2a] bg-[#161a1e] p-1 shadow-xl shadow-black/40">
+              {schemeOpen && createPortal(
+                <div
+                  ref={dropdownRef}
+                  style={{ top: dropdownPos.top, right: dropdownPos.right }}
+                  className="fixed z-[9999] min-w-[140px] rounded-lg border border-[#2a2a2a] bg-[#161a1e] p-1 shadow-xl shadow-black/40"
+                >
                   <div className="custom-scrollbar max-h-48 overflow-y-auto">
                     {schemes.map((scheme) => (
                       <button
@@ -109,15 +132,17 @@ export default function Theme({
                             setApplyingScheme(false);
                           }
                         }}
-                        className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors ${selectedScheme === scheme ? "bg-[#d63c6a]/15 text-[#d63c6a]" : "text-[#ccc] hover:bg-[#1e2228] hover:text-white"
-                          }`}
+                        className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors ${
+                          selectedScheme === scheme ? "bg-[#d63c6a]/15 text-[#d63c6a]" : "text-[#ccc] hover:bg-[#1e2228] hover:text-white"
+                        }`}
                       >
                         <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${selectedScheme === scheme ? "bg-[#d63c6a]" : "bg-transparent"}`} />
                         <span className="truncate">{scheme}</span>
                       </button>
                     ))}
                   </div>
-                </div>
+                </div>,
+                document.body,
               )}
             </div>
           )}
