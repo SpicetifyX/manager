@@ -35,7 +35,6 @@ ipcMain.handle(
         "custom_apps",
         ...commandArgs,
       ]);
-      await spicetifyCommand(spicetifyExec, ["apply"]);
 
       return true;
     } catch (error) {
