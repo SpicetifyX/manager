@@ -10,11 +10,13 @@ export default function Theme({
   onSelect,
   onDelete,
   isApplying,
+  markDirty,
 }: {
   theme: ThemeInfo;
   onSelect: (themeId: string) => void;
   onDelete?: (themeId: string) => void;
   isApplying: boolean;
+  markDirty: () => void;
 }) {
   const [previewSrc, setPreviewSrc] = useState<string | undefined>(undefined);
   const [showInfo, setShowInfo] = useState(false);
@@ -128,6 +130,7 @@ export default function Theme({
                         setApplyingScheme(true);
                         try {
                           await window.electron.setColorScheme(theme.id, scheme);
+                          markDirty();
                         } catch (err) {
                           console.error("Failed to set color scheme:", err);
                         } finally {
