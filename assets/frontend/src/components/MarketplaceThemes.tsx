@@ -8,6 +8,7 @@ import Spinner from "./Spinner";
 import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import * as backend from "../../wailsjs/go/app/App";
+import { useSpicetify } from "../context/SpicetifyContext";
 
 export default function MarketplaceThemes({
   onDirtyChange,
@@ -18,8 +19,10 @@ export default function MarketplaceThemes({
   resetKey: number;
   snapshotKey: number;
 }) {
-  const [themes, setThemes] = useState<ThemeInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { themes: contextThemes, themesLoaded, refreshThemes } = useSpicetify();
+
+  const [themes, setThemes] = useState<ThemeInfo[]>(contextThemes);
+  const [loading, setLoading] = useState(!themesLoaded);
   const [error, setError] = useState<string | null>(null);
   const [applyingThemeId, setApplyingThemeId] = useState<string | null>(null);
   const [browsingContent, setBrowsingContent] = useState(false);
@@ -34,7 +37,7 @@ export default function MarketplaceThemes({
   } | null>(null);
   const themesRef = useRef<ThemeInfo[]>([]);
   const captureBaselineRef = useRef(true);
-  const baselineRef = useRef<{ activeThemeId: string; colorScheme: string } | null>(null);
+  const baselineRef = useRef<{ activeThemeId: string; colorScheme: string; installedIds: string[] } | null>(null);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -102,20 +105,7 @@ export default function MarketplaceThemes({
       setError(null);
     }
     try {
-      const fetchedThemes = await backend.GetSpicetifyThemes();
-      setThemes(fetchedThemes);
-      themesRef.current = fetchedThemes;
-      const activeTheme = fetchedThemes.find((t) => t.isActive);
-      const currentId = activeTheme?.id ?? "";
-      const currentScheme = activeTheme?.activeColorScheme ?? "";
-      if (captureBaselineRef.current) {
-        baselineRef.current = { activeThemeId: currentId, colorScheme: currentScheme };
-        captureBaselineRef.current = false;
-        onDirtyChange(false);
-      } else if (baselineRef.current) {
-        const isDirty = currentId !== baselineRef.current.activeThemeId || currentScheme !== baselineRef.current.colorScheme;
-        onDirtyChange(isDirty);
-      }
+      await refreshThemes();
     } catch (err: any) {
       if (!silent) setError(err.message || "Failed to fetch themes.");
       console.error("Error fetching themes:", err);
@@ -124,9 +114,31 @@ export default function MarketplaceThemes({
     }
   };
 
+  // Sync from global context → local state + baseline / dirty check
   useEffect(() => {
-    fetchThemes();
-  }, []);
+    if (!themesLoaded) return;
+    setThemes(contextThemes);
+    themesRef.current = contextThemes;
+    const activeTheme = contextThemes.find((t) => t.isActive);
+    const currentId = activeTheme?.id ?? "";
+    const currentScheme = activeTheme?.activeColorScheme ?? "";
+    if (captureBaselineRef.current) {
+      baselineRef.current = { activeThemeId: currentId, colorScheme: currentScheme, installedIds: contextThemes.map((t) => t.id) };
+      captureBaselineRef.current = false;
+      onDirtyChange(false);
+    } else if (baselineRef.current) {
+      const bl = baselineRef.current;
+      const baselineInstalled = new Set(bl.installedIds);
+      const installedNow = new Set(contextThemes.map((t) => t.id));
+      const isDirty =
+        currentId !== bl.activeThemeId ||
+        currentScheme !== bl.colorScheme ||
+        contextThemes.some((t) => !baselineInstalled.has(t.id)) ||
+        bl.installedIds.some((id) => !installedNow.has(id));
+      onDirtyChange(isDirty);
+    }
+    setLoading(false);
+  }, [contextThemes, themesLoaded]);
 
   useEffect(() => {
     if (browsingContent) {
@@ -155,11 +167,20 @@ export default function MarketplaceThemes({
   // Undo theme/scheme changes on Reset
   useEffect(() => {
     if (resetKey === 0 || !baselineRef.current) return;
-    const { activeThemeId, colorScheme } = baselineRef.current;
+    const { activeThemeId, colorScheme, installedIds } = baselineRef.current;
     (async () => {
       try {
         const current = await backend.GetSpicetifyThemes();
-        const activeTheme = current.find((t) => t.isActive);
+        const baselineInstalled = new Set(installedIds);
+        // Delete themes that were installed after the baseline was captured
+        for (const theme of current) {
+          if (!baselineInstalled.has(theme.id)) {
+            await backend.DeleteSpicetifyTheme(theme.id);
+          }
+        }
+        // Re-fetch after deletions to restore active theme / color scheme
+        const afterDelete = await backend.GetSpicetifyThemes();
+        const activeTheme = afterDelete.find((t) => t.isActive);
         const currentId = activeTheme?.id ?? "";
         const currentScheme = activeTheme?.activeColorScheme ?? "";
         if (currentId !== activeThemeId) {
@@ -372,10 +393,10 @@ export default function MarketplaceThemes({
                 <div
                   ref={i === filteredThemes.length - 1 ? lastThemeElementRef : null}
                   key={`${ext.user}/${ext.repo}/${ext.title}`}
-                  className={`group relative flex h-64 max-h-64 w-full flex-col rounded-lg border ${ext.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
+                  className={`group relative flex h-64 max-h-64 w-full flex-col overflow-hidden rounded-lg border ${ext.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
                 >
                   {hasImage ? (
-                    <div className="relative aspect-square w-full overflow-hidden rounded-t-lg">
+                    <div className="relative min-h-0 flex-1 overflow-hidden rounded-t-lg">
                       <div
                         className="absolute inset-0 scale-125 rounded-t-lg bg-cover bg-center blur-2xl"
                         style={{ backgroundImage: `url(${ext.imageURL})` }}
@@ -391,7 +412,7 @@ export default function MarketplaceThemes({
                       />
                     </div>
                   ) : (
-                    <div className="flex aspect-square w-full items-center justify-center rounded-t-lg bg-gradient-to-br from-[#1e2228] to-[#121418]">
+                    <div className="flex min-h-0 flex-1 items-center justify-center rounded-t-lg bg-gradient-to-br from-[#1e2228] to-[#121418]">
                       <img src="/spicetifyx-logo.png" alt="" className="h-12 w-12 opacity-30" />
                     </div>
                   )}
