@@ -6,10 +6,9 @@ import { fetchExtensionManifest, getTaggedRepos } from "../utils/fetchRemotes";
 import { CardItem } from "../utils/marketplace-types";
 import Spinner from "./Spinner";
 import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
-import ApplyModal from "./ApplyModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
-export default function MarketplaceAddons() {
+export default function MarketplaceAddons({ markDirty }: { markDirty: () => void }) {
   const [addons, setAddons] = useState<AddonInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,11 +19,6 @@ export default function MarketplaceAddons() {
   const [communityError, setCommunityError] = useState<string | null>(null);
   const [installingIndex, setInstallingIndex] = useState<number | null>(null);
   const [infoIndex, setInfoIndex] = useState<number | null>(null);
-  const [applyModal, setApplyModal] = useState<{
-    action: string;
-    items: string[];
-    isApplying: boolean;
-  } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{
     id: string;
     name: string;
@@ -131,12 +125,6 @@ export default function MarketplaceAddons() {
   }, [addons]);
 
   const handleToggleAddon = async (addonFileName: string, enable: boolean) => {
-    const addonName = addons.find((a) => a.addonFileName === addonFileName)?.name || addonFileName;
-    setApplyModal({
-      action: enable ? "Enabling Extension" : "Disabling Extension",
-      items: [addonName],
-      isApplying: true,
-    });
     setTogglingId(addonFileName);
     setAddons((prevAddons) => prevAddons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: enable } : addon)));
 
@@ -144,16 +132,14 @@ export default function MarketplaceAddons() {
       const success = await window.electron.toggleSpicetifyExtension(addonFileName, enable);
       if (!success) {
         setAddons((prevAddons) => prevAddons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: !enable } : addon)));
-        setApplyModal(null);
         alert(`Failed to toggle addon: ${addonFileName}`);
       } else {
-        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+        markDirty();
       }
       fetchAddons(true);
     } catch (err: any) {
       console.error(`Error toggling addon ${addonFileName}:`, err);
       setAddons((prevAddons) => prevAddons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: !enable } : addon)));
-      setApplyModal(null);
       alert(`Error toggling addon: ${err.message}`);
     } finally {
       setTogglingId(null);
@@ -167,26 +153,19 @@ export default function MarketplaceAddons() {
 
   const confirmDeleteAddon = async () => {
     if (!pendingDelete) return;
-    const { id: addonFileName, name: addonName } = pendingDelete;
+    const { id: addonFileName } = pendingDelete;
     setPendingDelete(null);
-    setApplyModal({
-      action: "Deleting Extension",
-      items: [addonName],
-      isApplying: true,
-    });
     setTogglingId(addonFileName);
     try {
       const success = await window.electron.deleteSpicetifyExtension(addonFileName);
       if (!success) {
-        setApplyModal(null);
         alert(`Failed to delete extension: ${addonFileName}`);
       } else {
-        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+        markDirty();
       }
       fetchAddons(true);
     } catch (err: any) {
       console.error(`Error deleting extension ${addonFileName}:`, err);
-      setApplyModal(null);
       alert(`Error deleting extension: ${err.message}`);
     } finally {
       setTogglingId(null);
@@ -197,11 +176,6 @@ export default function MarketplaceAddons() {
     if (!ext.extensionURL || ext.installed) return;
     setInstallingIndex(index);
     setInfoIndex(null);
-    setApplyModal({
-      action: "Installing Extension",
-      items: [ext.title],
-      isApplying: true,
-    });
     try {
       const urlParts = ext.extensionURL.split("/");
       const filename = urlParts[urlParts.length - 1];
@@ -217,13 +191,11 @@ export default function MarketplaceAddons() {
       if (success) {
         setCommunityExtensions((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
         fetchAddons(true);
-        setApplyModal((prev) => (prev ? { ...prev, isApplying: false } : null));
+        markDirty();
       } else {
-        setApplyModal(null);
         alert(`Failed to install ${ext.title}`);
       }
     } catch (err: any) {
-      setApplyModal(null);
       alert(`Error installing ${ext.title}: ${err.message}`);
     } finally {
       setInstallingIndex(null);
@@ -453,9 +425,6 @@ export default function MarketplaceAddons() {
             />
           );
         })()}
-      {applyModal && (
-        <ApplyModal action={applyModal.action} items={applyModal.items} isApplying={applyModal.isApplying} onClose={() => setApplyModal(null)} />
-      )}
     </div>
   ) : (
     <>
@@ -501,9 +470,6 @@ export default function MarketplaceAddons() {
           </div>
         )}
       </div>
-      {applyModal && (
-        <ApplyModal action={applyModal.action} items={applyModal.items} isApplying={applyModal.isApplying} onClose={() => setApplyModal(null)} />
-      )}
       <ConfirmDeleteModal
         show={!!pendingDelete}
         itemName={pendingDelete?.name || ""}
