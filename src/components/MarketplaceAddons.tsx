@@ -8,7 +8,15 @@ import Spinner from "./Spinner";
 import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
-export default function MarketplaceAddons({ markDirty }: { markDirty: () => void }) {
+export default function MarketplaceAddons({
+  onDirtyChange,
+  resetKey,
+  snapshotKey,
+}: {
+  onDirtyChange: (dirty: boolean) => void;
+  resetKey: number;
+  snapshotKey: number;
+}) {
   const [addons, setAddons] = useState<AddonInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +32,8 @@ export default function MarketplaceAddons({ markDirty }: { markDirty: () => void
     name: string;
   } | null>(null);
   const addonsRef = useRef<AddonInfo[]>([]);
+  const captureBaselineRef = useRef(true);
+  const baselineRef = useRef<Map<string, boolean> | null>(null);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -95,6 +105,19 @@ export default function MarketplaceAddons({ markDirty }: { markDirty: () => void
       const fetchedAddons = await window.electron.getSpicetifyExtensions();
       setAddons(fetchedAddons);
       addonsRef.current = fetchedAddons;
+      if (captureBaselineRef.current) {
+        baselineRef.current = new Map(fetchedAddons.map((a) => [a.addonFileName, a.isEnabled]));
+        captureBaselineRef.current = false;
+        onDirtyChange(false);
+      } else if (baselineRef.current) {
+        const bl = baselineRef.current;
+        const isDirty =
+          fetchedAddons.some((a) => {
+            const base = bl.get(a.addonFileName);
+            return base === undefined || base !== a.isEnabled;
+          }) || [...bl.keys()].some((k) => !fetchedAddons.find((a) => a.addonFileName === k));
+        onDirtyChange(isDirty);
+      }
     } catch (err: any) {
       if (!silent) setError(err.message || "Failed to fetch addons.");
       console.error("Error fetching addons:", err);
@@ -124,6 +147,33 @@ export default function MarketplaceAddons({ markDirty }: { markDirty: () => void
     }
   }, [addons]);
 
+  // Recapture baseline after Apply
+  useEffect(() => {
+    if (snapshotKey === 0) return;
+    captureBaselineRef.current = true;
+    fetchAddons(true);
+  }, [snapshotKey]);
+
+  // Undo toggle changes on Reset
+  useEffect(() => {
+    if (resetKey === 0 || !baselineRef.current) return;
+    const baseline = new Map(baselineRef.current);
+    (async () => {
+      try {
+        const current = await window.electron.getSpicetifyExtensions();
+        for (const addon of current) {
+          const baselineEnabled = baseline.get(addon.addonFileName);
+          if (baselineEnabled !== undefined && addon.isEnabled !== baselineEnabled) {
+            await window.electron.toggleSpicetifyExtension(addon.addonFileName, baselineEnabled);
+          }
+        }
+        await fetchAddons(true);
+      } catch (err) {
+        console.error("[MarketplaceAddons] Reset failed:", err);
+      }
+    })();
+  }, [resetKey]);
+
   const handleToggleAddon = async (addonFileName: string, enable: boolean) => {
     setTogglingId(addonFileName);
     setAddons((prevAddons) => prevAddons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: enable } : addon)));
@@ -133,8 +183,6 @@ export default function MarketplaceAddons({ markDirty }: { markDirty: () => void
       if (!success) {
         setAddons((prevAddons) => prevAddons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: !enable } : addon)));
         alert(`Failed to toggle addon: ${addonFileName}`);
-      } else {
-        markDirty();
       }
       fetchAddons(true);
     } catch (err: any) {
@@ -160,8 +208,6 @@ export default function MarketplaceAddons({ markDirty }: { markDirty: () => void
       const success = await window.electron.deleteSpicetifyExtension(addonFileName);
       if (!success) {
         alert(`Failed to delete extension: ${addonFileName}`);
-      } else {
-        markDirty();
       }
       fetchAddons(true);
     } catch (err: any) {
@@ -191,7 +237,6 @@ export default function MarketplaceAddons({ markDirty }: { markDirty: () => void
       if (success) {
         setCommunityExtensions((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
         fetchAddons(true);
-        markDirty();
       } else {
         alert(`Failed to install ${ext.title}`);
       }
