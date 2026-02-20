@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import InstallWizard from "./components/InstallWizard";
 import OldInstallFound from "./components/OldInstallFound";
+import TitleBar from "./components/TitleBar";
 import CheckingInstallation from "./components/CheckingInstallation";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import TitleBar from "./components/TitleBar";
 import { FaDownload, FaHome, FaPuzzlePiece, FaPalette, FaAppStore, FaCog, FaRocket } from "react-icons/fa";
 import Dashboard from "./components/Dashboard";
 import MarketplaceThemes from "./components/MarketplaceThemes";
