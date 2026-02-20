@@ -8,6 +8,7 @@ import Spinner from "./Spinner";
 import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import * as backend from "../../wailsjs/go/app/App";
+import { useSpicetify } from "../context/SpicetifyContext";
 
 export default function MarketplaceAddons({
   onDirtyChange,
@@ -18,8 +19,10 @@ export default function MarketplaceAddons({
   resetKey: number;
   snapshotKey: number;
 }) {
-  const [addons, setAddons] = useState<AddonInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { extensions: contextExtensions, extensionsLoaded, refreshExtensions } = useSpicetify();
+
+  const [addons, setAddons] = useState<AddonInfo[]>(contextExtensions);
+  const [loading, setLoading] = useState(!extensionsLoaded);
   const [error, setError] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [browsingContent, setBrowsingContent] = useState(false);
@@ -103,22 +106,7 @@ export default function MarketplaceAddons({
       setError(null);
     }
     try {
-      const fetchedAddons = await backend.GetInstalledExtensions();
-      setAddons(fetchedAddons);
-      addonsRef.current = fetchedAddons;
-      if (captureBaselineRef.current) {
-        baselineRef.current = new Map(fetchedAddons.map((a) => [a.addonFileName, a.isEnabled]));
-        captureBaselineRef.current = false;
-        onDirtyChange(false);
-      } else if (baselineRef.current) {
-        const bl = baselineRef.current;
-        const isDirty =
-          fetchedAddons.some((a) => {
-            const base = bl.get(a.addonFileName);
-            return base === undefined || base !== a.isEnabled;
-          }) || [...bl.keys()].some((k) => !fetchedAddons.find((a) => a.addonFileName === k));
-        onDirtyChange(isDirty);
-      }
+      await refreshExtensions();
     } catch (err: any) {
       if (!silent) setError(err.message || "Failed to fetch addons.");
       console.error("Error fetching addons:", err);
@@ -127,9 +115,26 @@ export default function MarketplaceAddons({
     }
   };
 
+  // Sync from global context → local state + baseline / dirty check
   useEffect(() => {
-    fetchAddons();
-  }, []);
+    if (!extensionsLoaded) return;
+    setAddons(contextExtensions);
+    addonsRef.current = contextExtensions;
+    if (captureBaselineRef.current) {
+      baselineRef.current = new Map(contextExtensions.map((a) => [a.addonFileName, a.isEnabled]));
+      captureBaselineRef.current = false;
+      onDirtyChange(false);
+    } else if (baselineRef.current) {
+      const bl = baselineRef.current;
+      const isDirty =
+        contextExtensions.some((a) => {
+          const base = bl.get(a.addonFileName);
+          return base === undefined || base !== a.isEnabled;
+        }) || [...bl.keys()].some((k) => !contextExtensions.find((a) => a.addonFileName === k));
+      onDirtyChange(isDirty);
+    }
+    setLoading(false);
+  }, [contextExtensions, extensionsLoaded]);
 
   useEffect(() => {
     if (browsingContent) {
@@ -164,7 +169,11 @@ export default function MarketplaceAddons({
         const current = await backend.GetInstalledExtensions();
         for (const addon of current) {
           const baselineEnabled = baseline.get(addon.addonFileName);
-          if (baselineEnabled !== undefined && addon.isEnabled !== baselineEnabled) {
+          if (baselineEnabled === undefined) {
+            // Installed after baseline – delete it
+            await backend.DeleteSpicetifyExtension(addon.addonFileName);
+          } else if (addon.isEnabled !== baselineEnabled) {
+            // Toggle state changed – restore it
             await backend.ToggleSpicetifyExtension(addon.addonFileName, baselineEnabled);
           }
         }
@@ -378,10 +387,10 @@ export default function MarketplaceAddons({
                 <div
                   ref={i === filteredExtensions.length - 1 ? lastAddonElementRef : null}
                   key={`${ext.user}/${ext.repo}/${ext.title}`}
-                  className={`group relative flex h-64 max-h-64 w-full flex-col rounded-lg border ${ext.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
+                  className={`group relative flex h-64 max-h-64 w-full flex-col overflow-hidden rounded-lg border ${ext.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"} bg-[#121418] transition`}
                 >
                   {hasImage ? (
-                    <div className="relative aspect-square w-full overflow-hidden rounded-t-lg">
+                    <div className="relative min-h-0 flex-1 overflow-hidden rounded-t-lg">
                       <div
                         className="absolute inset-0 scale-125 rounded-t-lg bg-cover bg-center blur-2xl"
                         style={{ backgroundImage: `url(${ext.imageURL})` }}
@@ -397,7 +406,7 @@ export default function MarketplaceAddons({
                       />
                     </div>
                   ) : (
-                    <div className="flex aspect-square w-full items-center justify-center rounded-t-lg bg-gradient-to-br from-[#1e2228] to-[#121418]">
+                    <div className="flex min-h-0 flex-1 items-center justify-center rounded-t-lg bg-gradient-to-br from-[#1e2228] to-[#121418]">
                       <img src="/spicetifyx-logo.png" alt="" className="h-12 w-12 opacity-30" />
                     </div>
                   )}
