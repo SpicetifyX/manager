@@ -35,8 +35,12 @@ export default function App() {
   const [installing, setInstalling] = useState(false);
   const [installCompleted, setInstallCompleted] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [hasPendingChanges, setHasPendingChanges] = useState(false);
-  const markDirty = () => setHasPendingChanges(true);
+  const [addonsDirty, setAddonsDirty] = useState(false);
+  const [themesDirty, setThemesDirty] = useState(false);
+  const [appsDirty, setAppsDirty] = useState(false);
+  const hasPendingChanges = addonsDirty || themesDirty || appsDirty;
+  const [resetKey, setResetKey] = useState(0);
+  const [snapshotKey, setSnapshotKey] = useState(0);
   const [steps, setSteps] = useState<InstallStep[]>([
     {
       id: "install",
@@ -235,12 +239,22 @@ export default function App() {
             <div className="relative flex flex-1 flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto">
                 {installStatus && activeTab === "dashboard" && <Dashboard installStatus={installStatus} onNavigate={setActiveTab} />}
-                {activeTab === "addons" && <MarketplaceAddons markDirty={markDirty} />}
-                {activeTab === "themes" && <MarketplaceThemes markDirty={markDirty} />}
-                {activeTab === "apps" && <MarketplaceApps markDirty={markDirty} />}
+                {activeTab === "addons" && <MarketplaceAddons onDirtyChange={(d) => setAddonsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />}
+                {activeTab === "themes" && <MarketplaceThemes onDirtyChange={(d) => setThemesDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />}
+                {activeTab === "apps" && <MarketplaceApps onDirtyChange={(d) => setAppsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />}
                 {activeTab === "settings" && <Settings />}
               </div>
-              {hasPendingChanges && <PendingChangesBar onApplied={() => setHasPendingChanges(false)} />}
+              {hasPendingChanges && (
+                <PendingChangesBar
+                  onApplied={() => {
+                    setAddonsDirty(false);
+                    setThemesDirty(false);
+                    setAppsDirty(false);
+                    setSnapshotKey((k) => k + 1);
+                  }}
+                  onReset={() => setResetKey((k) => k + 1)}
+                />
+              )}
             </div>
           </div>
         )}
