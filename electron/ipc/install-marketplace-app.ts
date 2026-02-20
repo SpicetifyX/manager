@@ -140,9 +140,6 @@ ipcMain.handle("install-marketplace-app", async (_, user: string, repo: string, 
     await spicetifyCommand(spicetifyExec, ["config", "custom_apps", appName]);
     console.log(`[install-marketplace-app] Enabled ${appName} in config`);
 
-    await spicetifyCommand(spicetifyExec, ["apply"]);
-    console.log(`[install-marketplace-app] Applied changes`);
-
     return true;
   } catch (error) {
     console.error(`[install-marketplace-app] Failed:`, error);
