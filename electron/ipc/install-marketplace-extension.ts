@@ -62,9 +62,6 @@ ipcMain.handle(
         `[install-marketplace-extension] Enabled ${filename} in config`,
       );
 
-      await spicetifyCommand(spicetifyExec, ["apply"]);
-      console.log(`[install-marketplace-extension] Applied changes`);
-
       return true;
     } catch (error) {
       console.error(`[install-marketplace-extension] Failed:`, error);
