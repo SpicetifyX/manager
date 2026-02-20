@@ -114,9 +114,8 @@ ipcMain.handle(
         "color_scheme",
         firstScheme,
       ]);
-      await spicetifyCommand(spicetifyExec, ["apply"]);
       console.log(
-        `[install-marketplace-theme] Theme "${themeId}" installed and applied successfully`,
+        `[install-marketplace-theme] Theme "${themeId}" installed and configured successfully`,
       );
 
       return true;
