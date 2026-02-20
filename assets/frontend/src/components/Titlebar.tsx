@@ -1,13 +1,13 @@
 import { FaMinus, FaTimes } from "react-icons/fa";
-import { WindowMinimize, WindowClose } from "../../wailsjs/go/app/App";
+import * as backend from "../../wailsjs/go/app/App";
 
-export default function Titlebar() {
+export default function TitleBar() {
   const handleMinimize = async () => {
-    await WindowMinimize();
+    await backend.WindowMinimize();
   };
 
   const handleClose = async () => {
-    await WindowClose();
+    await backend.WindowClose();
   };
 
   return (
@@ -16,7 +16,7 @@ export default function Titlebar() {
       style={{ "--wails-draggable": "drag" } as React.CSSProperties}
     >
       <div className="text-xs font-semibold text-white">SpicetifyX Manager</div>
-      <div className="flex items-center gap-2" style={{ "--wails-draggable": "no-drag" } as React.CSSProperties}>
+      <div className="flex items-center gap-2" style={{ "--wails-draggable": "drag" } as React.CSSProperties}>
         <button
           onClick={handleMinimize}
           className="flex h-8 w-8 items-center justify-center rounded text-[#a0a0a0] transition-colors hover:bg-[#2a2a2a] hover:text-white"
