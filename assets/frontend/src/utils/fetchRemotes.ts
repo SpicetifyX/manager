@@ -208,8 +208,8 @@ export async function fetchThemeManifest(contents_url: string, branch: string, s
           include:
             manifest.include && Array.isArray(manifest.include)
               ? manifest.include.map((inc: string) =>
-                  inc.startsWith("http") ? inc : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${inc}`,
-                )
+                inc.startsWith("http") ? inc : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${inc}`,
+              )
               : undefined,
         };
 
