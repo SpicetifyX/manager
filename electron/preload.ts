@@ -72,4 +72,5 @@ contextBridge.exposeInMainWorld("electron", {
   },
   installSpicetifyBinary: () => ipcRenderer.invoke("install-spicetify-binary"),
   setupSpicetifyAssets: () => ipcRenderer.invoke("setup-spicetify-assets"),
+  applySpicetify: () => ipcRenderer.invoke("apply-spicetify"),
 });
