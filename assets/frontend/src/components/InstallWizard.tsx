@@ -120,10 +120,10 @@ export default function InstallWizard({
                     <div
                       key={step.id}
                       className={`flex items-start gap-3 rounded-lg border p-3 transition-all ${isActive
-                          ? "border-[#d63c6a] bg-[#d63c6a]/10"
-                          : isComplete
-                            ? "border-[#2a2a2a] bg-[#121418]"
-                            : "border-[#2a2a2a] bg-[#121418]/50 opacity-60"
+                        ? "border-[#d63c6a] bg-[#d63c6a]/10"
+                        : isComplete
+                          ? "border-[#2a2a2a] bg-[#121418]"
+                          : "border-[#2a2a2a] bg-[#121418]/50 opacity-60"
                         }`}
                     >
                       <div
