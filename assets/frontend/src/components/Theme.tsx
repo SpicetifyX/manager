@@ -1,112 +1,91 @@
-import StaticImage from "./StaticImage";
-import { app } from "../../wailsjs/go/models";
-import { useState, useEffect, useRef } from "react";
-import { FaTrash, FaPalette, FaChevronDown } from "react-icons/fa";
+import { useEffect, useRef, useState } from "react";
+import { ThemeInfo } from "../types/theme.d";
 import Spinner from "./Spinner";
+import { FaInfoCircle, FaTrash, FaPalette, FaChevronDown } from "react-icons/fa";
+import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
+import StaticImage from "./StaticImage";
 import * as backend from "../../wailsjs/go/app/App";
-import { useAppStore } from "../hooks";
 
-export default function Theme({ theme }: { theme: app.ThemeInfo }) {
+export default function Theme({
+  theme,
+  onSelect,
+  onDelete,
+  isApplying,
+  markDirty,
+}: {
+  theme: ThemeInfo;
+  onSelect: (themeId: string) => void;
+  onDelete?: (themeId: string) => void;
+  isApplying: boolean;
+  markDirty: () => void;
+}) {
+  const [showInfo, setShowInfo] = useState(false);
   const [schemeOpen, setSchemeOpen] = useState(false);
   const [applyingScheme, setApplyingScheme] = useState(false);
-  const [isEnabled, setIsEnabled] = useState(theme.isActive);
-  const [isRemoved, setIsRemoved] = useState(false);
-  const [isApplying, setIsApplying] = useState(false);
-  const [isToggling, setIsToggling] = useState(false);
-
   const schemeRef = useRef<HTMLDivElement>(null);
   const schemes = theme.colorSchemes && theme.colorSchemes.length > 0 ? theme.colorSchemes : ["Default"];
-  const appState = useAppStore();
-
   const [selectedScheme, setSelectedScheme] = useState(theme.activeColorScheme || schemes[0]);
-
   useEffect(() => {
-    console.log(appState.themes);
-    console.log(appState.themes.filter((t) => t.isActive && t.id === theme.id));
-
-    setIsEnabled(appState.themes.filter((t) => t.isActive && t.id === theme.id).length > 0 ? true : false);
-  }, [appState]);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
+    const handleClickOutside = (e: MouseEvent) => {
       if (schemeRef.current && !schemeRef.current.contains(e.target as Node)) {
         setSchemeOpen(false);
       }
-    }
-
-    if (schemeOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
     };
+    if (schemeOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [schemeOpen]);
 
-  async function onDelete(addonFileName: string) {
-    setIsToggling(true);
-    try {
-      await backend.DeleteSpicetifyExtension(addonFileName);
-      setIsRemoved(true);
-    } finally {
-      setIsToggling(false);
-    }
-  }
-
-  async function onSelect(themeId: string) {
-    setIsApplying(true);
-    try {
-      await backend.ApplySpicetifyTheme(themeId);
-
-      const themes = await backend.GetSpicetifyThemes();
-      appState.setThemes(themes);
-
-      setIsEnabled(true);
-    } finally {
-      setIsApplying(false);
-    }
-  }
-
-  if (isRemoved) return null;
+  const infoData: AddonInfoData = {
+    title: theme.name,
+    description: theme.description,
+    resolvedImageSrc: theme.preview,
+    authors: theme.authors,
+    tags: theme.tags,
+    installed: true,
+  };
 
   return (
     <>
       <div className="flex w-full items-center justify-between border-b border-[#2a2a2a] px-4 py-3 transition-colors duration-200 hover:bg-[#1e2228]">
         <div className="flex min-w-0 flex-grow items-center">
           <div className="mr-4 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
-            <StaticImage src={theme.preview} alt={`${theme.name} preview`} className="h-full w-full object-cover" />
+            <StaticImage src={infoData.resolvedImageSrc} alt={`${theme.name} preview`} className="h-full w-full object-cover" />
           </div>
-
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold text-white">{theme.name}</h3>
             <p className="truncate text-sm text-[#a0a0a0]">{theme.description}</p>
           </div>
         </div>
-
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onDelete(theme.id)}
-            disabled={isApplying || isToggling}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-red-500/20 hover:text-red-400 disabled:opacity-50"
-            title="Delete theme"
+            onClick={() => setShowInfo(true)}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2e34] hover:text-white"
+            title="Info"
           >
-            <FaTrash className="h-4 w-4" />
+            <FaInfoCircle className="h-4 w-4" />
           </button>
-
-          {theme.isActive && schemes.length > 1 && (
+          {onDelete && (
+            <button
+              onClick={() => onDelete(theme.id)}
+              disabled={isApplying}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-red-500/20 hover:text-red-400 disabled:opacity-50"
+              title="Delete theme"
+            >
+              <FaTrash className="h-4 w-4" />
+            </button>
+          )}
+          {theme.isActive && theme.colorSchemes && theme.colorSchemes.length > 1 && (
             <div className="relative" ref={schemeRef}>
               <button
                 onClick={() => !isApplying && !applyingScheme && setSchemeOpen(!schemeOpen)}
                 disabled={isApplying || applyingScheme}
                 className="flex h-8 items-center gap-1.5 rounded-full border border-[#2a2a2a] bg-[#1a1a1a] pr-2.5 pl-2.5 text-sm text-white transition-all hover:border-[#3a3a3a] hover:bg-[#1e2228] disabled:opacity-50"
+                title="Color scheme"
               >
                 {applyingScheme ? <Spinner className="h-3 w-3" /> : <FaPalette className="h-3 w-3 text-[#d63c6a]" />}
-
                 <span className="max-w-[80px] truncate text-[#ccc]">{selectedScheme}</span>
-
                 <FaChevronDown className={`h-2.5 w-2.5 text-[#666] transition-transform duration-200 ${schemeOpen ? "rotate-180" : ""}`} />
               </button>
-
               {schemeOpen && (
                 <div className="absolute right-0 z-50 mt-1.5 min-w-[140px] rounded-lg border border-[#2a2a2a] bg-[#161a1e] p-1 shadow-xl shadow-black/40">
                   <div className="custom-scrollbar max-h-48 overflow-y-auto">
@@ -118,15 +97,14 @@ export default function Theme({ theme }: { theme: app.ThemeInfo }) {
                             setSchemeOpen(false);
                             return;
                           }
-
                           setSelectedScheme(scheme);
                           setSchemeOpen(false);
                           setApplyingScheme(true);
-
                           try {
                             await backend.SetColorScheme(theme.id, scheme);
-                            const themes = await backend.GetSpicetifyThemes();
-                            appState.setThemes(themes);
+                            markDirty();
+                          } catch (err) {
+                            console.error("Failed to set color scheme:", err);
                           } finally {
                             setApplyingScheme(false);
                           }
@@ -143,7 +121,6 @@ export default function Theme({ theme }: { theme: app.ThemeInfo }) {
               )}
             </div>
           )}
-
           <div className="relative ml-1">
             {isApplying ? (
               <div className="flex h-8 w-16 items-center justify-center">
@@ -152,16 +129,17 @@ export default function Theme({ theme }: { theme: app.ThemeInfo }) {
             ) : (
               <button
                 onClick={() => onSelect(theme.id)}
-                disabled={isEnabled}
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${isEnabled ? "cursor-not-allowed bg-[#d63c6a] text-white" : "bg-[#2a2e34] text-[#a0a0a0] hover:bg-[#d63c6a] hover:text-white"
-                  }`}
+                disabled={theme.isActive}
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${theme.isActive ? "cursor-not-allowed bg-[#d63c6a] text-white" : "bg-[#2a2e34] text-[#a0a0a0] hover:bg-[#d63c6a] hover:text-white"}`}
               >
-                {isEnabled ? "Active" : "Select"}
+                {theme.isActive ? "Active" : "Select"}
               </button>
             )}
           </div>
         </div>
       </div>
+
+      {showInfo && <AddonInfoModal info={infoData} onClose={() => setShowInfo(false)} />}
     </>
   );
 }
