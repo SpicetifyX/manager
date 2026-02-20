@@ -8,7 +8,15 @@ import Spinner from "./Spinner";
 import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
-export default function MarketplaceApps({ markDirty }: { markDirty: () => void }) {
+export default function MarketplaceApps({
+  onDirtyChange,
+  resetKey,
+  snapshotKey,
+}: {
+  onDirtyChange: (dirty: boolean) => void;
+  resetKey: number;
+  snapshotKey: number;
+}) {
   const [apps, setApps] = useState<AppInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +31,8 @@ export default function MarketplaceApps({ markDirty }: { markDirty: () => void }
     id: string;
     name: string;
   } | null>(null);
+  const captureBaselineRef = useRef(true);
+  const baselineRef = useRef<Map<string, boolean> | null>(null);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -93,6 +103,19 @@ export default function MarketplaceApps({ markDirty }: { markDirty: () => void }
     try {
       const fetchedApps = await window.electron.getSpicetifyApps();
       setApps(fetchedApps);
+      if (captureBaselineRef.current) {
+        baselineRef.current = new Map(fetchedApps.map((a) => [a.id, a.isEnabled]));
+        captureBaselineRef.current = false;
+        onDirtyChange(false);
+      } else if (baselineRef.current) {
+        const bl = baselineRef.current;
+        const isDirty =
+          fetchedApps.some((a) => {
+            const base = bl.get(a.id);
+            return base === undefined || base !== a.isEnabled;
+          }) || [...bl.keys()].some((k) => !fetchedApps.find((a) => a.id === k));
+        onDirtyChange(isDirty);
+      }
     } catch (err: any) {
       if (!silent) setError(err.message || "Failed to fetch apps.");
       console.error("Error fetching apps:", err);
@@ -122,6 +145,33 @@ export default function MarketplaceApps({ markDirty }: { markDirty: () => void }
     }
   }, [apps]);
 
+  // Recapture baseline after Apply
+  useEffect(() => {
+    if (snapshotKey === 0) return;
+    captureBaselineRef.current = true;
+    fetchApps(true);
+  }, [snapshotKey]);
+
+  // Undo toggle changes on Reset
+  useEffect(() => {
+    if (resetKey === 0 || !baselineRef.current) return;
+    const baseline = new Map(baselineRef.current);
+    (async () => {
+      try {
+        const current = await window.electron.getSpicetifyApps();
+        for (const app of current) {
+          const baselineEnabled = baseline.get(app.id);
+          if (baselineEnabled !== undefined && app.isEnabled !== baselineEnabled) {
+            await window.electron.toggleSpicetifyApp(app.id, baselineEnabled);
+          }
+        }
+        await fetchApps(true);
+      } catch (err) {
+        console.error("[MarketplaceApps] Reset failed:", err);
+      }
+    })();
+  }, [resetKey]);
+
   const handleToggleApp = async (appId: string, enable: boolean) => {
     setTogglingId(appId);
     setApps((prevApps) => prevApps.map((app) => (app.id === appId ? { ...app, isEnabled: enable } : app)));
@@ -131,8 +181,6 @@ export default function MarketplaceApps({ markDirty }: { markDirty: () => void }
       if (!success) {
         setApps((prevApps) => prevApps.map((app) => (app.id === appId ? { ...app, isEnabled: !enable } : app)));
         alert(`Failed to toggle app: ${appId}`);
-      } else {
-        markDirty();
       }
       fetchApps(true);
     } catch (err: any) {
@@ -158,8 +206,6 @@ export default function MarketplaceApps({ markDirty }: { markDirty: () => void }
       const success = await window.electron.deleteSpicetifyApp(appId);
       if (!success) {
         alert(`Failed to delete app: ${appId}`);
-      } else {
-        markDirty();
       }
       fetchApps(true);
     } catch (err: any) {
@@ -188,7 +234,6 @@ export default function MarketplaceApps({ markDirty }: { markDirty: () => void }
       if (success) {
         setCommunityApps((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
         fetchApps(true);
-        markDirty();
       } else {
         alert(`Failed to install ${app.title}`);
       }
