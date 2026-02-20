@@ -37,12 +37,14 @@ func GetLatestSpicetifyReleaseArchive() (string, error) {
 
 	arch := runtime.GOARCH
 	archStr := arch
-	if arch == "amd64" {
-		archStr = "x86_64"
+	if arch == "amd64" && runtime.GOOS == "windows" {
+		archStr = "x64"
+	} else if arch == "amd64" && runtime.GOOS != "windows" {
+		archStr = "amd64"
 	} else if arch == "arm64" {
 		archStr = "arm64"
 	} else if arch == "386" {
-		archStr = "x86"
+		archStr = "x32"
 	}
 
 	for _, asset := range release.Assets {
@@ -63,3 +65,4 @@ func GetLatestSpicetifyReleaseArchive() (string, error) {
 
 	return "", fmt.Errorf("no matching release found for %s/%s", osName, archStr)
 }
+
