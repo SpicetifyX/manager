@@ -66,3 +66,6 @@ frontend/wailsjs/runtime/runtime.js
 assets/frontend/wailsjs/runtime/package.json
 assets/frontend/wailsjs/runtime/runtime.d.ts
 assets/frontend/wailsjs/runtime/runtime.js
+assets/frontend/wailsjs/go/app/App.d.ts
+assets/frontend/wailsjs/go/models.ts
+assets/frontend/wailsjs/runtime/runtime.js
