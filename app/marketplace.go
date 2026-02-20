@@ -46,9 +46,9 @@ func (a *App) InstallMarketplaceExtension(extensionURL, filename string, meta *M
 	if err := helpers.SpicetifyCommand(exec, []string{"config", "extensions", filename}, nil); err != nil {
 		return false
 	}
-	if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
-		return false
-	}
+	// if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
+	// return false
+	// }
 	return true
 }
 
@@ -106,9 +106,9 @@ func (a *App) InstallMarketplaceTheme(themeID, cssURL string, schemesURL *string
 		}
 	}
 	_ = helpers.SpicetifyCommand(exec, []string{"config", "color_scheme", firstScheme}, nil)
-	if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
-		return false
-	}
+	// if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
+	// return false
+	// }
 	return true
 }
 
@@ -182,9 +182,9 @@ func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, 
 	if err := helpers.SpicetifyCommand(exec, []string{"config", "custom_apps", appName}, nil); err != nil {
 		return false
 	}
-	if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
-		return false
-	}
+	// if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
+	// return false
+	// }
 	return true
 }
 
