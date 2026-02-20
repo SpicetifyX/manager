@@ -12,6 +12,7 @@ import MarketplaceApps from "./components/MarketplaceApps";
 import Settings from "./components/Settings";
 import { FaShield } from "react-icons/fa6";
 import MarketplaceAddons from "./components/MarketplaceAddons";
+import PendingChangesBar from "./components/PendingChangesBar";
 
 export type StepStatus = "pending" | "active" | "complete" | "error";
 
@@ -34,6 +35,8 @@ export default function App() {
   const [installing, setInstalling] = useState(false);
   const [installCompleted, setInstallCompleted] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
+  const markDirty = () => setHasPendingChanges(true);
   const [steps, setSteps] = useState<InstallStep[]>([
     {
       id: "install",
@@ -229,12 +232,15 @@ export default function App() {
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto">
-              {installStatus && activeTab === "dashboard" && <Dashboard installStatus={installStatus} onNavigate={setActiveTab} />}
-              {activeTab === "addons" && <MarketplaceAddons />}
-              {activeTab === "themes" && <MarketplaceThemes />}
-              {activeTab === "apps" && <MarketplaceApps />}
-              {activeTab === "settings" && <Settings />}
+            <div className="relative flex flex-1 flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto">
+                {installStatus && activeTab === "dashboard" && <Dashboard installStatus={installStatus} onNavigate={setActiveTab} />}
+                {activeTab === "addons" && <MarketplaceAddons markDirty={markDirty} />}
+                {activeTab === "themes" && <MarketplaceThemes markDirty={markDirty} />}
+                {activeTab === "apps" && <MarketplaceApps markDirty={markDirty} />}
+                {activeTab === "settings" && <Settings />}
+              </div>
+              {hasPendingChanges && <PendingChangesBar onApplied={() => setHasPendingChanges(false)} />}
             </div>
           </div>
         )}
