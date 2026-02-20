@@ -62,6 +62,7 @@ declare global {
       onCommandOutput: (cb: (event: Electron.IpcRendererEvent, data: string) => void) => () => void;
       installSpicetifyBinary: () => Promise<void>;
       setupSpicetifyAssets: () => Promise<void>;
+      applySpicetify: () => Promise<boolean>;
     };
   }
 }
