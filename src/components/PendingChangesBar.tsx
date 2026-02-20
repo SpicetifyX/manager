@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FaCog, FaRocket } from "react-icons/fa";
 import ApplyModal from "./ApplyModal";
 
-export default function PendingChangesBar({ onApplied }: { onApplied: () => void }) {
+export default function PendingChangesBar({ onApplied, onReset }: { onApplied: () => void; onReset: () => void }) {
   const [isApplying, setIsApplying] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
@@ -33,6 +33,13 @@ export default function PendingChangesBar({ onApplied }: { onApplied: () => void
               Unsaved changes, Spotify needs to restart to apply them.
             </span>
           </div>
+          <button
+            onClick={onReset}
+            disabled={isApplying}
+            className="flex items-center gap-2 rounded-full border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-1.5 text-sm font-semibold text-[#a0a0a0] transition-all hover:border-[#3a3a3a] hover:bg-[#1e2228] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Reset
+          </button>
           <button
             onClick={handleApply}
             disabled={isApplying}
