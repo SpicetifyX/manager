@@ -144,6 +144,8 @@ export default function MarketplaceBrowseView({
         <LoadingState label={loadingLabel} />
       ) : allItems.length === 0 ? (
         <EmptyState label={emptyLabel} />
+      ) : items.length === 0 ? (
+        <EmptyState label="No results match your search." />
       ) : (
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-6 text-white">
           <div className="grid w-full grid-cols-3 gap-4">
