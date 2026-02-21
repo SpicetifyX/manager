@@ -72,14 +72,11 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const tasks: Promise<void>[] = [];
-
-    if (readCache("sx_extensions") === null) tasks.push(refreshExtensions());
-    if (readCache("sx_themes") === null) tasks.push(refreshThemes());
-    if (readCache("sx_apps") === null) tasks.push(refreshApps());
-
-    if (readCache<string>("sx_spotify_ver") === null) {
-      tasks.push(
+    const fetchAll = () => {
+      const tasks: Promise<void>[] = [
+        refreshExtensions(),
+        refreshThemes(),
+        refreshApps(),
         backend
           .GetSpotifyVersion()
           .then((v) => {
@@ -87,22 +84,20 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
             writeCache("sx_spotify_ver", v);
           })
           .catch(() => setSpotifyVersion("Unknown")),
-      );
-    }
-
-    if (readCache<string>("sx_spicetify_ver") === null) {
-      tasks.push(
         backend
           .GetSpicetifyVersion()
           .then((v) => {
             setSpicetifyVersion(v);
             writeCache("sx_spicetify_ver", v);
           })
-          .catch(() => setSpicetifyVersion("Unknown")),
-      );
-    }
+          .catch(() => {}),
+      ];
+      Promise.all(tasks).catch((err) => console.error("[SpicetifyContext] Background fetch error:", err));
+    };
 
-    Promise.all(tasks).catch((err) => console.error("[SpicetifyContext] Background fetch error:", err));
+    fetchAll();
+    const interval = setInterval(fetchAll, CACHE_TTL_MS);
+    return () => clearInterval(interval);
   }, []);
 
   return (
