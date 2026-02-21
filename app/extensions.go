@@ -108,8 +108,8 @@ func (a *App) GetInstalledExtensions() []AddonInfo {
 				Authors:       meta.Authors,
 				Tags:          meta.Tags,
 			})
-			mut.Unlock()
 
+			mut.Unlock()
 			wg.Done()
 		}()
 	}
