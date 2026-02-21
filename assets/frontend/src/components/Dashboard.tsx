@@ -17,6 +17,7 @@ export default function Dashboard({
   onNavigate?: (tab: string) => void;
 }) {
   const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [showReloadModal, setShowReloadModal] = useState(false);
   const [isRestoringProcess, setIsRestoringProcess] = useState(false);
   const [restoreOutputError, setRestoreOutputError] = useState<string | null>(null);
   const [restoreSuccess, setRestoreSuccess] = useState(false);
@@ -83,7 +84,7 @@ export default function Dashboard({
   }, []);
 
   return (
-    <div className="flex h-full flex-1 flex-col overflow-x-hidden overflow-y-auto bg-[#171b20] p-5">
+    <div className="flex h-full w-full flex-col overflow-x-hidden overflow-y-auto bg-[#171b20] p-5">
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
         <p className="mt-1 text-sm text-[#a0a0a0]">Overview of your Spicetify installation</p>
@@ -121,7 +122,7 @@ export default function Dashboard({
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={handleReload}
+                  onClick={() => setShowReloadModal(true)}
                   disabled={isReloading}
                   className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${
                     isReloading
@@ -285,6 +286,36 @@ export default function Dashboard({
         restoreSuccess={restoreSuccess}
         onSuccessClose={handleRestoreSuccessClose}
       />
+
+      {showReloadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75">
+          <div className="flex w-full max-w-sm flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] p-6 shadow-lg">
+            <div className="mb-4 flex flex-col items-center">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#1e2228]">
+                <FaRocket className="h-6 w-6 text-[#d63c6a]" />
+              </div>
+              <h2 className="mb-1 text-lg font-bold text-white">Reload Spicetify</h2>
+              <p className="text-center text-sm text-[#a0a0a0]">
+                This will run <span className="font-mono text-white">spicetify apply</span> to reload your current theme and extensions.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowReloadModal(false)}
+                className="flex-1 rounded-md border border-[#2a2a2a] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#a0a0a0] transition hover:bg-[#1e2228] hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowReloadModal(false); handleReload(); }}
+                className="flex-1 rounded-md bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+              >
+                Reload
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
