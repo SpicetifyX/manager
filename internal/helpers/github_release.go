@@ -65,4 +65,3 @@ func GetLatestSpicetifyReleaseArchive() (string, error) {
 
 	return "", fmt.Errorf("no matching release found for %s/%s", osName, archStr)
 }
-
