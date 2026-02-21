@@ -3,8 +3,8 @@ package discord
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
-	"time"
 )
 
 func (d *DiscordRPC) Connect() error {
@@ -33,19 +33,18 @@ func (d *DiscordRPC) Connect() error {
 		return err
 	}
 
-	d.conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 	_, payload, err := d.readFrame()
 	if err != nil {
 		d.conn.Close()
 		return err
 	}
-	d.conn.SetReadDeadline(time.Time{})
 
 	var response map[string]interface{}
 	if err := json.Unmarshal(payload, &response); err != nil {
 		d.conn.Close()
 		return err
 	}
+	log.Printf("[Discord] Handshake response: evt=%v", response["evt"])
 	if response["evt"] != "READY" {
 		d.conn.Close()
 		return fmt.Errorf("unexpected Discord RPC event: %v", response["evt"])
