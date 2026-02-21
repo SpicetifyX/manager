@@ -342,8 +342,9 @@ export default function MarketplaceAddons({
                     return [...prev, tag];
                   })
                 }
-                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${selectedTags.includes(tag) ? "bg-[#d63c6a] text-white" : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
-                  }`}
+                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                  selectedTags.includes(tag) ? "bg-[#d63c6a] text-white" : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
+                }`}
               >
                 {tag}
                 {selectedTags.includes(tag) && <FaTimes className="h-2.5 w-2.5" />}
