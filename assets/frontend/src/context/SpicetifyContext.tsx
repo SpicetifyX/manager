@@ -4,7 +4,7 @@ import { AddonInfo } from "../types/addon.d";
 import { ThemeInfo } from "../types/theme.d";
 import { AppInfo } from "../types/app.d";
 
-const CACHE_TTL_MS = 60_000; // 1 minute
+const CACHE_TTL_MS = 60_000;
 
 function readCache<T>(key: string): T | null {
   try {
@@ -30,7 +30,6 @@ interface SpicetifyContextValue {
   apps: AppInfo[];
   spotifyVersion: string | null;
   spicetifyVersion: string | null;
-  /** true once the first successful fetch has completed (or cache was warm) */
   extensionsLoaded: boolean;
   themesLoaded: boolean;
   appsLoaded: boolean;
@@ -42,32 +41,14 @@ interface SpicetifyContextValue {
 const SpicetifyContext = createContext<SpicetifyContextValue | null>(null);
 
 export function SpicetifyProvider({ children }: { children: ReactNode }) {
-  const [extensions, setExtensions] = useState<AddonInfo[]>(
-    () => readCache<AddonInfo[]>("sx_extensions") ?? [],
-  );
-  const [themes, setThemes] = useState<ThemeInfo[]>(
-    () => readCache<ThemeInfo[]>("sx_themes") ?? [],
-  );
-  const [apps, setApps] = useState<AppInfo[]>(
-    () => readCache<AppInfo[]>("sx_apps") ?? [],
-  );
-  const [spotifyVersion, setSpotifyVersion] = useState<string | null>(
-    () => readCache<string>("sx_spotify_ver"),
-  );
-  const [spicetifyVersion, setSpicetifyVersion] = useState<string | null>(
-    () => readCache<string>("sx_spicetify_ver"),
-  );
-  // "loaded" flips to true once data has been fetched at least once (or was in cache).
-  // Components use this to distinguish "no data yet" from "zero items installed".
-  const [extensionsLoaded, setExtensionsLoaded] = useState(
-    () => readCache("sx_extensions") !== null,
-  );
-  const [themesLoaded, setThemesLoaded] = useState(
-    () => readCache("sx_themes") !== null,
-  );
-  const [appsLoaded, setAppsLoaded] = useState(
-    () => readCache("sx_apps") !== null,
-  );
+  const [extensions, setExtensions] = useState<AddonInfo[]>(() => readCache<AddonInfo[]>("sx_extensions") ?? []);
+  const [themes, setThemes] = useState<ThemeInfo[]>(() => readCache<ThemeInfo[]>("sx_themes") ?? []);
+  const [apps, setApps] = useState<AppInfo[]>(() => readCache<AppInfo[]>("sx_apps") ?? []);
+  const [spotifyVersion, setSpotifyVersion] = useState<string | null>(() => readCache<string>("sx_spotify_ver"));
+  const [spicetifyVersion, setSpicetifyVersion] = useState<string | null>(() => readCache<string>("sx_spicetify_ver"));
+  const [extensionsLoaded, setExtensionsLoaded] = useState(() => readCache("sx_extensions") !== null);
+  const [themesLoaded, setThemesLoaded] = useState(() => readCache("sx_themes") !== null);
+  const [appsLoaded, setAppsLoaded] = useState(() => readCache("sx_apps") !== null);
 
   const refreshExtensions = async () => {
     const data = await backend.GetInstalledExtensions();
@@ -91,9 +72,6 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Fetch everything in parallel on startup.
-    // If localStorage cache is warm, state is already hydrated above and these
-    // will be no-ops (guarded below). If cache is stale, data arrives silently.
     const tasks: Promise<void>[] = [];
 
     if (readCache("sx_extensions") === null) tasks.push(refreshExtensions());
@@ -124,9 +102,7 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
       );
     }
 
-    Promise.all(tasks).catch((err) =>
-      console.error("[SpicetifyContext] Background fetch error:", err),
-    );
+    Promise.all(tasks).catch((err) => console.error("[SpicetifyContext] Background fetch error:", err));
   }, []);
 
   return (
