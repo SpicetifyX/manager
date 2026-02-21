@@ -248,24 +248,24 @@ export default function App() {
               </div>
             </div>
             <div className="relative flex flex-1 flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-hidden flex flex-col">
                 {installStatus && activeTab === "dashboard" && <Dashboard installStatus={installStatus} onNavigate={setActiveTab} />}
                 {mountedTabs.has("addons") && (
-                  <div className={activeTab === "addons" ? "block" : "hidden"}>
+                  <div className={activeTab === "addons" ? "h-full" : "hidden"}>
                     <MarketplaceAddons onDirtyChange={(d) => setAddonsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
                   </div>
                 )}
                 {mountedTabs.has("themes") && (
-                  <div className={activeTab === "themes" ? "block" : "hidden"}>
+                  <div className={activeTab === "themes" ? "h-full" : "hidden"}>
                     <MarketplaceThemes onDirtyChange={(d) => setThemesDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
                   </div>
                 )}
                 {mountedTabs.has("apps") && (
-                  <div className={activeTab === "apps" ? "block" : "hidden"}>
+                  <div className={activeTab === "apps" ? "h-full" : "hidden"}>
                     <MarketplaceApps onDirtyChange={(d) => setAppsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
                   </div>
                 )}
-                {activeTab === "settings" && <Settings />}
+                {activeTab === "settings" && <div className="h-full"><Settings /></div>}
               </div>
               {hasPendingChanges && (
                 <PendingChangesBar
