@@ -18,16 +18,16 @@ func (a *App) StartInstall() {
 		exec := helpers.GetSpicetifyExec()
 
 		if err := helpers.SpicetifyCommand(exec, []string{"config", "always_enable_devtools", "1"}, nil); err != nil {
-			wailsRuntime.EventsEmit(a.ctx, "install-complete", map[string]interface{}{"success": false, "error": err.Error()})
+			wailsRuntime.EventsEmit(a.ctx, "install-complete", map[string]any{"success": false, "error": err.Error()})
 			return
 		}
 
 		if err := helpers.SpicetifyCommand(exec, []string{"config", "current_theme", "SpicetifyX"}, nil); err != nil {
-			wailsRuntime.EventsEmit(a.ctx, "install-complete", map[string]interface{}{"success": false, "error": err.Error()})
+			wailsRuntime.EventsEmit(a.ctx, "install-complete", map[string]any{"success": false, "error": err.Error()})
 			return
 		}
 		if err := helpers.SpicetifyCommand(exec, []string{"config", "color_scheme", "main"}, nil); err != nil {
-			wailsRuntime.EventsEmit(a.ctx, "install-complete", map[string]interface{}{"success": false, "error": err.Error()})
+			wailsRuntime.EventsEmit(a.ctx, "install-complete", map[string]any{"success": false, "error": err.Error()})
 			return
 		}
 
@@ -35,12 +35,13 @@ func (a *App) StartInstall() {
 		_ = helpers.SpicetifyCommand(exec, []string{"config", "extensions", "spotifyGenres.js"}, nil)
 
 		if err := helpers.SpicetifyCommand(exec, []string{"backup", "apply"}, sendOutput); err != nil {
-			wailsRuntime.EventsEmit(a.ctx, "install-complete", map[string]interface{}{"success": false, "error": err.Error()})
+			wailsRuntime.EventsEmit(a.ctx, "install-complete", map[string]any{"success": false, "error": err.Error()})
 			return
 		}
 
 		var spotifyPath string
 		home, _ := os.UserHomeDir()
+
 		if runtime.GOOS == "windows" {
 			spotifyPath = filepath.Join(os.Getenv("APPDATA"), "Spotify")
 		} else {
@@ -48,6 +49,6 @@ func (a *App) StartInstall() {
 		}
 		_ = os.WriteFile(filepath.Join(spotifyPath, ".spicetify"), []byte(""), 0644)
 
-		wailsRuntime.EventsEmit(a.ctx, "install-complete", map[string]interface{}{"success": true})
+		wailsRuntime.EventsEmit(a.ctx, "install-complete", map[string]any{"success": true})
 	}()
 }
