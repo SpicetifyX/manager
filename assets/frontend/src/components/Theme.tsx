@@ -69,7 +69,7 @@ export default function Theme({
           <div className="mr-4 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
             <StaticImage src={infoData.resolvedImageSrc} alt={`${theme.name} preview`} className="h-full w-full object-cover" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1 pr-4">
             <h3 className="truncate text-lg font-semibold text-white">{theme.name}</h3>
             <p className="truncate text-sm text-[#a0a0a0]">{theme.description}</p>
           </div>
