@@ -4,7 +4,7 @@ import { AddonInfo } from "../types/addon.d";
 import { ThemeInfo } from "../types/theme.d";
 import { AppInfo } from "../types/app.d";
 
-const CACHE_TTL_MS = 60_000;
+const CACHE_TTL_MS = 5 * 60_000; // 5 minutes — avoids spawning spicetify -v too often
 
 function readCache<T>(key: string): T | null {
   try {
