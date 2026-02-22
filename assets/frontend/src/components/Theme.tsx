@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { ThemeInfo } from "../types/theme.d";
 import Spinner from "./Spinner";
 import { FaInfoCircle, FaTrash, FaPalette, FaChevronDown } from "react-icons/fa";
-import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
+import InfoModal, { InfoData } from "./InfoModal";
 import StaticImage from "./StaticImage";
 import * as backend from "../../wailsjs/go/app/App";
 
@@ -53,7 +53,7 @@ export default function Theme({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [schemeOpen]);
 
-  const infoData: AddonInfoData = {
+  const infoData: InfoData = {
     title: theme.name,
     description: theme.description,
     resolvedImageSrc: theme.preview,
@@ -105,45 +105,47 @@ export default function Theme({
                 <span className="max-w-[80px] truncate text-[#ccc]">{selectedScheme}</span>
                 <FaChevronDown className={`h-2.5 w-2.5 text-[#666] transition-transform duration-200 ${schemeOpen ? "rotate-180" : ""}`} />
               </button>
-              {schemeOpen && createPortal(
-                <div
-                  ref={dropdownRef}
-                  style={{ top: dropdownPos.top, right: dropdownPos.right }}
-                  className="fixed z-[9999] min-w-[140px] rounded-lg border border-[#2a2a2a] bg-[#161a1e] p-1 shadow-xl shadow-black/40"
-                >
-                  <div className="custom-scrollbar max-h-48 overflow-y-auto">
-                    {schemes.map((scheme) => (
-                      <button
-                        key={scheme}
-                        onClick={async () => {
-                          if (scheme === selectedScheme) {
+              {schemeOpen &&
+                createPortal(
+                  <div
+                    ref={dropdownRef}
+                    style={{ top: dropdownPos.top, right: dropdownPos.right }}
+                    className="fixed z-[9999] min-w-[140px] rounded-lg border border-[#2a2a2a] bg-[#161a1e] p-1 shadow-xl shadow-black/40"
+                  >
+                    <div className="custom-scrollbar max-h-48 overflow-y-auto">
+                      {schemes.map((scheme) => (
+                        <button
+                          key={scheme}
+                          onClick={async () => {
+                            if (scheme === selectedScheme) {
+                              setSchemeOpen(false);
+                              return;
+                            }
+                            setSelectedScheme(scheme);
                             setSchemeOpen(false);
-                            return;
-                          }
-                          setSelectedScheme(scheme);
-                          setSchemeOpen(false);
-                          setApplyingScheme(true);
-                          try {
-                            await backend.SetColorScheme(theme.id, scheme);
-                            markDirty();
-                          } catch (err) {
-                            console.error("Failed to set color scheme:", err);
-                          } finally {
-                            setApplyingScheme(false);
-                          }
-                        }}
-                        className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors ${
-                          selectedScheme === scheme ? "bg-[#d63c6a]/15 text-[#d63c6a]" : "text-[#ccc] hover:bg-[#1e2228] hover:text-white"
-                        }`}
-                      >
-                        <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${selectedScheme === scheme ? "bg-[#d63c6a]" : "bg-transparent"}`} />
-                        <span className="truncate">{scheme}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>,
-                document.body,
-              )}
+                            setApplyingScheme(true);
+                            try {
+                              await backend.SetColorScheme(theme.id, scheme);
+                              markDirty();
+                            } catch (err) {
+                              console.error("Failed to set color scheme:", err);
+                            } finally {
+                              setApplyingScheme(false);
+                            }
+                          }}
+                          className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors ${selectedScheme === scheme ? "bg-[#d63c6a]/15 text-[#d63c6a]" : "text-[#ccc] hover:bg-[#1e2228] hover:text-white"
+                            }`}
+                        >
+                          <span
+                            className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${selectedScheme === scheme ? "bg-[#d63c6a]" : "bg-transparent"}`}
+                          />
+                          <span className="truncate">{scheme}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>,
+                  document.body,
+                )}
             </div>
           )}
           <div className="relative ml-1">
@@ -164,7 +166,7 @@ export default function Theme({
         </div>
       </div>
 
-      {showInfo && <AddonInfoModal info={infoData} onClose={() => setShowInfo(false)} />}
+      {showInfo && <InfoModal info={infoData} onClose={() => setShowInfo(false)} />}
     </>
   );
 }
