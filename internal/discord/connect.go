@@ -22,7 +22,7 @@ func (d *DiscordRPC) Connect() error {
 	}
 	d.conn = conn
 
-	handshake, err := d.encode(0, map[string]interface{}{
+	handshake, err := d.encode(0, map[string]any{
 		"v":         1,
 		"client_id": d.clientID,
 	})
@@ -39,7 +39,7 @@ func (d *DiscordRPC) Connect() error {
 		return err
 	}
 
-	var response map[string]interface{}
+	var response map[string]any
 	if err := json.Unmarshal(payload, &response); err != nil {
 		d.conn.Close()
 		return err
