@@ -44,8 +44,6 @@ export default function App() {
   const hasPendingChanges = addonsDirty || themesDirty || appsDirty;
   const [resetKey, setResetKey] = useState(0);
   const [snapshotKey, setSnapshotKey] = useState(0);
-  // Track which marketplace tabs have been mounted so they are never unmounted
-  // (prevents dirty state / baselines from being lost on tab switch)
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set());
   const [steps, setSteps] = useState<InstallStep[]>([
     {
@@ -164,8 +162,6 @@ export default function App() {
     };
   }, []);
 
-  // Once a marketplace tab is visited, keep it mounted (hidden with CSS) so
-  // dirty-state baselines are never lost when the user switches tabs.
   useEffect(() => {
     const marketplaceTabs = ["addons", "themes", "apps"];
     if (marketplaceTabs.includes(activeTab)) {
@@ -199,10 +195,10 @@ export default function App() {
                 onClick={installSpicetify}
                 disabled={installing || installCompleted}
                 className={`flex items-center gap-2 rounded px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${installing
-                  ? "cursor-not-allowed bg-[#a02950] text-white"
-                  : installCompleted
-                    ? "cursor-not-allowed bg-[#2a2a2a] text-white"
-                    : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+                    ? "cursor-not-allowed bg-[#a02950] text-white"
+                    : installCompleted
+                      ? "cursor-not-allowed bg-[#2a2a2a] text-white"
+                      : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:bg-[#b51c4a]"
                   }`}
               >
                 <FaDownload />
@@ -212,74 +208,78 @@ export default function App() {
           </>
         ) : (
           <SpicetifyProvider>
-          <div className="flex h-full w-full flex-1">
-            <div className="flex w-16 flex-col items-center bg-[#121418] p-4">
-              <button
-                className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "dashboard" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2e34]"}`}
-                onClick={() => setActiveTab("dashboard")}
-              >
-                <FaHome size={20} />
-              </button>
-              <button
-                className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "addons" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2e34]"}`}
-                onClick={() => setActiveTab("addons")}
-              >
-                <FaPuzzlePiece size={20} />
-              </button>
-              <button
-                className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "themes" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
-                onClick={() => setActiveTab("themes")}
-              >
-                <FaPalette size={20} />
-              </button>
-              <button
-                className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "apps" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
-                onClick={() => setActiveTab("apps")}
-              >
-                <FaAppStore size={20} />
-              </button>
-              <div className="mt-auto">
+            <div className="flex h-full w-full flex-1">
+              <div className="flex w-16 flex-col items-center bg-[#121418] p-4">
                 <button
-                  className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "settings" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
-                  onClick={() => setActiveTab("settings")}
+                  className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "dashboard" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2e34]"}`}
+                  onClick={() => setActiveTab("dashboard")}
                 >
-                  <FaCog size={20} />
+                  <FaHome size={20} />
                 </button>
+                <button
+                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "addons" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2e34]"}`}
+                  onClick={() => setActiveTab("addons")}
+                >
+                  <FaPuzzlePiece size={20} />
+                </button>
+                <button
+                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "themes" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
+                  onClick={() => setActiveTab("themes")}
+                >
+                  <FaPalette size={20} />
+                </button>
+                <button
+                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "apps" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
+                  onClick={() => setActiveTab("apps")}
+                >
+                  <FaAppStore size={20} />
+                </button>
+                <div className="mt-auto">
+                  <button
+                    className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "settings" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
+                    onClick={() => setActiveTab("settings")}
+                  >
+                    <FaCog size={20} />
+                  </button>
+                </div>
+              </div>
+              <div className="relative flex flex-1 flex-col overflow-hidden">
+                <div className="flex-1 overflow-hidden flex flex-col">
+                  {installStatus && activeTab === "dashboard" && <Dashboard installStatus={installStatus} onNavigate={setActiveTab} />}
+                  {mountedTabs.has("addons") && (
+                    <div className={activeTab === "addons" ? "h-full" : "hidden"}>
+                      <MarketplaceAddons onDirtyChange={(d) => setAddonsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
+                    </div>
+                  )}
+                  {mountedTabs.has("themes") && (
+                    <div className={activeTab === "themes" ? "h-full" : "hidden"}>
+                      <MarketplaceThemes onDirtyChange={(d) => setThemesDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
+                    </div>
+                  )}
+                  {mountedTabs.has("apps") && (
+                    <div className={activeTab === "apps" ? "h-full" : "hidden"}>
+                      <MarketplaceApps onDirtyChange={(d) => setAppsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
+                    </div>
+                  )}
+                  {activeTab === "settings" && (
+                    <div className="h-full">
+                      <Settings />
+                    </div>
+                  )}
+                </div>
+                {hasPendingChanges && (
+                  <PendingChangesBar
+                    onApplied={() => {
+                      setAddonsDirty(false);
+                      setThemesDirty(false);
+                      setAppsDirty(false);
+                      setSnapshotKey((k) => k + 1);
+                    }}
+                    onReset={() => setResetKey((k) => k + 1)}
+                  />
+                )}
               </div>
             </div>
-            <div className="relative flex flex-1 flex-col overflow-hidden">
-              <div className="flex-1 overflow-hidden flex flex-col">
-                {installStatus && activeTab === "dashboard" && <Dashboard installStatus={installStatus} onNavigate={setActiveTab} />}
-                {mountedTabs.has("addons") && (
-                  <div className={activeTab === "addons" ? "h-full" : "hidden"}>
-                    <MarketplaceAddons onDirtyChange={(d) => setAddonsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
-                  </div>
-                )}
-                {mountedTabs.has("themes") && (
-                  <div className={activeTab === "themes" ? "h-full" : "hidden"}>
-                    <MarketplaceThemes onDirtyChange={(d) => setThemesDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
-                  </div>
-                )}
-                {mountedTabs.has("apps") && (
-                  <div className={activeTab === "apps" ? "h-full" : "hidden"}>
-                    <MarketplaceApps onDirtyChange={(d) => setAppsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
-                  </div>
-                )}
-                {activeTab === "settings" && <div className="h-full"><Settings /></div>}
-              </div>
-              {hasPendingChanges && (
-                <PendingChangesBar
-                  onApplied={() => {
-                    setAddonsDirty(false);
-                    setThemesDirty(false);
-                    setAppsDirty(false);
-                    setSnapshotKey((k) => k + 1);
-                  }}
-                  onReset={() => setResetKey((k) => k + 1)}
-                />
-              )}
-            </div>
-          </div>
           </SpicetifyProvider>
         )}
       </div>
