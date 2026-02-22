@@ -137,9 +137,6 @@ func (a *App) ToggleSpicetifyExtension(addonFileName string, enable bool) bool {
 	if err := helpers.SpicetifyCommand(exec, args, nil); err != nil {
 		return false
 	}
-	// if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
-	// return false
-	// }
 	return true
 }
 
@@ -149,10 +146,8 @@ func (a *App) DeleteSpicetifyExtension(addonFileName string) bool {
 	_ = helpers.SpicetifyCommand(exec, []string{"config", "extensions", addonFileName + "-"}, nil)
 
 	extPath := filepath.Join(helpers.GetExtensionsDir(), addonFileName)
+
 	_ = os.Remove(extPath)
-
 	_ = os.Remove(extPath + ".meta.json")
-
-	// _ = helpers.SpicetifyCommand(exec, []string{"apply"}, nil)
 	return true
 }
