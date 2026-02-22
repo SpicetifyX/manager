@@ -26,7 +26,7 @@ func New() *App {
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 
-	a.discord = discord.NewDiscordRPC("1474805847946301440")
+	a.discord = discord.NewDiscordRPC("1475108123336249490")
 	a.rpcStart = helpers.CurrentTimeMillis()
 
 	settings, err := ReadSettings()
@@ -42,7 +42,7 @@ func (a *App) discordConnectLoop() {
 	for {
 		if !a.rpcConnected || (a.discord != nil && !a.discord.Connected()) {
 			a.rpcConnected = false
-			rpc := discord.NewDiscordRPC("1474805847946301440")
+			rpc := discord.NewDiscordRPC("1475108123336249490")
 			if err := rpc.Connect(); err == nil {
 				if a.discord != nil {
 					a.discord.Close()
