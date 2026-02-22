@@ -50,6 +50,7 @@ func (a *App) StartRestore() {
 
 		tryRm(spicetifyxPath)
 
-		wailsRuntime.EventsEmit(a.ctx, "restore-complete", map[string]interface{}{"success": true})
+		wailsRuntime.EventsEmit(a.ctx, "restore-complete", map[string]any{"success": true})
 	}()
 }
+
