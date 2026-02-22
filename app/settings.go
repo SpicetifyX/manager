@@ -54,7 +54,7 @@ func (a *App) GetSettings() (AppSettings, error) {
 	return ReadSettings()
 }
 
-func (a *App) UpdateSettings(partial map[string]interface{}) (AppSettings, error) {
+func (a *App) UpdateSettings(partial map[string]any) (AppSettings, error) {
 	current, _ := ReadSettings()
 
 	if v, ok := partial["discordRpc"]; ok {
@@ -80,7 +80,7 @@ func (a *App) GetAppVersion() string {
 	return "1.0.0"
 }
 
-func toBool(v interface{}) bool {
+func toBool(v any) bool {
 	switch val := v.(type) {
 	case bool:
 		return val
