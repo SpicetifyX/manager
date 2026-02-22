@@ -15,7 +15,9 @@ func (a *App) GetSpicetifyVersion() string {
 		return "Unknown"
 	}
 	execPath := helpers.GetSpicetifyExec()
-	out, err := exec.Command(execPath, "-v").Output()
+	cmd := exec.Command(execPath, "-v")
+	helpers.HideWindowIfNeeded(cmd)
+	out, err := cmd.Output()
 	if err != nil {
 		return "Unknown"
 	}
