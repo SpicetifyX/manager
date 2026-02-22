@@ -1,12 +1,12 @@
 import { FaChevronLeft, FaSearch, FaTimes } from "react-icons/fa";
 import { CardItem } from "../utils/marketplace-types";
-import { AddonInfoData } from "./AddonInfoModal";
-import AddonInfoModal from "./AddonInfoModal";
+import { InfoData } from "./InfoModal";
+import InfoModal from "./InfoModal";
 import MarketplaceCard from "./MarketplaceCard";
 import Spinner from "./Spinner";
-import ErrorState from "./ui/ErrorState";
-import LoadingState from "./ui/LoadingState";
-import EmptyState from "./ui/EmptyState";
+import ErrorState from "./ErrorState";
+import LoadingState from "./LoadingState";
+import EmptyState from "./EmptyState";
 
 export interface BrowseItem {
   item: CardItem;
@@ -14,31 +14,26 @@ export interface BrowseItem {
 }
 
 interface Props {
-  // Header
   title: string;
   searchPlaceholder: string;
   searchQuery: string;
   onSearchChange: (q: string) => void;
   onBack: () => void;
-  // Tags
   allTags: readonly string[];
   sortTags: readonly string[];
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
-  // Content state
   error: string | null;
   onRetry: () => void;
   loading: boolean;
   loadingLabel: string;
   emptyLabel: string;
-  // Grid
   items: BrowseItem[];
   allItems: CardItem[];
   installingIndex: number | null;
   onInstall: (item: CardItem, origIdx: number) => void;
   loadingMore: boolean;
   lastItemRef: (node: HTMLDivElement | null) => void;
-  // Info modal
   infoIndex: number | null;
   onInfo: (origIdx: number) => void;
   onInfoClose: () => void;
@@ -81,23 +76,22 @@ export default function MarketplaceBrowseView({
   };
 
   const infoItem = infoIndex !== null ? allItems[infoIndex] : null;
-  const infoData: AddonInfoData | null = infoItem
+  const infoData: InfoData | null = infoItem
     ? {
-        title: infoItem.title,
-        description: infoItem.subtitle || infoItem.description,
-        imageURL: infoItem.imageURL,
-        authors: infoItem.authors,
-        tags: infoItem.tags,
-        stars: infoItem.stargazers_count,
-        lastUpdated: infoItem.lastUpdated,
-        installed: infoItem.installed,
-        extensionURL: infoItem.extensionURL,
-      }
+      title: infoItem.title,
+      description: infoItem.subtitle || infoItem.description,
+      imageURL: infoItem.imageURL,
+      authors: infoItem.authors,
+      tags: infoItem.tags,
+      stars: infoItem.stargazers_count,
+      lastUpdated: infoItem.lastUpdated,
+      installed: infoItem.installed,
+      extensionURL: infoItem.extensionURL,
+    }
     : null;
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      {/* Sticky header */}
       <div className="flex w-full flex-shrink-0 flex-col border-b border-[#2a2a2a] bg-[#121418] select-none">
         <div className="flex h-12 items-center justify-between pl-1 pr-3">
           <div className="flex items-center gap-3">
@@ -126,9 +120,8 @@ export default function MarketplaceBrowseView({
             <button
               key={tag}
               onClick={() => handleTagClick(tag)}
-              className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                selectedTags.includes(tag) ? "bg-[#d63c6a] text-white" : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
-              }`}
+              className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${selectedTags.includes(tag) ? "bg-[#d63c6a] text-white" : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
+                }`}
             >
               {tag}
               {selectedTags.includes(tag) && <FaTimes className="h-2.5 w-2.5" />}
@@ -137,7 +130,6 @@ export default function MarketplaceBrowseView({
         </div>
       </div>
 
-      {/* Body */}
       {error ? (
         <ErrorState error={error} onRetry={onRetry} />
       ) : loading ? (
@@ -168,9 +160,8 @@ export default function MarketplaceBrowseView({
         </div>
       )}
 
-      {/* Info modal */}
       {infoData && infoItem && (
-        <AddonInfoModal
+        <InfoModal
           info={infoData}
           onClose={onInfoClose}
           onInstall={() => onInstall(infoItem, infoIndex!)}
