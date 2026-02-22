@@ -11,9 +11,9 @@ func (d *DiscordRPC) setActivity(activity Activity) error {
 		return fmt.Errorf("not connected")
 	}
 
-	activityMap := map[string]interface{}{
+	activityMap := map[string]any{
 		"details": activity.Details,
-		"timestamps": map[string]interface{}{
+		"timestamps": map[string]any{
 			"start": activity.CreatedAt / 1000,
 		},
 		"type": activity.Type,
@@ -22,7 +22,7 @@ func (d *DiscordRPC) setActivity(activity Activity) error {
 		activityMap["state"] = activity.State
 	}
 
-	assets := map[string]interface{}{}
+	assets := map[string]any{}
 	if activity.LargeImage != "" {
 		assets["large_image"] = activity.LargeImage
 	}
@@ -40,14 +40,15 @@ func (d *DiscordRPC) setActivity(activity Activity) error {
 	}
 
 	nonce := fmt.Sprintf("%d", rand.Int63())
-	frame, err := d.encode(1, map[string]interface{}{
+	frame, err := d.encode(1, map[string]any{
 		"cmd": "SET_ACTIVITY",
-		"args": map[string]interface{}{
+		"args": map[string]any{
 			"pid":      os.Getpid(),
 			"activity": activityMap,
 		},
 		"nonce": nonce,
 	})
 	_, err = d.conn.Write(frame)
+
 	return err
 }
