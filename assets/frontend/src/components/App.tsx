@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Spinner from "./Spinner";
 import { FaTrash, FaInfoCircle } from "react-icons/fa";
-import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
+import InfoModal, { InfoData } from "./InfoModal";
 import StaticImage from "./StaticImage";
 
 export default function App({
@@ -23,7 +23,7 @@ export default function App({
 }) {
   const [showInfo, setShowInfo] = useState(false);
 
-  const infoData: AddonInfoData = {
+  const infoData: InfoData = {
     title: name,
     description: `Custom Spicetify app: ${name}`,
     installed: true,
@@ -78,7 +78,7 @@ export default function App({
         </div>
       </div>
 
-      {showInfo && <AddonInfoModal info={infoData} onClose={() => setShowInfo(false)} />}
+      {showInfo && <InfoModal info={infoData} onClose={() => setShowInfo(false)} />}
     </>
   );
 }
