@@ -149,9 +149,6 @@ func (a *App) ApplySpicetifyTheme(themeID string) bool {
 	if err := helpers.SpicetifyCommand(exec, []string{"config", "color_scheme", firstScheme}, nil); err != nil {
 		return false
 	}
-	// if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
-	// return false
-	// }
 	return true
 }
 
@@ -160,9 +157,6 @@ func (a *App) SetColorScheme(themeID, scheme string) bool {
 	if err := helpers.SpicetifyCommand(exec, []string{"config", "color_scheme", scheme}, nil); err != nil {
 		return false
 	}
-	// if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
-	// return false
-	// }
 	return true
 }
 
@@ -180,7 +174,6 @@ func (a *App) DeleteSpicetifyTheme(themeID string) bool {
 	}
 
 	_ = os.RemoveAll(filepath.Join(themesDir, themeID))
-	// _ = helpers.SpicetifyCommand(exec, []string{"apply"}, nil)
 
 	return true
 }
