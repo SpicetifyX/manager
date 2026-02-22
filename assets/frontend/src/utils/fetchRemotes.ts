@@ -234,23 +234,35 @@ export async function fetchAppManifest(contents_url: string, branch: string, sta
     if (!manifests) return [];
 
     const parsedManifests: CardItem[] = manifests.reduce((accum: any, manifest: any) => {
-      if (manifest?.name && manifest.description && !manifest.main && !manifest.usercss) {
+      if (manifest?.name && manifest.description && !manifest.usercss) {
         const selectedBranch = manifest.branch || branch;
+        // Infer the app subdirectory inside the repo from the first path
+        // component of preview or readme (e.g. "stats/previews/x.png" → "stats").
+        // Single-app repos have preview paths with no subdirectory prefix.
+        const refPath: string = manifest.preview || manifest.readme || "";
+        const firstSlash = refPath.indexOf("/");
+        const hasSubdir = firstSlash > 0;
+        const subdir: string = hasSubdir ? refPath.slice(0, firstSlash) : "";
+        // Enrich the raw manifest object so the install handler can read it
+        const enrichedManifest = { ...manifest, subdir };
         const item = {
-          manifest,
+          manifest: enrichedManifest,
           title: manifest.name,
           subtitle: manifest.description,
           authors: processAuthors(manifest.authors, user),
           user,
           repo,
           branch: selectedBranch,
-
-          imageURL: manifest.preview?.startsWith("http")
-            ? manifest.preview
-            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`,
-          readmeURL: manifest.readme?.startsWith("http")
-            ? manifest.readme
-            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.readme}`,
+          imageURL: manifest.preview
+            ? manifest.preview.startsWith("http")
+              ? manifest.preview
+              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`
+            : "",
+          readmeURL: manifest.readme
+            ? manifest.readme.startsWith("http")
+              ? manifest.readme
+              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.readme}`
+            : "",
           stars,
           tags: manifest.tags,
         };
