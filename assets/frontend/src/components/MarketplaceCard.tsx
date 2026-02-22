@@ -16,16 +16,12 @@ export default function MarketplaceCard({ item, isInstalling, onInstall, onInfo,
   return (
     <div
       ref={containerRef}
-      className={`group relative flex h-64 max-h-64 w-full flex-col overflow-hidden rounded-lg border ${
-        item.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"
-      } bg-[#121418] transition`}
+      className={`group relative flex h-64 max-h-64 w-full flex-col overflow-hidden rounded-lg border ${item.installed ? "border-[#d63c6a]" : "border-[#2a2a2a]"
+        } bg-[#121418] transition`}
     >
       {hasImage ? (
         <div className="relative min-h-0 flex-1 overflow-hidden rounded-t-lg">
-          <div
-            className="absolute inset-0 scale-125 rounded-t-lg bg-cover bg-center blur-2xl"
-            style={{ backgroundImage: `url(${item.imageURL})` }}
-          />
+          <div className="absolute inset-0 scale-125 rounded-t-lg bg-cover bg-center blur-2xl" style={{ backgroundImage: `url(${item.imageURL})` }} />
           <div className="absolute inset-0 rounded-t-lg bg-black/40" />
           <img
             src={item.imageURL}
@@ -44,9 +40,7 @@ export default function MarketplaceCard({ item, isInstalling, onInstall, onInfo,
 
       {item.installed ? (
         <div className="absolute top-2 right-2">
-          <div className="z-[96] flex h-8 items-center rounded-full border border-[#1a1a1a] bg-[#d63c6a] p-3 text-sm font-semibold">
-            Installed
-          </div>
+          <div className="z-[96] flex h-8 items-center rounded-full border border-[#1a1a1a] bg-[#d63c6a] p-3 text-sm font-semibold">Installed</div>
         </div>
       ) : (
         <div className="absolute hidden h-full w-full rounded-t-lg bg-gradient-to-b from-black/75 to-black/5 transition-all duration-200 group-hover:block">
