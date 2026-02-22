@@ -21,7 +21,7 @@ function readCache<T>(key: string): T | null {
 function writeCache<T>(key: string, data: T): void {
   try {
     localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
-  } catch {}
+  } catch { }
 }
 
 interface SpicetifyContextValue {
@@ -90,7 +90,7 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
             setSpicetifyVersion(v);
             writeCache("sx_spicetify_ver", v);
           })
-          .catch(() => {}),
+          .catch(() => { }),
       ];
       Promise.all(tasks).catch((err) => console.error("[SpicetifyContext] Background fetch error:", err));
     };
