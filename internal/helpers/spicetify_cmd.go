@@ -5,10 +5,20 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"sync"
 )
 
+// spicetifyMu serializes all spicetify invocations so rapid UI actions
+// (fast tab-switching, multiple button clicks) can't cause concurrent
+// conflicting commands.
+var spicetifyMu sync.Mutex
+
 func SpicetifyCommand(execPath string, args []string, onData func(string)) error {
+	spicetifyMu.Lock()
+	defer spicetifyMu.Unlock()
+
 	cmd := exec.Command(execPath, args...)
+	hideWindowIfNeeded(cmd)
 
 	if onData == nil {
 		var buf bytes.Buffer
