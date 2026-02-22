@@ -128,6 +128,7 @@ export namespace app {
 	    authors?: AuthorInfo[];
 	    tags?: string[];
 	    stars?: number;
+	    subdir?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new MarketplaceMeta(source);
@@ -141,6 +142,7 @@ export namespace app {
 	        this.authors = this.convertValues(source["authors"], AuthorInfo);
 	        this.tags = source["tags"];
 	        this.stars = source["stars"];
+	        this.subdir = source["subdir"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
