@@ -18,6 +18,10 @@ type MarketplaceMeta struct {
 	Authors     []AuthorInfo `json:"authors,omitempty"`
 	Tags        []string     `json:"tags,omitempty"`
 	Stars       int          `json:"stars,omitempty"`
+	// Subdir is the subdirectory inside the repo zip that contains the app
+	// files (e.g. "stats" for harbassan/spicetify-apps). Empty for single-app
+	// repos where relevant files are at the zip root.
+	Subdir string `json:"subdir,omitempty"`
 }
 
 func (a *App) InstallMarketplaceExtension(extensionURL, filename string, meta *MarketplaceMeta) bool {
@@ -110,25 +114,48 @@ func (a *App) InstallMarketplaceTheme(themeID, cssURL string, schemesURL *string
 func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, meta *MarketplaceMeta) bool {
 	ghHeaders := map[string]string{"User-Agent": "SpicetifyX"}
 
-	apiURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", user, repo)
 	archiveURL := ""
+	subdir := ""
+	if meta != nil {
+		subdir = meta.Subdir
+	}
 
-	if resp, err := helpers.HttpGetWithHeaders(apiURL, ghHeaders); err == nil && resp.StatusCode == 200 {
+	// Search releases for a zip asset matching the app's subdir/name.
+	// Multi-app repos (e.g. harbassan/spicetify-apps) publish per-app zips
+	// (spicetify-stats.release.zip, spicetify-library.release.zip) on separate
+	// release tags — so we must scan all releases, not just /releases/latest.
+	releasesURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=30", user, repo)
+	if resp, err := helpers.HttpGetWithHeaders(releasesURL, ghHeaders); err == nil && resp.StatusCode == 200 {
 		defer resp.Body.Close()
-		var release struct {
+		var releases []struct {
 			Assets []struct {
 				Name               string `json:"name"`
 				BrowserDownloadURL string `json:"browser_download_url"`
 			} `json:"assets"`
 			ZipballURL string `json:"zipball_url"`
 		}
-		if err := json.NewDecoder(resp.Body).Decode(&release); err == nil {
-			archiveURL = release.ZipballURL
-			for _, asset := range release.Assets {
-				if strings.HasSuffix(asset.Name, ".zip") {
-					archiveURL = asset.BrowserDownloadURL
+		if err := json.NewDecoder(resp.Body).Decode(&releases); err == nil {
+			needle := strings.ToLower(subdir)
+			for _, release := range releases {
+				for _, asset := range release.Assets {
+					if !strings.HasSuffix(asset.Name, ".zip") {
+						continue
+					}
+					assetLow := strings.ToLower(asset.Name)
+					// Match when subdir is known, or take the first zip for single-app repos
+					if needle == "" || strings.Contains(assetLow, needle) {
+						archiveURL = asset.BrowserDownloadURL
+						subdir = "" // release zip is app-specific; no hoisting needed
+						break
+					}
+				}
+				if archiveURL != "" {
 					break
 				}
+			}
+			// If no per-app asset found, fall back to the zipball of the first release
+			if archiveURL == "" && len(releases) > 0 {
+				archiveURL = releases[0].ZipballURL
 			}
 		}
 	}
@@ -166,6 +193,29 @@ func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, 
 	if err := helpers.ExtractZipToDir(data, destDir, true); err != nil {
 		fmt.Printf("[install-marketplace-app] Failed to extract: %v\n", err)
 		return false
+	}
+
+	// If a subdirectory is specified, hoist its contents to the dest root.
+	// This only applies when we fell back to the full repo zipball and the
+	// app lives in a subdirectory (e.g. projects/stats/ in the source tree).
+	// When a per-app release zip was found, subdir was cleared to "" above.
+	if subdir != "" {
+		subPath := filepath.Join(destDir, subdir)
+		if info, err := os.Stat(subPath); err == nil && info.IsDir() {
+			entries, _ := os.ReadDir(subPath)
+			movedNames := make(map[string]struct{})
+			for _, e := range entries {
+				movedNames[e.Name()] = struct{}{}
+				_ = os.Rename(filepath.Join(subPath, e.Name()), filepath.Join(destDir, e.Name()))
+			}
+			// Remove everything not hoisted (other app dirs, repo-level files)
+			topEntries, _ := os.ReadDir(destDir)
+			for _, te := range topEntries {
+				if _, keep := movedNames[te.Name()]; !keep {
+					_ = os.RemoveAll(filepath.Join(destDir, te.Name()))
+				}
+			}
+		}
 	}
 
 	if meta != nil {
