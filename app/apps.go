@@ -99,9 +99,6 @@ func (a *App) ToggleSpicetifyApp(appID string, enable bool) bool {
 	if err := helpers.SpicetifyCommand(exec, args, nil); err != nil {
 		return false
 	}
-	// if err := helpers.SpicetifyCommand(exec, []string{"apply"}, nil); err != nil {
-	// return false
-	// }
 	return true
 }
 
@@ -110,6 +107,5 @@ func (a *App) DeleteSpicetifyApp(appID string) bool {
 
 	_ = helpers.SpicetifyCommand(exec, []string{"config", "custom_apps", appID + "-"}, nil)
 	_ = os.RemoveAll(filepath.Join(helpers.GetCustomAppsDir(), appID))
-	// _ = helpers.SpicetifyCommand(exec, []string{"apply"}, nil)
 	return true
 }
