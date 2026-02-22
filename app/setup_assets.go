@@ -12,25 +12,25 @@ import (
 )
 
 type assetExtension struct {
-	Name           string                 `json:"name"`
-	RawFiles       []string               `json:"raw_files"`
-	RawMetaURL     *string                `json:"raw_meta_url"`
-	RawMetaContent map[string]interface{} `json:"raw_meta_content"`
-	FileName       string                 `json:"file_name"`
+	Name           string         `json:"name"`
+	RawFiles       []string       `json:"raw_files"`
+	RawMetaURL     *string        `json:"raw_meta_url"`
+	RawMetaContent map[string]any `json:"raw_meta_content"`
+	FileName       string         `json:"file_name"`
 }
 
 type assetTheme struct {
-	Name           string                 `json:"name"`
-	RawFiles       []string               `json:"raw_files"`
-	RawMetaURL     *string                `json:"raw_meta_url"`
-	RawMetaContent map[string]interface{} `json:"raw_meta_content"`
+	Name           string         `json:"name"`
+	RawFiles       []string       `json:"raw_files"`
+	RawMetaURL     *string        `json:"raw_meta_url"`
+	RawMetaContent map[string]any `json:"raw_meta_content"`
 }
 
 type assetApp struct {
-	Name           string                 `json:"name"`
-	RawArchiveURL  string                 `json:"raw_archive_url"`
-	RawMetaURL     *string                `json:"raw_meta_url"`
-	RawMetaContent map[string]interface{} `json:"raw_meta_content"`
+	Name           string         `json:"name"`
+	RawArchiveURL  string         `json:"raw_archive_url"`
+	RawMetaURL     *string        `json:"raw_meta_url"`
+	RawMetaContent map[string]any `json:"raw_meta_content"`
 }
 
 type assetsFile struct {
