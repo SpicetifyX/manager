@@ -238,6 +238,7 @@ export default function MarketplaceApps({
         authors: app.authors,
         tags: app.tags,
         stars: app.stargazers_count,
+        subdir: (app.manifest as any)?.subdir || "",
       };
       const success = await backend.InstallMarketplaceApp(app.user, app.repo, appName, app.branch, meta as any);
       if (success) {
