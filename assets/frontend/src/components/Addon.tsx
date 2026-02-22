@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Spinner from "./Spinner";
 import { FaTrash, FaInfoCircle } from "react-icons/fa";
-import AddonInfoModal, { AddonInfoData } from "./AddonInfoModal";
+import InfoModal, { InfoData } from "./InfoModal";
 import StaticImage from "./StaticImage";
 
 export default function Addon({
@@ -29,7 +29,7 @@ export default function Addon({
 }) {
   const [showInfo, setShowInfo] = useState(false);
 
-  const infoData: AddonInfoData = {
+  const infoData: InfoData = {
     title: name,
     description,
     resolvedImageSrc: preview,
@@ -87,7 +87,7 @@ export default function Addon({
         </div>
       </div>
 
-      {showInfo && <AddonInfoModal info={infoData} onClose={() => setShowInfo(false)} />}
+      {showInfo && <InfoModal info={infoData} onClose={() => setShowInfo(false)} />}
     </>
   );
 }
