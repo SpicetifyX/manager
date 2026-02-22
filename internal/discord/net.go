@@ -25,7 +25,7 @@ func (d *DiscordRPC) dialPipe(i int) (net.Conn, error) {
 	return DialPipe(sockPath)
 }
 
-func (d *DiscordRPC) encode(op uint32, data interface{}) ([]byte, error) {
+func (d *DiscordRPC) encode(op uint32, data any) ([]byte, error) {
 	payload, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
