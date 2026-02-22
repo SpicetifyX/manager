@@ -168,7 +168,9 @@ func (a *App) DeleteSpicetifyTheme(themeID string) bool {
 		re := regexp.MustCompile(`(?m)^current_theme\s*=\s*(.*)$`)
 		if m := re.FindSubmatch(data); len(m) > 1 {
 			if strings.TrimSpace(string(m[1])) == themeID {
-				_ = helpers.SpicetifyCommand(exec, []string{"config", "current_theme", ""}, nil)
+				// Fall back to the bundled SpicetifyX theme instead of leaving blank
+				_ = helpers.SpicetifyCommand(exec, []string{"config", "current_theme", "SpicetifyX"}, nil)
+				_ = helpers.SpicetifyCommand(exec, []string{"config", "color_scheme", "main"}, nil)
 			}
 		}
 	}
