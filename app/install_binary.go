@@ -59,3 +59,4 @@ func (a *App) InstallSpicetifyBinary() error {
 
 	return helpers.ExtractTarGz(data, spicetifyxDir)
 }
+
