@@ -38,6 +38,13 @@ export default function MarketplaceCard({ item, isInstalling, onInstall, onInfo,
         </div>
       )}
 
+      {item.curated && !item.installed && (
+        <div className="absolute top-2 left-2 z-[97]">
+          <div className="flex h-6 items-center gap-1 rounded-full border border-[#d63c6a]/30 bg-[#d63c6a]/15 px-2 text-xs font-semibold text-[#d63c6a]">
+            ✦ Curated
+          </div>
+        </div>
+      )}
       {item.installed ? (
         <div className="absolute top-2 right-2">
           <div className="z-[96] flex h-8 items-center rounded-full border border-[#1a1a1a] bg-[#d63c6a] p-3 text-sm font-semibold">Installed</div>
