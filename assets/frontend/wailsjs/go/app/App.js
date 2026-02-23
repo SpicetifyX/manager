@@ -98,6 +98,10 @@ export function StartRestore() {
   return window['go']['app']['App']['StartRestore']();
 }
 
+export function SubmitMissingAddon(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['app']['App']['SubmitMissingAddon'](arg1, arg2, arg3, arg4, arg5);
+}
+
 export function ToggleSpicetifyApp(arg1, arg2) {
   return window['go']['app']['App']['ToggleSpicetifyApp'](arg1, arg2);
 }
