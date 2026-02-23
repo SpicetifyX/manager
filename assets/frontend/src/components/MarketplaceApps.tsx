@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { AppInfo } from "../types/app.d";
 import { FaDownload } from "react-icons/fa";
 import App from "./App";
-import { fetchAppManifest, getTaggedRepos } from "../utils/fetchRemotes";
+import { fetchAppManifest, fetchCurated, getTaggedRepos } from "../utils/fetchRemotes";
 import { CardItem } from "../utils/marketplace-types";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import * as backend from "../../wailsjs/go/app/App";
@@ -81,7 +81,16 @@ export default function MarketplaceApps({
           );
         }
       }
-      setCommunityApps((prev) => (targetPage === 1 ? allApps : [...prev, ...allApps]));
+
+      if (targetPage === 1) {
+        const curated = await fetchCurated();
+        const curatedApps = curated.apps
+          .filter((c) => !allApps.some((a) => a.user === c.user && a.repo === c.repo))
+          .map((c) => ({ ...c, installed: currentApps.some((ia) => ia.name === c.title) }));
+        setCommunityApps([...curatedApps, ...allApps]);
+      } else {
+        setCommunityApps((prev) => [...prev, ...allApps]);
+      }
       setPage(targetPage);
       if (pageOfRepos.items.length === 0 || pageOfRepos.items.length < 30) {
         setHasMore(false);
