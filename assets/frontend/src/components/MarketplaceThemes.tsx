@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { ThemeInfo } from "../types/theme.d";
 import Theme from "./Theme";
 import { FaDownload } from "react-icons/fa";
-import { fetchThemeManifest, getTaggedRepos } from "../utils/fetchRemotes";
+import { fetchThemeManifest, fetchCurated, getTaggedRepos } from "../utils/fetchRemotes";
 import { CardItem } from "../utils/marketplace-types";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import * as backend from "../../wailsjs/go/app/App";
@@ -81,7 +81,16 @@ export default function MarketplaceThemes({
           );
         }
       }
-      setCommunityThemes((prev) => (targetPage === 1 ? allThemes : [...prev, ...allThemes]));
+
+      if (targetPage === 1) {
+        const curated = await fetchCurated();
+        const curatedThemes = curated.themes
+          .filter((c) => !allThemes.some((t) => t.user === c.user && t.repo === c.repo))
+          .map((c) => ({ ...c, installed: currentThemes.some((th) => th.name === c.title) }));
+        setCommunityThemes([...curatedThemes, ...allThemes]);
+      } else {
+        setCommunityThemes((prev) => [...prev, ...allThemes]);
+      }
       setPage(targetPage);
       if (pageOfRepos.items.length === 0 || pageOfRepos.items.length < 30) {
         setHasMore(false);
