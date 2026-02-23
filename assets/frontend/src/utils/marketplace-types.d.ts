@@ -72,6 +72,7 @@ export type CardItem = {
   subtitle: string;
   authors: Author[];
   installed?: boolean;
+  curated?: boolean;
   user: string;
   repo: string;
   branch: string;
