@@ -5,13 +5,14 @@ import TitleBar from "./components/TitleBar";
 import CheckingInstallation from "./components/CheckingInstallation";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { FaDownload, FaHome, FaPuzzlePiece, FaPalette, FaAppStore, FaCog, FaRocket } from "react-icons/fa";
+import { FaDownload, FaHome, FaPuzzlePiece, FaPalette, FaAppStore, FaCog, FaRocket, FaFlag } from "react-icons/fa";
 import Dashboard from "./components/Dashboard";
 import MarketplaceThemes from "./components/MarketplaceThemes";
 import MarketplaceApps from "./components/MarketplaceApps";
 import Settings from "./components/Settings";
 import { FaShield } from "react-icons/fa6";
 import MarketplaceAddons from "./components/MarketplaceAddons";
+import SubmitAddon from "./components/SubmitAddon";
 import PendingChangesBar from "./components/PendingChangesBar";
 import * as backend from "../wailsjs/go/app/App";
 import { onInstallComplete } from "./utils/bridge";
@@ -234,7 +235,14 @@ export default function App() {
                 >
                   <FaAppStore size={20} />
                 </button>
-                <div className="mt-auto">
+                <div className="mt-auto flex flex-col gap-2">
+                  <button
+                    title="Report missing listing"
+                    className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "submit" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
+                    onClick={() => setActiveTab("submit")}
+                  >
+                    <FaFlag size={18} />
+                  </button>
                   <button
                     className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "settings" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
                     onClick={() => setActiveTab("settings")}
@@ -264,6 +272,11 @@ export default function App() {
                   {activeTab === "settings" && (
                     <div className="h-full">
                       <Settings />
+                    </div>
+                  )}
+                  {activeTab === "submit" && (
+                    <div className="h-full">
+                      <SubmitAddon />
                     </div>
                   )}
                 </div>
