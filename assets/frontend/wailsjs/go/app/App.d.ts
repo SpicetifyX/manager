@@ -50,6 +50,8 @@ export function StartInstall():Promise<void>;
 
 export function StartRestore():Promise<void>;
 
+export function SubmitMissingAddon(arg1:string,arg2:string,arg3:string,arg4:string,arg5:boolean):Promise<boolean>;
+
 export function ToggleSpicetifyApp(arg1:string,arg2:boolean):Promise<boolean>;
 
 export function ToggleSpicetifyExtension(arg1:string,arg2:boolean):Promise<boolean>;
