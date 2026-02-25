@@ -85,7 +85,7 @@ export default function Dashboard({
 
   return (
     <div className="flex h-full w-full flex-col overflow-x-hidden overflow-y-auto bg-[#171b20] p-5">
-      <div className="mb-5">
+      <div className="mb-4 border-b border-[#1e2228] pb-4">
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
         <p className="mt-1 text-sm text-[#a0a0a0]">Overview of your Spicetify installation</p>
       </div>
