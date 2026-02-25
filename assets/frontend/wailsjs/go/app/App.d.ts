@@ -4,6 +4,8 @@ import {app} from '../models';
 
 export function ApplySpicetifyTheme(arg1:string):Promise<boolean>;
 
+export function CheckForUpdates():Promise<app.UpdateInfo>;
+
 export function CheckInstallation():Promise<app.InstallStatus>;
 
 export function DeleteSpicetifyApp(arg1:string):Promise<boolean>;
