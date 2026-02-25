@@ -16,6 +16,7 @@ type App struct {
 	rpcStart     int64
 	rpcConnected bool
 	closeToTray  bool
+	rpcStop      chan struct{}
 	AssetHandler http.Handler
 }
 
@@ -25,22 +26,45 @@ func New() *App {
 
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
-
-	a.discord = discord.NewDiscordRPC("1475108123336249490")
 	a.rpcStart = helpers.CurrentTimeMillis()
 
 	settings, err := ReadSettings()
 	if err == nil {
 		a.closeToTray = settings.CloseToTray
 		if settings.DiscordRpc {
-			go a.discordConnectLoop()
+			a.startDiscordRpc()
 		}
 	}
+}
+
+func (a *App) startDiscordRpc() {
+	if a.rpcStop != nil {
+		return // already running
+	}
+	a.rpcStop = make(chan struct{})
+	go a.discordConnectLoop()
+}
+
+func (a *App) stopDiscordRpc() {
+	if a.rpcStop != nil {
+		close(a.rpcStop)
+		a.rpcStop = nil
+	}
+	if a.discord != nil {
+		a.discord.Close()
+		a.discord = nil
+	}
+	a.rpcConnected = false
 }
 
 func (a *App) discordConnectLoop() {
 	for {
 		if !a.rpcConnected || (a.discord != nil && !a.discord.Connected()) {
+			select {
+			case <-a.rpcStop:
+				return
+			default:
+			}
 			a.rpcConnected = false
 			rpc := discord.NewDiscordRPC("1475108123336249490")
 			if err := rpc.Connect(); err == nil {
@@ -62,14 +86,24 @@ func (a *App) discordConnectLoop() {
 			} else {
 			}
 		}
-		time.Sleep(5 * time.Second)
+		select {
+		case <-a.rpcStop:
+			return
+		case <-time.After(5 * time.Second):
+		}
 	}
 }
 
 func (a *App) Shutdown(ctx context.Context) {
-	if a.rpcConnected {
-		a.discord.Close()
+	a.stopDiscordRpc()
+}
+
+func (a *App) BeforeClose(ctx context.Context) bool {
+	if a.closeToTray {
+		runtime.WindowMinimise(ctx)
+		return true
 	}
+	return false
 }
 
 func (a *App) WindowMinimize() {
