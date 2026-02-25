@@ -89,7 +89,7 @@ export default function SubmitAddon() {
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#171b20] p-6">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#171b20] px-6 pt-6 pb-10">
       {/* Spam warning modal */}
       {showSpamModal && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -123,7 +123,7 @@ export default function SubmitAddon() {
 
       <div className="mx-auto w-full max-w-xl">
         {/* Header */}
-        <div className="mb-5 flex items-center gap-4">
+        <div className="mb-4 flex items-center gap-4 border-b border-[#1e2228] pb-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#d63c6a]/20 text-[#d63c6a]">
             <FaFlag size={18} />
           </div>
