@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { FaDiscord, FaFolder, FaTrashAlt, FaExternalLinkAlt, FaGithub } from "react-icons/fa";
+import { FaDiscord, FaFolder, FaTrashAlt, FaExternalLinkAlt, FaGithub, FaArrowUp } from "react-icons/fa";
 import * as backend from "../../wailsjs/go/app/App";
 
 interface AppSettings {
@@ -19,6 +19,7 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [appVersion, setAppVersion] = useState<string>("");
   const [cacheCleared, setCacheCleared] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<{ available: boolean; version: string; url: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -53,8 +54,13 @@ export default function Settings() {
     (async () => {
       try {
         const [fetched, version] = await Promise.all([backend.GetSettings(), backend.GetAppVersion()]);
-        setSettings({ ...DEFAULTS, ...fetched });
+        const merged = { ...DEFAULTS, ...fetched };
+        setSettings(merged);
         setAppVersion(version);
+        if (merged.checkUpdatesOnLaunch) {
+          const info = await (backend as any).CheckForUpdates();
+          if (info?.available) setUpdateInfo(info);
+        }
       } catch (err) {
         console.error("Failed to load settings:", err);
       } finally {
@@ -80,7 +86,7 @@ export default function Settings() {
   };
 
   const handleOpenDiscord = () => {
-    backend.OpenExternalLink("https://discord.gg/dqDFdtUSp5");
+    backend.OpenExternalLink("https://discord.gg/DqYSqeJz2M");
   };
 
   const handleOpenGitHub = () => {
@@ -100,10 +106,27 @@ export default function Settings() {
 
   return (
     <div ref={scrollRef} className="settings-scrollbar flex h-full flex-1 flex-col overflow-y-auto overflow-x-hidden bg-[#171b20] p-5">
-      <div className="mb-5">
+      <div className="mb-4 border-b border-[#1e2228] pb-4">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="mt-1 text-sm text-[#a0a0a0]">Configure SpicetifyX Manager preferences</p>
       </div>
+
+      {updateInfo?.available && (
+        <div className="mb-4 flex items-center justify-between rounded-lg border border-[#d63c6a]/30 bg-[#d63c6a]/10 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <FaArrowUp className="text-[#d63c6a]" size={13} />
+            <p className="text-sm text-white">
+              Update available — <span className="font-semibold text-[#d63c6a]">{updateInfo.version}</span>
+            </p>
+          </div>
+          <button
+            onClick={() => backend.OpenExternalLink(updateInfo.url)}
+            className="flex items-center gap-1.5 rounded bg-[#d63c6a] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#c52c5a] transition-colors"
+          >
+            Download <FaExternalLinkAlt size={10} />
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-1 flex-col space-y-4">
         <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
