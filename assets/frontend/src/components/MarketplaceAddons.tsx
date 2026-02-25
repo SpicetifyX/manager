@@ -341,7 +341,7 @@ export default function MarketplaceAddons({
   ) : (
     <>
       <div className="flex h-full flex-col p-4">
-        <div className="mb-6 flex w-full items-center justify-between">
+        <div className="mb-4 flex w-full items-center justify-between border-b border-[#1e2228] pb-4">
           <div>
             <h1 className="text-2xl font-bold text-white">Installed Addons</h1>
             <p className="text-[#a0a0a0]">Manage your Spicetify extensions.</p>
