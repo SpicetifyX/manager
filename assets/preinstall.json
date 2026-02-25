@@ -101,32 +101,6 @@
       "tags": [
         "official"
       ]
-    },
-    {
-      "name": "Spotify Default",
-      "repo": "https://github.com/SpicetifyX/themes",
-      "imageURL": "https://github.com/SpicetifyX/themes/blob/main/SpicetifyX/assets/icon.png?raw=true",
-      "path": "Spotify Default",
-      "branch": "main",
-      "raw_files": [
-        "https://raw.githubusercontent.com/SpicetifyX/themes/refs/heads/main/Spotify%20Default/color.ini",
-        "https://raw.githubusercontent.com/SpicetifyX/themes/refs/heads/main/Spotify%20Default/user.css"
-      ],
-      "raw_meta_url": null,
-      "raw_meta_content": {
-        "name": "Spotify Default",
-        "description": "The stock Spotify appearance with minimal adjustments since Spotify's UI is already pretty good. This theme serves as a great starting point for users who want to customize their Spotify experience without drastically changing the look and feel.",
-        "authors": [
-          {
-            "name": "jorthans",
-            "url": "https://github.com/jorthans"
-          }
-        ],
-        "tags": [
-          "official",
-          "default"
-        ]
-      }
     }
   ],
   "apps": []
