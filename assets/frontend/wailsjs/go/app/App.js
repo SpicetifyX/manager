@@ -6,6 +6,10 @@ export function ApplySpicetifyTheme(arg1) {
   return window['go']['app']['App']['ApplySpicetifyTheme'](arg1);
 }
 
+export function CheckForUpdates() {
+  return window['go']['app']['App']['CheckForUpdates']();
+}
+
 export function CheckInstallation() {
   return window['go']['app']['App']['CheckInstallation']();
 }
