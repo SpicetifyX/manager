@@ -58,7 +58,13 @@ func (a *App) UpdateSettings(partial map[string]any) (AppSettings, error) {
 	current, _ := ReadSettings()
 
 	if v, ok := partial["discordRpc"]; ok {
-		current.DiscordRpc = toBool(v)
+		newVal := toBool(v)
+		current.DiscordRpc = newVal
+		if newVal {
+			a.startDiscordRpc()
+		} else {
+			a.stopDiscordRpc()
+		}
 	}
 	if v, ok := partial["closeToTray"]; ok {
 		current.CloseToTray = toBool(v)
@@ -78,6 +84,35 @@ func (a *App) OpenConfigFolder() bool {
 
 func (a *App) GetAppVersion() string {
 	return "1.0.0"
+}
+
+type UpdateInfo struct {
+	Available bool   `json:"available"`
+	Version   string `json:"version"`
+	URL       string `json:"url"`
+}
+
+func (a *App) CheckForUpdates() UpdateInfo {
+	resp, err := helpers.HttpGet("https://api.github.com/repos/spicetifyx/manager/releases/latest")
+	if err != nil {
+		return UpdateInfo{}
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return UpdateInfo{}
+	}
+	var release struct {
+		TagName string `json:"tag_name"`
+		HTMLURL string `json:"html_url"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		return UpdateInfo{}
+	}
+	current := "v" + a.GetAppVersion()
+	if release.TagName != "" && release.TagName != current {
+		return UpdateInfo{Available: true, Version: release.TagName, URL: release.HTMLURL}
+	}
+	return UpdateInfo{}
 }
 
 func toBool(v any) bool {
