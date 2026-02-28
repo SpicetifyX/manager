@@ -15,6 +15,7 @@ export default function Addon({
   addonFileName,
   authors,
   tags,
+  imageURL,
 }: {
   name: string;
   description: string;
@@ -26,6 +27,7 @@ export default function Addon({
   addonFileName: string;
   authors?: { name: string; url?: string }[];
   tags?: string[];
+  imageURL?: string;
 }) {
   const [showInfo, setShowInfo] = useState(false);
 
@@ -33,9 +35,17 @@ export default function Addon({
     title: name,
     description,
     resolvedImageSrc: preview,
+    imageURL,
     authors,
     tags,
     installed: true,
+  };
+
+  const handleShowInfo = () => {
+    console.log(`[Addon] Opening info for ${name}`);
+    console.log(`[Addon] Preview exists: ${!!preview}, length: ${preview?.length}`);
+    console.log(`[Addon] ImageURL: ${imageURL}`);
+    setShowInfo(true);
   };
 
   return (
@@ -43,7 +53,12 @@ export default function Addon({
       <div className="flex w-full items-center justify-between border-b border-[#2a2a2a] px-4 py-3 transition-colors duration-200 hover:bg-[#1e2228]">
         <div className="flex min-w-0 flex-grow items-center">
           <div className="mr-4 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
-            <StaticImage src={preview} alt={`${name} preview`} className="h-full w-full object-cover" />
+            <StaticImage
+              src={preview}
+              fallbackSrc={imageURL}
+              alt={`${name} preview`}
+              className="h-full w-full object-cover"
+            />
           </div>
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold text-white">{name}</h3>
@@ -52,7 +67,7 @@ export default function Addon({
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowInfo(true)}
+            onClick={handleShowInfo}
             className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2e34] hover:text-white disabled:opacity-50"
             title="Info"
           >
