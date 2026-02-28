@@ -153,7 +153,6 @@ export default function App() {
       } else {
         setInstalling(false);
         console.error("Installation failed:", error);
-        alert(`Installation failed: ${error}`);
       }
     };
 
