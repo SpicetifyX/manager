@@ -5,14 +5,13 @@ import TitleBar from "./components/TitleBar";
 import CheckingInstallation from "./components/CheckingInstallation";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { FaDownload, FaHome, FaPuzzlePiece, FaPalette, FaAppStore, FaCog, FaRocket, FaFlag } from "react-icons/fa";
+import { FaDownload, FaHome, FaPuzzlePiece, FaPalette, FaAppStore, FaCog, FaRocket } from "react-icons/fa";
 import Dashboard from "./components/Dashboard";
 import MarketplaceThemes from "./components/MarketplaceThemes";
 import MarketplaceApps from "./components/MarketplaceApps";
 import Settings from "./components/Settings";
 import { FaShield } from "react-icons/fa6";
 import MarketplaceAddons from "./components/MarketplaceAddons";
-import SubmitAddon from "./components/SubmitAddon";
 import PendingChangesBar from "./components/PendingChangesBar";
 import * as backend from "../wailsjs/go/app/App";
 import { onInstallComplete } from "./utils/bridge";
@@ -191,19 +190,21 @@ export default function App() {
             <Header title="Spicetify Installer" description="Select Install to Continue" />
             <InstallWizard installStatus={installStatus} isInstalling={installing} updateStepStatus={updateStepStatus} steps={steps} />
             <Footer>
-              <button
-                onClick={installSpicetify}
-                disabled={installing || installCompleted}
-                className={`flex items-center gap-2 rounded px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${installing
-                    ? "cursor-not-allowed bg-[#a02950] text-white"
-                    : installCompleted
-                      ? "cursor-not-allowed bg-[#2a2a2a] text-white"
-                      : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:bg-[#b51c4a]"
-                  }`}
-              >
-                <FaDownload />
-                {installing ? "Installing..." : installCompleted ? "Complete!" : "Install Spicetify"}
-              </button>
+              <div className="flex w-full justify-end">
+                <button
+                  onClick={installSpicetify}
+                  disabled={installing || installCompleted}
+                  className={`flex items-center gap-2 rounded px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${installing
+                      ? "cursor-not-allowed bg-[#a02950] text-white"
+                      : installCompleted
+                        ? "cursor-not-allowed bg-[#2a2a2a] text-white"
+                        : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+                    }`}
+                >
+                  <FaDownload />
+                  {installing ? "Installing..." : installCompleted ? "Complete!" : "Install Spicetify"}
+                </button>
+              </div>
             </Footer>
           </>
         ) : (
@@ -236,13 +237,6 @@ export default function App() {
                 </button>
                 <div className="mt-auto flex flex-col gap-2">
                   <button
-                    title="Report missing listing"
-                    className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "submit" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
-                    onClick={() => setActiveTab("submit")}
-                  >
-                    <FaFlag size={18} />
-                  </button>
-                  <button
                     className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "settings" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
                     onClick={() => setActiveTab("settings")}
                   >
@@ -271,11 +265,6 @@ export default function App() {
                   {activeTab === "settings" && (
                     <div className="h-full">
                       <Settings />
-                    </div>
-                  )}
-                  {activeTab === "submit" && (
-                    <div className="h-full">
-                      <SubmitAddon />
                     </div>
                   )}
                 </div>
