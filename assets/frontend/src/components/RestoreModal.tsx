@@ -61,9 +61,8 @@ export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, r
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75">
       <div
-        className={`flex flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] shadow-lg transition-all duration-300 ${
-          isRestoring ? "h-[75%] w-full max-w-2xl p-5" : "w-full max-w-sm p-6"
-        }`}
+        className={`flex flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] shadow-lg transition-all duration-300 ${isRestoring ? "h-[75%] w-full max-w-2xl p-5" : "w-full max-w-sm p-6"
+          }`}
       >
         {!isRestoring ? (
           <>
