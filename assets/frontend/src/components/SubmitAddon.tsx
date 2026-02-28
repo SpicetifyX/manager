@@ -229,8 +229,8 @@ export default function SubmitAddon() {
             type="submit"
             disabled={submitting || !!urlError || !repoURL.trim()}
             className={`flex items-center justify-center gap-2 rounded px-5 py-3 text-sm font-semibold transition-all ${submitting || !!urlError || !repoURL.trim()
-                ? "cursor-not-allowed bg-[#2a2e34] text-[#555]"
-                : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+              ? "cursor-not-allowed bg-[#2a2e34] text-[#555]"
+              : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:bg-[#b51c4a]"
               }`}
           >
             <FaFlag size={12} />
