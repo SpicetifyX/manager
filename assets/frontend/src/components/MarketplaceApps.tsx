@@ -18,12 +18,11 @@ export default function MarketplaceApps({
   resetKey: number;
   snapshotKey: number;
 }) {
-  const { apps: contextApps, appsLoaded, refreshApps } = useSpicetify();
+  const { apps: contextApps, appsLoaded, refreshApps, setAppsLocally } = useSpicetify();
 
   const [apps, setApps] = useState<AppInfo[]>(contextApps);
   const [loading, setLoading] = useState(!appsLoaded);
   const [error, setError] = useState<string | null>(null);
-  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [browsingContent, setBrowsingContent] = useState(false);
   const [communityApps, setCommunityApps] = useState<CardItem[]>([]);
   const [communityLoading, setCommunityLoading] = useState(false);
@@ -34,8 +33,6 @@ export default function MarketplaceApps({
     id: string;
     name: string;
   } | null>(null);
-  const captureBaselineRef = useRef(true);
-  const baselineRef = useRef<Map<string, boolean> | null>(null);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -126,21 +123,23 @@ export default function MarketplaceApps({
   useEffect(() => {
     if (!appsLoaded) return;
     setApps(contextApps);
-    if (captureBaselineRef.current) {
-      baselineRef.current = new Map(contextApps.map((a) => [a.id, a.isEnabled]));
-      captureBaselineRef.current = false;
-      onDirtyChange(false);
-    } else if (baselineRef.current) {
-      const bl = baselineRef.current;
-      const isDirty =
-        contextApps.some((a) => {
-          const base = bl.get(a.id);
-          return base === undefined || base !== a.isEnabled;
-        }) || [...bl.keys()].some((k) => !contextApps.find((a) => a.id === k));
-      onDirtyChange(isDirty);
-    }
-    setLoading(false);
   }, [contextApps, appsLoaded]);
+
+  // Recapture baseline for dirty detection
+  const [baseline, setBaseline] = useState<Map<string, boolean>>(new Map());
+  useEffect(() => {
+    if (snapshotKey > 0 || appsLoaded) {
+      setBaseline(new Map(contextApps.map((a) => [a.id, a.isEnabled])));
+    }
+  }, [snapshotKey, appsLoaded]);
+
+  useEffect(() => {
+    const isDirty = apps.some((a) => {
+      const base = baseline.get(a.id);
+      return base === undefined || base !== a.isEnabled;
+    });
+    onDirtyChange(isDirty);
+  }, [apps, baseline]);
 
   useEffect(() => {
     if (browsingContent) {
@@ -159,55 +158,10 @@ export default function MarketplaceApps({
     }
   }, [apps]);
 
-  // Recapture baseline after Apply
-  useEffect(() => {
-    if (snapshotKey === 0) return;
-    captureBaselineRef.current = true;
-    fetchApps(true);
-  }, [snapshotKey]);
-
-  // Undo toggle changes on Reset
-  useEffect(() => {
-    if (resetKey === 0 || !baselineRef.current) return;
-    const baseline = new Map(baselineRef.current);
-    (async () => {
-      try {
-        const current = await backend.GetSpicetifyApps();
-        for (const app of current) {
-          const baselineEnabled = baseline.get(app.id);
-          if (baselineEnabled === undefined) {
-            // Installed after baseline – delete it
-            await backend.DeleteSpicetifyApp(app.id);
-          } else if (app.isEnabled !== baselineEnabled) {
-            // Toggle state changed – restore it
-            await backend.ToggleSpicetifyApp(app.id, baselineEnabled);
-          }
-        }
-        await fetchApps(true);
-      } catch (err) {
-        console.error("[MarketplaceApps] Reset failed:", err);
-      }
-    })();
-  }, [resetKey]);
-
-  const handleToggleApp = async (appId: string, enable: boolean) => {
-    setTogglingId(appId);
-    setApps((prevApps) => prevApps.map((app) => (app.id === appId ? { ...app, isEnabled: enable } : app)));
-
-    try {
-      const success = await backend.ToggleSpicetifyApp(appId, enable);
-      if (!success) {
-        setApps((prevApps) => prevApps.map((app) => (app.id === appId ? { ...app, isEnabled: !enable } : app)));
-        alert(`Failed to toggle app: ${appId}`);
-      }
-      fetchApps(true);
-    } catch (err: any) {
-      console.error(`Error toggling app ${appId}:`, err);
-      setApps((prevApps) => prevApps.map((app) => (app.id === appId ? { ...app, isEnabled: !enable } : app)));
-      alert(`Error toggling app: ${err.message}`);
-    } finally {
-      setTogglingId(null);
-    }
+  const handleToggleApp = (appId: string, enable: boolean) => {
+    const updated = apps.map((app) => (app.id === appId ? { ...app, isEnabled: enable } : app));
+    setApps(updated);
+    setAppsLocally(updated);
   };
 
   const handleDeleteApp = (appId: string) => {
@@ -219,7 +173,6 @@ export default function MarketplaceApps({
     if (!pendingDelete) return;
     const { id: appId } = pendingDelete;
     setPendingDelete(null);
-    setTogglingId(appId);
     try {
       const success = await backend.DeleteSpicetifyApp(appId);
       if (!success) {
@@ -229,8 +182,6 @@ export default function MarketplaceApps({
     } catch (err: any) {
       console.error(`Error deleting app ${appId}:`, err);
       alert(`Error deleting app: ${err.message}`);
-    } finally {
-      setTogglingId(null);
     }
   };
 
@@ -364,7 +315,7 @@ export default function MarketplaceApps({
                   isEnabled={app.isEnabled}
                   onToggle={handleToggleApp}
                   onDelete={handleDeleteApp}
-                  isToggling={togglingId === app.id}
+                  isToggling={false}
                   imageURL={app.imageURL}
                 />
               ))
