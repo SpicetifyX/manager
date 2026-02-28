@@ -26,7 +26,14 @@ export default function App({
   const infoData: InfoData = {
     title: name,
     description: `Custom Spicetify app: ${name}`,
+    imageURL,
     installed: true,
+  };
+
+  const handleShowInfo = () => {
+    console.log(`[App] Opening info for ${name}`);
+    console.log(`[App] ImageURL: ${imageURL}`);
+    setShowInfo(true);
   };
 
   return (
@@ -43,7 +50,7 @@ export default function App({
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowInfo(true)}
+            onClick={handleShowInfo}
             className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2e34] hover:text-white disabled:opacity-50"
             title="Info"
           >
