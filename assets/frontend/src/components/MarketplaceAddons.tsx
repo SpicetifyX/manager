@@ -18,12 +18,11 @@ export default function MarketplaceAddons({
   resetKey: number;
   snapshotKey: number;
 }) {
-  const { extensions: contextExtensions, extensionsLoaded, refreshExtensions } = useSpicetify();
+  const { extensions: contextExtensions, extensionsLoaded, setExtensionsLocally, refreshExtensions } = useSpicetify();
 
   const [addons, setAddons] = useState<AddonInfo[]>(contextExtensions);
   const [loading, setLoading] = useState(!extensionsLoaded);
   const [error, setError] = useState<string | null>(null);
-  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [browsingContent, setBrowsingContent] = useState(false);
   const [communityExtensions, setCommunityExtensions] = useState<CardItem[]>([]);
   const [communityLoading, setCommunityLoading] = useState(false);
@@ -35,8 +34,6 @@ export default function MarketplaceAddons({
     name: string;
   } | null>(null);
   const addonsRef = useRef<AddonInfo[]>([]);
-  const captureBaselineRef = useRef(true);
-  const baselineRef = useRef<Map<string, boolean> | null>(null);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -123,26 +120,26 @@ export default function MarketplaceAddons({
     }
   };
 
-  // Sync from global context → local state + baseline / dirty check
   useEffect(() => {
     if (!extensionsLoaded) return;
     setAddons(contextExtensions);
     addonsRef.current = contextExtensions;
-    if (captureBaselineRef.current) {
-      baselineRef.current = new Map(contextExtensions.map((a) => [a.addonFileName, a.isEnabled]));
-      captureBaselineRef.current = false;
-      onDirtyChange(false);
-    } else if (baselineRef.current) {
-      const bl = baselineRef.current;
-      const isDirty =
-        contextExtensions.some((a) => {
-          const base = bl.get(a.addonFileName);
-          return base === undefined || base !== a.isEnabled;
-        }) || [...bl.keys()].some((k) => !contextExtensions.find((a) => a.addonFileName === k));
-      onDirtyChange(isDirty);
-    }
-    setLoading(false);
   }, [contextExtensions, extensionsLoaded]);
+
+  const [baseline, setBaseline] = useState<Map<string, boolean>>(new Map());
+  useEffect(() => {
+    if (snapshotKey > 0 || extensionsLoaded) {
+      setBaseline(new Map(contextExtensions.map((a) => [a.addonFileName, a.isEnabled])));
+    }
+  }, [snapshotKey, extensionsLoaded]);
+
+  useEffect(() => {
+    const isDirty = addons.some((a) => {
+      const base = baseline.get(a.addonFileName);
+      return base === undefined || base !== a.isEnabled;
+    });
+    onDirtyChange(isDirty);
+  }, [addons, baseline]);
 
   useEffect(() => {
     if (browsingContent) {
@@ -161,55 +158,10 @@ export default function MarketplaceAddons({
     }
   }, [addons]);
 
-  // Recapture baseline after Apply
-  useEffect(() => {
-    if (snapshotKey === 0) return;
-    captureBaselineRef.current = true;
-    fetchAddons(true);
-  }, [snapshotKey]);
-
-  // Undo toggle changes on Reset
-  useEffect(() => {
-    if (resetKey === 0 || !baselineRef.current) return;
-    const baseline = new Map(baselineRef.current);
-    (async () => {
-      try {
-        const current = await backend.GetInstalledExtensions();
-        for (const addon of current) {
-          const baselineEnabled = baseline.get(addon.addonFileName);
-          if (baselineEnabled === undefined) {
-            // Installed after baseline – delete it
-            await backend.DeleteSpicetifyExtension(addon.addonFileName);
-          } else if (addon.isEnabled !== baselineEnabled) {
-            // Toggle state changed – restore it
-            await backend.ToggleSpicetifyExtension(addon.addonFileName, baselineEnabled);
-          }
-        }
-        await fetchAddons(true);
-      } catch (err) {
-        console.error("[MarketplaceAddons] Reset failed:", err);
-      }
-    })();
-  }, [resetKey]);
-
-  const handleToggleAddon = async (addonFileName: string, enable: boolean) => {
-    setTogglingId(addonFileName);
-    setAddons((prevAddons) => prevAddons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: enable } : addon)));
-
-    try {
-      const success = await backend.ToggleSpicetifyExtension(addonFileName, enable);
-      if (!success) {
-        setAddons((prevAddons) => prevAddons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: !enable } : addon)));
-        alert(`Failed to toggle addon: ${addonFileName}`);
-      }
-      fetchAddons(true);
-    } catch (err: any) {
-      console.error(`Error toggling addon ${addonFileName}:`, err);
-      setAddons((prevAddons) => prevAddons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: !enable } : addon)));
-      alert(`Error toggling addon: ${err.message}`);
-    } finally {
-      setTogglingId(null);
-    }
+  const handleToggleAddon = (addonFileName: string, enable: boolean) => {
+    const updated = addons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: enable } : addon));
+    setAddons(updated);
+    setExtensionsLocally(updated);
   };
 
   const handleDeleteAddon = (addonFileName: string) => {
@@ -221,7 +173,6 @@ export default function MarketplaceAddons({
     if (!pendingDelete) return;
     const { id: addonFileName } = pendingDelete;
     setPendingDelete(null);
-    setTogglingId(addonFileName);
     try {
       const success = await backend.DeleteSpicetifyExtension(addonFileName);
       if (!success) {
@@ -231,8 +182,6 @@ export default function MarketplaceAddons({
     } catch (err: any) {
       console.error(`Error deleting extension ${addonFileName}:`, err);
       alert(`Error deleting extension: ${err.message}`);
-    } finally {
-      setTogglingId(null);
     }
   };
 
@@ -370,7 +319,7 @@ export default function MarketplaceAddons({
                   onToggle={handleToggleAddon}
                   onDelete={handleDeleteAddon}
                   preview={addon.preview ? addon.preview : undefined}
-                  isToggling={togglingId === addon.addonFileName}
+                  isToggling={false}
                   addonFileName={addon.addonFileName}
                   authors={addon.authors}
                   tags={addon.tags}
