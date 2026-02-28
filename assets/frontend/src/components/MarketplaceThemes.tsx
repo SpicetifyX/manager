@@ -11,7 +11,6 @@ import MarketplaceBrowseView from "./MarketplaceBrowseView";
 
 export default function MarketplaceThemes({
   onDirtyChange,
-  resetKey,
   snapshotKey,
 }: {
   onDirtyChange: (dirty: boolean) => void;
@@ -115,14 +114,12 @@ export default function MarketplaceThemes({
     }
   };
 
-  // Sync from global context → local state + baseline / dirty check
   useEffect(() => {
     if (!themesLoaded) return;
     setThemes(contextThemes);
     themesRef.current = contextThemes;
   }, [contextThemes, themesLoaded]);
 
-  // Recapture baseline for dirty detection
   const [baseline, setBaseline] = useState<{ activeThemeId: string; colorScheme: string; installedIds: string[] } | null>(null);
   useEffect(() => {
     if (snapshotKey > 0 || themesLoaded) {
@@ -310,7 +307,7 @@ export default function MarketplaceThemes({
         <div className="mb-4 flex w-full items-center justify-between border-b border-[#1e2228] pb-4">
           <div>
             <h1 className="text-2xl font-bold text-white">Installed Themes</h1>
-            <p className="text-[#a0a0a0]">Select a theme for your Spotify client.</p>
+            <p className="text-[#a0a0a0] text-sm mt-1">Select a theme for your Spotify client.</p>
           </div>
           <button
             onClick={() => setBrowsingContent(true)}
