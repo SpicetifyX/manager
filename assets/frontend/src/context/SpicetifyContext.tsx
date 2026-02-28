@@ -116,10 +116,13 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
     // 3. Themes
     const activeTheme = themes.find((t) => t.isActive);
     const baselineActiveTheme = baselineThemes.find((t) => t.isActive);
-    if (activeTheme && activeTheme.id !== baselineActiveTheme?.id) {
-      await backend.ApplySpicetifyTheme(activeTheme.id);
-    } else if (activeTheme && activeTheme.activeColorScheme !== baselineActiveTheme?.activeColorScheme) {
-      await backend.SetColorScheme(activeTheme.id, activeTheme.activeColorScheme);
+    if (activeTheme) {
+      if (activeTheme.id !== baselineActiveTheme?.id) {
+        await backend.ApplySpicetifyTheme(activeTheme.id);
+      } else if (activeTheme.activeColorScheme && activeTheme.activeColorScheme !== baselineActiveTheme?.activeColorScheme) {
+        const scheme: string = activeTheme.activeColorScheme;
+        await backend.SetColorScheme(activeTheme.id, scheme);
+      }
     }
 
     await backend.ReloadSpicetify();
