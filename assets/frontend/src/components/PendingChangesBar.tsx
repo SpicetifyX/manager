@@ -1,22 +1,28 @@
 import { useState } from "react";
 import { FaCog, FaRocket } from "react-icons/fa";
 import ApplyModal from "./ApplyModal";
-import * as backend from "../../wailsjs/go/app/App";
+import { useSpicetify } from "../context/SpicetifyContext";
 
 export default function PendingChangesBar({ onApplied, onReset }: { onApplied: () => void; onReset: () => void }) {
   const [isApplying, setIsApplying] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const { commitChanges, resetChanges } = useSpicetify();
 
   const handleApply = async () => {
     setIsApplying(true);
     setShowModal(true);
     try {
-      await backend.ReloadSpicetify();
+      await commitChanges();
     } catch (err) {
       console.error("[PendingChangesBar] Failed to apply:", err);
     } finally {
       setIsApplying(false);
     }
+  };
+
+  const handleReset = () => {
+    resetChanges();
+    onReset();
   };
 
   const handleModalClose = () => {
@@ -34,7 +40,7 @@ export default function PendingChangesBar({ onApplied, onReset }: { onApplied: (
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={onReset}
+              onClick={handleReset}
               disabled={isApplying}
               className="flex items-center gap-2 rounded-full border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-1.5 text-sm font-semibold text-[#a0a0a0] transition-all hover:border-[#3a3a3a] hover:bg-[#1e2228] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
             >
