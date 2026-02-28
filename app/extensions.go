@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"log"
 	"manager/internal/helpers"
 	"os"
 	"path/filepath"
@@ -94,9 +95,14 @@ func (a *App) GetInstalledExtensions() []AddonInfo {
 				desc = "User-installed extension"
 			}
 
-			base64Preview := a.GetExternalImageBase64(meta.ImageURL)
+			base64Preview := ""
+			if meta.ImageURL != "" {
+				log.Printf("[Extensions] Fetching preview for %s: %s", name, meta.ImageURL)
+				base64Preview = a.GetExternalImageBase64(meta.ImageURL)
+			}
 
 			mut.Lock()
+			log.Printf("[Extensions] Found: %s (File: %s), Enabled: %v, ImageURL: %s", name, file, isEnabled, meta.ImageURL)
 			addons = append(addons, AddonInfo{
 				Name:          name,
 				Description:   desc,
@@ -107,6 +113,7 @@ func (a *App) GetInstalledExtensions() []AddonInfo {
 				IsEnabled:     isEnabled,
 				Authors:       meta.Authors,
 				Tags:          meta.Tags,
+				ImageURL:      meta.ImageURL,
 			})
 
 			mut.Unlock()
