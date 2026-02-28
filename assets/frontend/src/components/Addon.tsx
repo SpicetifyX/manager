@@ -50,15 +50,10 @@ export default function Addon({
 
   return (
     <>
-      <div className="flex w-full items-center justify-between border-b border-[#2a2a2a] px-4 py-3 transition-colors duration-200 hover:bg-[#1e2228]">
+      <div className="flex w-full items-center justify-between border-b border-[#2a2a2a] px-3 py-2 transition-colors duration-200 hover:bg-[#1e2228]">
         <div className="flex min-w-0 flex-grow items-center">
-          <div className="mr-4 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
-            <StaticImage
-              src={preview}
-              fallbackSrc={imageURL}
-              alt={`${name} preview`}
-              className="h-full w-full object-cover"
-            />
+          <div className="mr-4 h-14 w-14 flex-shrink-0 overflow-hidden rounded">
+            <StaticImage src={preview} fallbackSrc={imageURL} alt={`${name} preview`} className="h-full w-full object-cover" />
           </div>
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold text-white">{name}</h3>
