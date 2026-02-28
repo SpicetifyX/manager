@@ -1,28 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ThemeInfo } from "../types/theme.d";
-import Spinner from "./Spinner";
 import { FaInfoCircle, FaTrash, FaPalette, FaChevronDown } from "react-icons/fa";
 import InfoModal, { InfoData } from "./InfoModal";
 import StaticImage from "./StaticImage";
-import * as backend from "../../wailsjs/go/app/App";
 
 export default function Theme({
   theme,
   onSelect,
+  onSetColorScheme,
   onDelete,
   isApplying,
-  markDirty,
 }: {
   theme: ThemeInfo;
   onSelect: (themeId: string) => void;
+  onSetColorScheme: (themeId: string, scheme: string) => void;
   onDelete?: (themeId: string) => void;
   isApplying: boolean;
-  markDirty: () => void;
 }) {
   const [showInfo, setShowInfo] = useState(false);
   const [schemeOpen, setSchemeOpen] = useState(false);
-  const [applyingScheme, setApplyingScheme] = useState(false);
   const schemeRef = useRef<HTMLDivElement>(null);
   const schemeButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -31,7 +28,7 @@ export default function Theme({
   const [selectedScheme, setSelectedScheme] = useState(theme.activeColorScheme || schemes[0]);
 
   const openDropdown = () => {
-    if (isApplying || applyingScheme) return;
+    if (isApplying) return;
     if (schemeButtonRef.current) {
       const rect = schemeButtonRef.current.getBoundingClientRect();
       setDropdownPos({
@@ -41,6 +38,10 @@ export default function Theme({
     }
     setSchemeOpen((o) => !o);
   };
+
+  useEffect(() => {
+    setSelectedScheme(theme.activeColorScheme || schemes[0]);
+  }, [theme.activeColorScheme]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -97,11 +98,11 @@ export default function Theme({
               <button
                 ref={schemeButtonRef}
                 onClick={openDropdown}
-                disabled={isApplying || applyingScheme}
+                disabled={isApplying}
                 className="flex h-8 items-center gap-1.5 rounded-full border border-[#2a2a2a] bg-[#1a1a1a] pr-2.5 pl-2.5 text-sm text-white transition-all hover:border-[#3a3a3a] hover:bg-[#1e2228] disabled:opacity-50"
                 title="Color scheme"
               >
-                {applyingScheme ? <Spinner className="h-3 w-3" /> : <FaPalette className="h-3 w-3 text-[#d63c6a]" />}
+                <FaPalette className="h-3 w-3 text-[#d63c6a]" />
                 <span className="max-w-[80px] truncate text-[#ccc]">{selectedScheme}</span>
                 <FaChevronDown className={`h-2.5 w-2.5 text-[#666] transition-transform duration-200 ${schemeOpen ? "rotate-180" : ""}`} />
               </button>
@@ -116,22 +117,14 @@ export default function Theme({
                       {schemes.map((scheme) => (
                         <button
                           key={scheme}
-                          onClick={async () => {
+                          onClick={() => {
                             if (scheme === selectedScheme) {
                               setSchemeOpen(false);
                               return;
                             }
                             setSelectedScheme(scheme);
                             setSchemeOpen(false);
-                            setApplyingScheme(true);
-                            try {
-                              await backend.SetColorScheme(theme.id, scheme);
-                              markDirty();
-                            } catch (err) {
-                              console.error("Failed to set color scheme:", err);
-                            } finally {
-                              setApplyingScheme(false);
-                            }
+                            onSetColorScheme(theme.id, scheme);
                           }}
                           className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors ${selectedScheme === scheme ? "bg-[#d63c6a]/15 text-[#d63c6a]" : "text-[#ccc] hover:bg-[#1e2228] hover:text-white"
                             }`}
