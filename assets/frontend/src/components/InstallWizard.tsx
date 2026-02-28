@@ -1,12 +1,11 @@
-import { RxCross1, RxCheck } from "react-icons/rx";
-import { useEffect, useRef, useState } from "react";
-import { FaCheckCircle, FaSpinner } from "react-icons/fa";
+import { useRef, useEffect, useState } from "react";
+import { FaCheckCircle, FaSpinner, FaDownload, FaPuzzlePiece, FaPalette } from "react-icons/fa";
 import TerminalOutput, { TerminalOutputRef } from "./TerminalOutput";
 import { InstallStep, StepStatus } from "../App";
 import { onCommandOutput } from "../utils/bridge";
+import preinstall from "../../../preinstall.json";
 
 export default function InstallWizard({
-  installStatus,
   isInstalling,
   updateStepStatus,
   steps,
@@ -15,7 +14,6 @@ export default function InstallWizard({
   installStatus: { spotify_installed: boolean; spicetify_installed: boolean };
   updateStepStatus: (stepId: string, status: StepStatus) => void;
   isInstalling: boolean;
-  onComplete?: () => void;
 }) {
   const terminalRef = useRef<TerminalOutputRef>(null);
   const [installStats, setInstallStats] = useState({
@@ -73,8 +71,8 @@ export default function InstallWizard({
   }, []);
 
   return (
-    <div className="flex h-fit w-full flex-1 flex-col overflow-hidden">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-5">
+    <div className="flex h-full w-full flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden p-5">
         {isInstalling ? (
           <div className="flex h-full flex-col gap-3">
             <div className="flex items-center justify-between rounded-lg border border-[#2a2a2a] bg-[#121418] p-3.5">
@@ -110,7 +108,7 @@ export default function InstallWizard({
             </div>
 
             <div className="flex flex-1 gap-3 overflow-hidden pb-5">
-              <div className="w-48 shrink-0 flex flex-col gap-2">
+              <div className="flex w-48 shrink-0 flex-col gap-2">
                 {steps.map((step) => {
                   const Icon = step.icon;
                   const isComplete = step.status === "complete";
@@ -162,46 +160,52 @@ export default function InstallWizard({
             </div>
           </div>
         ) : (
-          <>
-            <div className="mb-3 space-y-0.5">
-              <h2 className="text-sm font-medium text-white">Installation Requirements</h2>
-              <p className="text-xs text-[#999999]">Check which components are installed</p>
+          <div className="flex h-full flex-col">
+            <div className="mb-6 rounded-lg border border-[#d63c6a]/20 bg-[#d63c6a]/5 p-4 text-sm text-[#a0a0a0]">
+              <p className="leading-relaxed">
+                SpicetifyX will manage Spicetify installations internally, so an existing Spicetify installation isn't required.
+                After clicking <span className="font-semibold text-white">Install</span>, the following extensions and themes will be automatically installed:
+              </p>
             </div>
 
-            <div className="flex-1 space-y-2 overflow-y-auto pr-1">
-              <div className="flex shrink-0 items-center justify-between rounded-lg border border-[#2a2a2a] bg-[#121418] px-4 py-3 transition-all hover:border-[#d63c6a] hover:bg-[#1a1a1a]">
-                <div className="flex min-w-0 items-center space-x-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-white">Spotify</p>
-                    <p className="text-xs text-[#a0a0a0]">Required for Spicetify</p>
+            <div className="flex-1 overflow-y-auto pr-2">
+              <div className="flex flex-col gap-2">
+                {preinstall.themes.map((theme) => (
+                  <div key={theme.name} className="flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#1e2228]">
+                      <FaPalette className="h-5 w-5 text-[#d63c6a]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="truncate text-sm font-bold text-white">{theme.name}</h3>
+                        <span className="rounded bg-[#d63c6a]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#d63c6a]">Theme</span>
+                      </div>
+                      <p className="truncate text-xs text-[#a0a0a0]">
+                        {theme.authors[0]?.description || "Default theme for SpicetifyX."}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className={`ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#d63c6a]`}>
-                  {installStatus.spotify_installed ? (
-                    <RxCheck className="h-4 w-4 font-bold text-white" />
-                  ) : (
-                    <RxCross1 className="h-4 w-4 font-bold text-white" />
-                  )}
-                </div>
-              </div>
+                ))}
 
-              <div className="flex shrink-0 items-center justify-between rounded-lg border border-[#2a2a2a] bg-[#121418] px-4 py-3 transition-all hover:border-[#d63c6a] hover:bg-[#1a1a1a]">
-                <div className="flex min-w-0 items-center space-x-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-white">Spicetify</p>
-                    <p className="text-xs text-[#a0a0a0]">Customization framework</p>
+                {preinstall.extensions.map((ext) => (
+                  <div key={ext.name} className="flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#1e2228]">
+                      <FaPuzzlePiece className="h-5 w-5 text-[#d63c6a]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="truncate text-sm font-bold text-white">{ext.name}</h3>
+                        <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-500">Extension</span>
+                      </div>
+                      <p className="truncate text-xs text-[#a0a0a0]">
+                        {ext.raw_meta_content?.description || "Enhances your Spotify experience."}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className={`ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#d63c6a]`}>
-                  {installStatus.spicetify_installed ? (
-                    <RxCheck className="h-4 w-4 font-bold text-white" />
-                  ) : (
-                    <RxCross1 className="h-4 w-4 font-bold text-white" />
-                  )}
-                </div>
+                ))}
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
