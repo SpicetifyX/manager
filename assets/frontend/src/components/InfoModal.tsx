@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { FaTimes, FaStar, FaUser, FaTag, FaCalendar, FaDownload } from "react-icons/fa";
 import Spinner from "./Spinner";
 import * as backend from "../../wailsjs/go/app/App";
+import { getJsDelivrUrl } from "../utils/github";
 
 export interface InfoData {
   title: string;
@@ -23,8 +25,36 @@ interface InfoModalProps {
 }
 
 export default function AddonInfoModal({ info, onClose, onInstall, isInstalling }: InfoModalProps) {
-  const imageSrc = info.resolvedImageSrc || info.imageURL;
-  const hasImage = imageSrc && /\.(png|jpg|jpeg|gif|webp|svg)/i.test(imageSrc);
+  // Prioritize remote imageURL for high quality, use base64 preview as fallback
+  const initialImg = info.imageURL || info.resolvedImageSrc;
+  const [imgSrc, setImgSrc] = useState(initialImg ? getJsDelivrUrl(initialImg) : undefined);
+  const hasImage = imgSrc && /\.(png|jpg|jpeg|gif|webp|svg)/i.test(imgSrc);
+
+  console.log("[InfoModal] Initializing with title:", info.title);
+  console.log("[InfoModal] Priority: imageURL > resolvedImageSrc");
+  console.log("[InfoModal] resolvedImageSrc exists:", !!info.resolvedImageSrc);
+  console.log("[InfoModal] imageURL exists:", !!info.imageURL);
+  console.log("[InfoModal] imgSrc state:", imgSrc);
+
+  const handleImageError = () => {
+    console.error("[InfoModal] Failed to load image:", imgSrc);
+    
+    // If the remote imageURL failed, try falling back to the base64 preview
+    if (imgSrc && info.imageURL && imgSrc.includes(getJsDelivrUrl(info.imageURL)) && info.resolvedImageSrc) {
+      console.log("[InfoModal] Remote URL failed, falling back to base64 preview");
+      setImgSrc(info.resolvedImageSrc);
+    } else {
+      console.log("[InfoModal] No more valid sources available.");
+      setImgSrc(undefined);
+    }
+  };
+
+  useEffect(() => {
+    const src = info.imageURL || info.resolvedImageSrc;
+    const finalSrc = src ? getJsDelivrUrl(src) : undefined;
+    console.log("[InfoModal] Info changed, updating imgSrc to:", finalSrc);
+    setImgSrc(finalSrc);
+  }, [info]);
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -35,15 +65,13 @@ export default function AddonInfoModal({ info, onClose, onInstall, isInstalling 
         <div className="relative h-48 w-full flex-shrink-0 overflow-hidden">
           {hasImage ? (
             <>
-              <div className="absolute inset-0 scale-125 bg-cover bg-center blur-2xl" style={{ backgroundImage: `url(${imageSrc})` }} />
+              <div className="absolute inset-0 scale-125 bg-cover bg-center blur-2xl" style={{ backgroundImage: `url(${imgSrc})` }} />
               <div className="absolute inset-0 bg-black/40" />
               <img
-                src={imageSrc}
+                src={imgSrc}
                 className="relative z-0 h-full w-full object-contain"
                 alt=""
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
+                onError={handleImageError}
               />
             </>
           ) : (
