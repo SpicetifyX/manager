@@ -123,6 +123,7 @@ func (a *App) GetSpicetifyThemes() []ThemeInfo {
 			IsBundled:         false,
 			ColorSchemes:      colorSchemes,
 			ActiveColorScheme: activeScheme,
+			ImageURL:          meta.ImageURL,
 		})
 	}
 
