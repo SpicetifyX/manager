@@ -1,6 +1,7 @@
 import { FaDownload, FaInfoCircle } from "react-icons/fa";
 import { CardItem } from "../utils/marketplace-types";
 import Spinner from "./Spinner";
+import { getJsDelivrUrl } from "../utils/github";
 
 interface Props {
   item: CardItem;
@@ -11,7 +12,8 @@ interface Props {
 }
 
 export default function MarketplaceCard({ item, isInstalling, onInstall, onInfo, containerRef }: Props) {
-  const hasImage = item.imageURL && /\.(png|jpg|jpeg|gif|webp|svg)/i.test(item.imageURL);
+  const imageUrl = item.imageURL ? getJsDelivrUrl(item.imageURL) : item.imageURL;
+  const hasImage = imageUrl && /\.(png|jpg|jpeg|gif|webp|svg)/i.test(imageUrl);
 
   return (
     <div
@@ -21,10 +23,10 @@ export default function MarketplaceCard({ item, isInstalling, onInstall, onInfo,
     >
       {hasImage ? (
         <div className="relative min-h-0 flex-1 overflow-hidden rounded-t-lg">
-          <div className="absolute inset-0 scale-125 rounded-t-lg bg-cover bg-center blur-2xl" style={{ backgroundImage: `url(${item.imageURL})` }} />
+          <div className="absolute inset-0 scale-125 rounded-t-lg bg-cover bg-center blur-2xl" style={{ backgroundImage: `url(${imageUrl})` }} />
           <div className="absolute inset-0 rounded-t-lg bg-black/40" />
           <img
-            src={item.imageURL}
+            src={imageUrl}
             className="relative z-0 h-full w-full rounded-lg object-contain"
             alt=""
             onError={(e) => {
