@@ -39,7 +39,7 @@ func (a *App) Startup(ctx context.Context) {
 
 func (a *App) startDiscordRpc() {
 	if a.rpcStop != nil {
-		return // already running
+		return
 	}
 	a.rpcStop = make(chan struct{})
 	go a.discordConnectLoop()
