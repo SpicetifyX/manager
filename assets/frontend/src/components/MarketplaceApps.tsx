@@ -11,7 +11,6 @@ import MarketplaceBrowseView from "./MarketplaceBrowseView";
 
 export default function MarketplaceApps({
   onDirtyChange,
-  resetKey,
   snapshotKey,
 }: {
   onDirtyChange: (dirty: boolean) => void;
@@ -115,13 +114,11 @@ export default function MarketplaceApps({
     }
   };
 
-  // Sync from global context → local state + baseline / dirty check
   useEffect(() => {
     if (!appsLoaded) return;
     setApps(contextApps);
   }, [contextApps, appsLoaded]);
 
-  // Recapture baseline for dirty detection
   const [baseline, setBaseline] = useState<Map<string, boolean>>(new Map());
   useEffect(() => {
     if (snapshotKey > 0 || appsLoaded) {
@@ -288,7 +285,7 @@ export default function MarketplaceApps({
         <div className="mb-4 flex w-full items-center justify-between border-b border-[#1e2228] pb-4">
           <div>
             <h1 className="text-2xl font-bold text-white">Installed Apps</h1>
-            <p className="text-[#a0a0a0]">Manage your Spicetify custom apps.</p>
+            <p className="text-[#a0a0a0] text-sm mt-1">Manage your Spicetify custom apps.</p>
           </div>
           <button
             onClick={() => setBrowsingContent(true)}
