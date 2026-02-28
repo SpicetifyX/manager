@@ -18,12 +18,11 @@ export default function MarketplaceThemes({
   resetKey: number;
   snapshotKey: number;
 }) {
-  const { themes: contextThemes, themesLoaded, refreshThemes } = useSpicetify();
+  const { themes: contextThemes, themesLoaded, refreshThemes, setThemesLocally } = useSpicetify();
 
   const [themes, setThemes] = useState<ThemeInfo[]>(contextThemes);
   const [loading, setLoading] = useState(!themesLoaded);
   const [error, setError] = useState<string | null>(null);
-  const [applyingThemeId, setApplyingThemeId] = useState<string | null>(null);
   const [browsingContent, setBrowsingContent] = useState(false);
   const [communityThemes, setCommunityThemes] = useState<CardItem[]>([]);
   const [communityLoading, setCommunityLoading] = useState(false);
@@ -35,8 +34,6 @@ export default function MarketplaceThemes({
     name: string;
   } | null>(null);
   const themesRef = useRef<ThemeInfo[]>([]);
-  const captureBaselineRef = useRef(true);
-  const baselineRef = useRef<{ activeThemeId: string; colorScheme: string; installedIds: string[] } | null>(null);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -85,7 +82,7 @@ export default function MarketplaceThemes({
       if (targetPage === 1) {
         const curated = await fetchCurated();
         const curatedThemes = curated.themes
-          .filter((c) => !allThemes.some((t) => t.user === c.user && t.repo === c.repo))
+          .filter((c) => !allThemes.some((t) => t.user === c.user && e.repo === c.repo))
           .map((c) => ({ ...c, installed: currentThemes.some((th) => th.name === c.title) }));
         setCommunityThemes([...curatedThemes, ...allThemes]);
       } else {
@@ -127,26 +124,37 @@ export default function MarketplaceThemes({
     if (!themesLoaded) return;
     setThemes(contextThemes);
     themesRef.current = contextThemes;
-    const activeTheme = contextThemes.find((t) => t.isActive);
+  }, [contextThemes, themesLoaded]);
+
+  // Recapture baseline for dirty detection
+  const [baseline, setBaseline] = useState<{ activeThemeId: string; colorScheme: string; installedIds: string[] } | null>(null);
+  useEffect(() => {
+    if (snapshotKey > 0 || themesLoaded) {
+      const activeTheme = contextThemes.find((t) => t.isActive);
+      setBaseline({
+        activeThemeId: activeTheme?.id ?? "",
+        colorScheme: activeTheme?.activeColorScheme ?? "",
+        installedIds: contextThemes.map((t) => t.id),
+      });
+    }
+  }, [snapshotKey, themesLoaded]);
+
+  useEffect(() => {
+    if (!baseline) return;
+    const activeTheme = themes.find((t) => t.isActive);
     const currentId = activeTheme?.id ?? "";
     const currentScheme = activeTheme?.activeColorScheme ?? "";
-    if (captureBaselineRef.current) {
-      baselineRef.current = { activeThemeId: currentId, colorScheme: currentScheme, installedIds: contextThemes.map((t) => t.id) };
-      captureBaselineRef.current = false;
-      onDirtyChange(false);
-    } else if (baselineRef.current) {
-      const bl = baselineRef.current;
-      const baselineInstalled = new Set(bl.installedIds);
-      const installedNow = new Set(contextThemes.map((t) => t.id));
-      const isDirty =
-        currentId !== bl.activeThemeId ||
-        currentScheme !== bl.colorScheme ||
-        contextThemes.some((t) => !baselineInstalled.has(t.id)) ||
-        bl.installedIds.some((id) => !installedNow.has(id));
-      onDirtyChange(isDirty);
-    }
-    setLoading(false);
-  }, [contextThemes, themesLoaded]);
+
+    const baselineInstalled = new Set(baseline.installedIds);
+    const installedNow = new Set(themes.map((t) => t.id));
+
+    const isDirty =
+      currentId !== baseline.activeThemeId ||
+      currentScheme !== baseline.colorScheme ||
+      themes.some((t) => !baselineInstalled.has(t.id)) ||
+      baseline.installedIds.some((id) => !installedNow.has(id));
+    onDirtyChange(isDirty);
+  }, [themes, baseline]);
 
   useEffect(() => {
     if (browsingContent) {
@@ -165,58 +173,16 @@ export default function MarketplaceThemes({
     }
   }, [themes]);
 
-  // Recapture baseline after Apply
-  useEffect(() => {
-    if (snapshotKey === 0) return;
-    captureBaselineRef.current = true;
-    fetchThemes(true);
-  }, [snapshotKey]);
+  const handleSelectTheme = (themeId: string) => {
+    const updated = themes.map((t) => ({ ...t, isActive: t.id === themeId }));
+    setThemes(updated);
+    setThemesLocally(updated);
+  };
 
-  // Undo theme/scheme changes on Reset
-  useEffect(() => {
-    if (resetKey === 0 || !baselineRef.current) return;
-    const { activeThemeId, colorScheme, installedIds } = baselineRef.current;
-    (async () => {
-      try {
-        const current = await backend.GetSpicetifyThemes();
-        const baselineInstalled = new Set(installedIds);
-        // Delete themes that were installed after the baseline was captured
-        for (const theme of current) {
-          if (!baselineInstalled.has(theme.id)) {
-            await backend.DeleteSpicetifyTheme(theme.id);
-          }
-        }
-        // Re-fetch after deletions to restore active theme / color scheme
-        const afterDelete = await backend.GetSpicetifyThemes();
-        const activeTheme = afterDelete.find((t) => t.isActive);
-        const currentId = activeTheme?.id ?? "";
-        const currentScheme = activeTheme?.activeColorScheme ?? "";
-        if (currentId !== activeThemeId) {
-          if (activeThemeId) await backend.ApplySpicetifyTheme(activeThemeId);
-        } else if (currentScheme !== colorScheme) {
-          await backend.SetColorScheme(activeThemeId, colorScheme);
-        }
-        await fetchThemes(true);
-      } catch (err) {
-        console.error("[MarketplaceThemes] Reset failed:", err);
-      }
-    })();
-  }, [resetKey]);
-
-  const handleSelectTheme = async (themeId: string) => {
-    setApplyingThemeId(themeId);
-    try {
-      const success = await backend.ApplySpicetifyTheme(themeId);
-      if (!success) {
-        alert(`Failed to apply theme: ${themeId}`);
-      }
-      fetchThemes(true);
-    } catch (err: any) {
-      console.error(`Error applying theme ${themeId}:`, err);
-      alert(`Error applying theme: ${err.message}`);
-    } finally {
-      setApplyingThemeId(null);
-    }
+  const handleSetColorScheme = (themeId: string, scheme: string) => {
+    const updated = themes.map((t) => (t.id === themeId ? { ...t, activeColorScheme: scheme } : t));
+    setThemes(updated);
+    setThemesLocally(updated);
   };
 
   const handleDeleteTheme = (themeId: string) => {
@@ -370,9 +336,9 @@ export default function MarketplaceThemes({
                   key={idx}
                   theme={theme}
                   onSelect={handleSelectTheme}
+                  onSetColorScheme={handleSetColorScheme}
                   onDelete={!theme.isBundled ? handleDeleteTheme : undefined}
-                  isApplying={applyingThemeId === theme.id}
-                  markDirty={() => fetchThemes(true)}
+                  isApplying={false}
                 />
               ))
             ) : (
