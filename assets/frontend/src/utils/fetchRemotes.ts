@@ -127,6 +127,11 @@ async function getRepoManifest(user: string, repo: string, branch: string) {
   return null;
 }
 
+const isImageUrl = (url?: string) => {
+  if (!url) return false;
+  return /\.(png|jpg|jpeg|gif|webp|svg)(\?.*)?$/i.test(url);
+};
+
 export async function fetchExtensionManifest(contents_url: string, branch: string, stars: number, hideInstalled = false) {
   try {
     const regex_result = contents_url.match(/https:\/\/api\.github\.com\/repos\/(?<user>.+)\/(?<repo>.+)\/contents/);
@@ -145,6 +150,17 @@ export async function fetchExtensionManifest(contents_url: string, branch: strin
           ? manifest.main
           : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.main}`;
         if (!(await urlExists(extensionURL))) continue;
+
+        let imageURL = "";
+        if (manifest.preview) {
+          const rawPreview = manifest.preview.startsWith("http")
+            ? manifest.preview
+            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`;
+          if (isImageUrl(rawPreview)) {
+            imageURL = rawPreview;
+          }
+        }
+
         const item = {
           manifest,
           title: manifest.name,
@@ -153,9 +169,7 @@ export async function fetchExtensionManifest(contents_url: string, branch: strin
           user,
           repo,
           branch: selectedBranch,
-          imageURL: manifest.preview?.startsWith("http")
-            ? manifest.preview
-            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`,
+          imageURL,
           extensionURL,
           readmeURL: manifest.readme?.startsWith("http")
             ? manifest.readme
@@ -188,6 +202,17 @@ export async function fetchThemeManifest(contents_url: string, branch: string, s
     const parsedManifests: CardItem[] = manifests.reduce((accum: any, manifest: any) => {
       if (manifest?.name && manifest?.usercss && manifest?.description) {
         const selectedBranch = manifest.branch || branch;
+
+        let imageURL = "";
+        if (manifest.preview) {
+          const rawPreview = manifest.preview.startsWith("http")
+            ? manifest.preview
+            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`;
+          if (isImageUrl(rawPreview)) {
+            imageURL = rawPreview;
+          }
+        }
+
         const item = {
           manifest,
           title: manifest.name,
@@ -196,9 +221,7 @@ export async function fetchThemeManifest(contents_url: string, branch: string, s
           user,
           repo,
           branch: selectedBranch,
-          imageURL: manifest.preview?.startsWith("http")
-            ? manifest.preview
-            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`,
+          imageURL,
           readmeURL: manifest.readme?.startsWith("http")
             ? manifest.readme
             : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.readme}`,
@@ -254,6 +277,17 @@ export async function fetchAppManifest(contents_url: string, branch: string, sta
           ? manifest.main
           : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.main}`;
         if (!(await urlExists(mainURL))) continue;
+
+        let imageURL = "";
+        if (manifest.preview) {
+          const rawPreview = manifest.preview.startsWith("http")
+            ? manifest.preview
+            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`;
+          if (isImageUrl(rawPreview)) {
+            imageURL = rawPreview;
+          }
+        }
+
         const enrichedManifest = { ...manifest, subdir };
         parsedManifests.push({
           manifest: enrichedManifest,
@@ -263,11 +297,7 @@ export async function fetchAppManifest(contents_url: string, branch: string, sta
           user,
           repo,
           branch: selectedBranch,
-          imageURL: manifest.preview
-            ? manifest.preview.startsWith("http")
-              ? manifest.preview
-              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`
-            : "",
+          imageURL,
           readmeURL: manifest.readme
             ? manifest.readme.startsWith("http")
               ? manifest.readme
@@ -283,85 +313,6 @@ export async function fetchAppManifest(contents_url: string, branch: string, sta
   } catch (e) {
     console.log(e);
     return null;
-  }
-}
-
-const CURATED_URL = "https://raw.githubusercontent.com/spicetifyx/manager/main/curated.json";
-
-type CuratedEntry = {
-  user: string;
-  repo: string;
-  branch: string;
-  stars: number;
-  manifest: any;
-};
-
-function buildCuratedItem(entry: CuratedEntry, type: "extension" | "theme" | "app"): CardItem {
-  const { user, repo, branch, stars, manifest } = entry;
-  const selectedBranch = manifest.branch || branch;
-
-  const base: any = {
-    manifest: { ...manifest, curated: true },
-    title: manifest.name,
-    subtitle: manifest.description,
-    authors: processAuthors(manifest.authors, user),
-    user,
-    repo,
-    branch: selectedBranch,
-    stars,
-    tags: manifest.tags,
-    curated: true,
-    archived: false,
-    imageURL: manifest.preview
-      ? manifest.preview.startsWith("http")
-        ? manifest.preview
-        : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`
-      : "",
-    readmeURL: manifest.readme
-      ? manifest.readme.startsWith("http")
-        ? manifest.readme
-        : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.readme}`
-      : "",
-  };
-
-  if (type === "extension") {
-    base.extensionURL = manifest.main?.startsWith("http")
-      ? manifest.main
-      : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.main}`;
-  }
-
-  if (type === "theme") {
-    base.cssURL = manifest.usercss?.startsWith("http")
-      ? manifest.usercss
-      : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.usercss}`;
-    base.schemesURL = manifest.schemes
-      ? manifest.schemes.startsWith("http")
-        ? manifest.schemes
-        : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.schemes}`
-      : null;
-    base.include = manifest.include?.map((inc: string) =>
-      inc.startsWith("http") ? inc : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${inc}`,
-    );
-  }
-
-  return base as CardItem;
-}
-
-export async function fetchCurated(): Promise<{ extensions: CardItem[]; themes: CardItem[]; apps: CardItem[] }> {
-  const empty = { extensions: [], themes: [], apps: [] };
-  try {
-    const data = await fetch(CURATED_URL)
-      .then((r) => r.json())
-      .catch(() => null);
-    if (!data) return empty;
-
-    return {
-      extensions: (data.extensions || []).map((e: CuratedEntry) => buildCuratedItem(e, "extension")),
-      themes: (data.themes || []).map((e: CuratedEntry) => buildCuratedItem(e, "theme")),
-      apps: (data.apps || []).map((e: CuratedEntry) => buildCuratedItem(e, "app")),
-    };
-  } catch {
-    return empty;
   }
 }
 
