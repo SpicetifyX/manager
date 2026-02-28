@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { FaCheckCircle, FaSpinner, FaDownload, FaPuzzlePiece, FaPalette, FaInfoCircle } from "react-icons/fa";
+import { FaCheckCircle, FaSpinner, FaPuzzlePiece, FaPalette, FaInfoCircle } from "react-icons/fa";
 import TerminalOutput, { TerminalOutputRef } from "./TerminalOutput";
 import { InstallStep, StepStatus } from "../App";
 import { onCommandOutput } from "../utils/bridge";
@@ -136,10 +136,10 @@ export default function InstallWizard({
                     <div
                       key={step.id}
                       className={`flex items-start gap-3 rounded-lg border p-3 transition-all ${isActive
-                        ? "border-[#d63c6a] bg-[#d63c6a]/10"
-                        : isComplete
-                          ? "border-[#2a2a2a] bg-[#121418]"
-                          : "border-[#2a2a2a] bg-[#121418]/50 opacity-60"
+                          ? "border-[#d63c6a] bg-[#d63c6a]/10"
+                          : isComplete
+                            ? "border-[#2a2a2a] bg-[#121418]"
+                            : "border-[#2a2a2a] bg-[#121418]/50 opacity-60"
                         }`}
                     >
                       <div
@@ -181,8 +181,8 @@ export default function InstallWizard({
           <div className="flex h-full flex-col">
             <div className="mb-6 rounded-lg border border-[#d63c6a]/20 bg-[#d63c6a]/5 p-4 text-sm text-[#a0a0a0]">
               <p className="leading-relaxed">
-                SpicetifyX will manage Spicetify installations internally, so an existing Spicetify installation isn't required.
-                After clicking <span className="font-semibold text-white">Install</span>, the following extensions and themes will be automatically installed:
+                SpicetifyX will manage Spicetify installations internally, so an existing Spicetify installation isn't required. After clicking{" "}
+                <span className="font-semibold text-white">Install</span>, the following extensions and themes will be automatically installed:
               </p>
             </div>
 
@@ -191,25 +191,21 @@ export default function InstallWizard({
                 {preinstall.themes.map((theme: any) => {
                   const src = getJsDelivrUrl(theme.raw_meta_content?.imageURL || theme.imageURL || theme.preview);
                   return (
-                    <div key={theme.name} className="group flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]">
+                    <div
+                      key={theme.name}
+                      className="group flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]"
+                    >
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#1e2228]">
-                        {src ? (
-                          <StaticImage
-                            src={src}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <FaPalette className="h-5 w-5 text-[#d63c6a]" />
-                        )}
+                        {src ? <StaticImage src={src} className="h-full w-full object-cover" /> : <FaPalette className="h-5 w-5 text-[#d63c6a]" />}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <h3 className="truncate text-sm font-bold text-white">{theme.name}</h3>
-                          <span className="rounded bg-[#d63c6a]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#d63c6a]">Theme</span>
+                          <span className="rounded bg-[#d63c6a]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#d63c6a]">
+                            Theme
+                          </span>
                         </div>
-                        <p className="truncate text-xs text-[#a0a0a0]">
-                          {theme.authors[0]?.description || "Default theme for SpicetifyX."}
-                        </p>
+                        <p className="truncate text-xs text-[#a0a0a0]">{theme.authors[0]?.description || "Default theme for SpicetifyX."}</p>
                       </div>
                       <button
                         onClick={() => handleShowInfo(theme, "theme")}
@@ -225,13 +221,13 @@ export default function InstallWizard({
                 {preinstall.extensions.map((ext: any) => {
                   const src = getJsDelivrUrl(ext.raw_meta_content?.imageURL || ext.imageURL || ext.preview);
                   return (
-                    <div key={ext.name} className="group flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]">
+                    <div
+                      key={ext.name}
+                      className="group flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]"
+                    >
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#1e2228]">
                         {src ? (
-                          <StaticImage
-                            src={src}
-                            className="h-full w-full object-cover"
-                          />
+                          <StaticImage src={src} className="h-full w-full object-cover" />
                         ) : (
                           <FaPuzzlePiece className="h-5 w-5 text-[#d63c6a]" />
                         )}
@@ -239,11 +235,11 @@ export default function InstallWizard({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <h3 className="truncate text-sm font-bold text-white">{ext.name}</h3>
-                          <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-500">Extension</span>
+                          <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-500">
+                            Extension
+                          </span>
                         </div>
-                        <p className="truncate text-xs text-[#a0a0a0]">
-                          {ext.raw_meta_content?.description || "Enhances your Spotify experience."}
-                        </p>
+                        <p className="truncate text-xs text-[#a0a0a0]">{ext.raw_meta_content?.description || "Enhances your Spotify experience."}</p>
                       </div>
                       <button
                         onClick={() => handleShowInfo(ext, "extension")}
