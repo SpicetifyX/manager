@@ -289,7 +289,7 @@ export default function MarketplaceAddons({
         <div className="mb-4 flex w-full items-center justify-between border-b border-[#1e2228] pb-4">
           <div>
             <h1 className="text-2xl font-bold text-white">Installed Addons</h1>
-            <p className="text-[#a0a0a0]">Manage your Spicetify extensions.</p>
+            <p className="text-sm mt-1 text-[#a0a0a0]">Manage your Spicetify extensions.</p>
           </div>
           <button
             onClick={() => setBrowsingContent(true)}
