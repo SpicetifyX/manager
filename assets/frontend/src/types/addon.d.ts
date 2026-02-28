@@ -4,6 +4,7 @@ export type AddonManifest = {
   preview?: string;
   main: string;
   readme?: string;
+  imageURL?: string;
   authors?: { name: string; url?: string }[];
   tags?: string[];
 };
