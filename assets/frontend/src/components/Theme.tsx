@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ThemeInfo } from "../types/theme.d";
+import Spinner from "./Spinner";
 import { FaInfoCircle, FaTrash, FaPalette, FaChevronDown } from "react-icons/fa";
 import InfoModal, { InfoData } from "./InfoModal";
 import StaticImage from "./StaticImage";
@@ -58,9 +59,17 @@ export default function Theme({
     title: theme.name,
     description: theme.description,
     resolvedImageSrc: theme.preview,
+    imageURL: theme.imageURL,
     authors: theme.authors,
     tags: theme.tags,
     installed: true,
+  };
+
+  const handleShowInfo = () => {
+    console.log(`[Theme] Opening info for ${theme.name}`);
+    console.log(`[Theme] Preview exists: ${!!theme.preview}, length: ${theme.preview?.length}`);
+    console.log(`[Theme] ImageURL: ${theme.imageURL}`);
+    setShowInfo(true);
   };
 
   return (
@@ -68,7 +77,12 @@ export default function Theme({
       <div className="flex w-full items-center justify-between border-b border-[#2a2a2a] px-4 py-3 transition-colors duration-200 hover:bg-[#1e2228]">
         <div className="flex min-w-0 flex-grow items-center">
           <div className="mr-4 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
-            <StaticImage src={infoData.resolvedImageSrc} alt={`${theme.name} preview`} className="h-full w-full object-cover" />
+            <StaticImage
+              src={theme.preview}
+              fallbackSrc={theme.imageURL}
+              alt={`${theme.name} preview`}
+              className="h-full w-full object-cover"
+            />
           </div>
           <div className="min-w-0 flex-1 pr-4">
             <h3 className="truncate text-lg font-semibold text-white">{theme.name}</h3>
