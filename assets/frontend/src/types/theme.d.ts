@@ -5,6 +5,7 @@ export type ThemeManifestEntry = {
   schemes?: string[];
   include?: string[];
   preview?: string;
+  imageURL?: string;
   authors?: { name: string; url?: string }[];
   tags?: string[];
 };
