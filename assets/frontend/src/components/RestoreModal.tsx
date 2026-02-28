@@ -36,20 +36,20 @@ export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, r
 
   if (restoreSuccess) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-        <div className="flex w-full max-w-md flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] p-6 shadow-lg">
-          <div className="mb-6 flex flex-col items-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#2a2a2a]">
-              <FaSync className="h-8 w-8 text-white" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75">
+        <div className="flex w-full max-w-sm flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] p-6 shadow-lg">
+          <div className="mb-4 flex flex-col items-center">
+            <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#1e2228]">
+              <FaSync className="h-6 w-6 text-[#d63c6a]" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-white">Restore Complete</h2>
+            <h2 className="mb-1 text-lg font-bold text-white">Restore Complete</h2>
             <p className="text-center text-sm text-[#a0a0a0]">
               Spotify has been restored to its original state. All Spicetify customizations have been removed.
             </p>
           </div>
           <button
             onClick={onSuccessClose}
-            className="w-full rounded-md bg-[#d63c6a] px-4 py-3 text-sm font-semibold text-white transition-all duration-150 hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+            className="w-full rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a]"
           >
             OK
           </button>
@@ -59,15 +59,39 @@ export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, r
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-      <div className={`flex ${isRestoring ? "h-[75%] w-full" : "h-[40%] w-[75%] max-w-lg"} max-w-2xl flex-col rounded-lg bg-[#121418] p-5 shadow-lg`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75">
+      <div
+        className={`flex flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] shadow-lg transition-all duration-300 ${
+          isRestoring ? "h-[75%] w-full max-w-2xl p-5" : "w-full max-w-sm p-6"
+        }`}
+      >
         {!isRestoring ? (
           <>
-            <div className="flex-1">
-              <h2 className="mb-4 text-xl font-bold text-white">Confirm Restore</h2>
-              <p className="mb-4 text-[#a0a0a0]">
+            <div className="mb-4 flex flex-col items-center">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#1e2228]">
+                <FaSync className="h-6 w-6 text-[#d63c6a]" />
+              </div>
+              <h2 className="mb-1 text-lg font-bold text-white">Restore Spotify</h2>
+              <p className="text-center text-sm text-[#a0a0a0]">
                 Are you sure you want to restore Spicetify to its default configuration? This will remove all installed themes and extensions.
               </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={onCancel}
+                disabled={isRestoring}
+                className="flex-1 rounded border border-[#2a2a2a] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#a0a0a0] transition hover:bg-[#1e2228] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onConfirm}
+                disabled={isRestoring}
+                className="flex-1 rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Restore
+              </button>
             </div>
           </>
         ) : (
@@ -84,46 +108,25 @@ export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, r
                 </div>
               </div>
             </div>
-          </>
-        )}
 
-        {isRestoring && (
-          <div className="flex-1 overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#0c0e11]">
-            <div className="flex items-center justify-between border-b border-[#2a2a2a] px-3 py-2">
-              <span className="text-xs font-medium text-white">Restore Log</span>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-[#d63c6a]"></div>
-                <span className="text-xs text-[#a0a0a0]">Live</span>
+            <div className="flex-1 overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#0c0e11]">
+              <div className="flex items-center justify-between border-b border-[#2a2a2a] px-3 py-2">
+                <span className="text-xs font-medium text-white">Restore Log</span>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 animate-pulse rounded-full bg-[#d63c6a]"></div>
+                  <span className="text-xs text-[#a0a0a0]">Live</span>
+                </div>
+              </div>
+              <div className="h-full overflow-hidden p-3 font-mono text-xs">
+                <TerminalOutput ref={terminalRef} />
               </div>
             </div>
-            <div className="h-full overflow-hidden p-3 font-mono text-xs">
-              <TerminalOutput ref={terminalRef} />
-            </div>
-          </div>
+          </>
         )}
 
         {restoreError && (
           <div className="mt-4 rounded-lg bg-[#3c1212] p-3">
             <p className="text-xs text-[#ff9999]">{restoreError}</p>
-          </div>
-        )}
-
-        {!isRestoring && (
-          <div className="mt-6 flex justify-end space-x-3">
-            <button
-              onClick={onCancel}
-              disabled={isRestoring}
-              className="rounded-md bg-gray-600 px-4 py-2 text-white duration-150 hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={isRestoring}
-              className="flex items-center justify-center gap-2 rounded-md bg-[#d63c6a] px-4 py-2 text-white duration-150 hover:bg-[#c52c5a] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Confirm Restore
-            </button>
           </div>
         )}
       </div>
