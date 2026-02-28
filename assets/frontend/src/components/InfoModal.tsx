@@ -38,8 +38,7 @@ export default function AddonInfoModal({ info, onClose, onInstall, isInstalling 
 
   const handleImageError = () => {
     console.error("[InfoModal] Failed to load image:", imgSrc);
-    
-    // If the remote imageURL failed, try falling back to the base64 preview
+
     if (imgSrc && info.imageURL && imgSrc.includes(getJsDelivrUrl(info.imageURL)) && info.resolvedImageSrc) {
       console.log("[InfoModal] Remote URL failed, falling back to base64 preview");
       setImgSrc(info.resolvedImageSrc);
@@ -67,12 +66,7 @@ export default function AddonInfoModal({ info, onClose, onInstall, isInstalling 
             <>
               <div className="absolute inset-0 scale-125 bg-cover bg-center blur-2xl" style={{ backgroundImage: `url(${imgSrc})` }} />
               <div className="absolute inset-0 bg-black/40" />
-              <img
-                src={imgSrc}
-                className="relative z-0 h-full w-full object-contain"
-                alt=""
-                onError={handleImageError}
-              />
+              <img src={imgSrc} className="relative z-0 h-full w-full object-contain" alt="" onError={handleImageError} />
             </>
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1e2228] to-[#121418]">
@@ -151,7 +145,7 @@ export default function AddonInfoModal({ info, onClose, onInstall, isInstalling 
             <button
               onClick={onInstall}
               disabled={isInstalling}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#c52c5a] disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#c52c5a] disabled:opacity-50"
             >
               {isInstalling ? <Spinner className="h-4 w-4" /> : <FaDownload className="h-4 w-4" />}
               {isInstalling ? "Installing..." : "Install"}
@@ -161,7 +155,7 @@ export default function AddonInfoModal({ info, onClose, onInstall, isInstalling 
 
         {info.installed && (
           <div className="flex-shrink-0 border-t border-[#2a2a2a] p-4">
-            <div className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2a2e34] px-4 py-2.5 text-sm font-semibold text-[#d63c6a]">
+            <div className="flex w-full items-center justify-center gap-2 rounded bg-[#2a2e34] px-4 py-2.5 text-sm font-semibold text-[#d63c6a]">
               Already installed
             </div>
           </div>
