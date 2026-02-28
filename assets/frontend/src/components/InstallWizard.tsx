@@ -1,9 +1,12 @@
 import { useRef, useEffect, useState } from "react";
-import { FaCheckCircle, FaSpinner, FaDownload, FaPuzzlePiece, FaPalette } from "react-icons/fa";
+import { FaCheckCircle, FaSpinner, FaDownload, FaPuzzlePiece, FaPalette, FaInfoCircle } from "react-icons/fa";
 import TerminalOutput, { TerminalOutputRef } from "./TerminalOutput";
 import { InstallStep, StepStatus } from "../App";
 import { onCommandOutput } from "../utils/bridge";
 import preinstall from "../../../preinstall.json";
+import StaticImage from "./StaticImage";
+import InfoModal, { InfoData } from "./InfoModal";
+import { getJsDelivrUrl } from "../utils/github";
 
 export default function InstallWizard({
   isInstalling,
@@ -21,6 +24,7 @@ export default function InstallWizard({
     themes: 0,
     version: "",
   });
+  const [infoData, setInfoData] = useState<InfoData | null>(null);
 
   const allComplete = steps.every((step) => step.status === "complete");
   const hasStartedInstall = useRef(false);
@@ -69,6 +73,20 @@ export default function InstallWizard({
       unsubscribe();
     };
   }, []);
+
+  const handleShowInfo = (item: any, type: "theme" | "extension") => {
+    const meta = item.raw_meta_content || item;
+    const data: InfoData = {
+      title: item.name,
+      description: meta.description || (type === "theme" ? "Default theme for SpicetifyX." : "Enhances your Spotify experience."),
+      imageURL: getJsDelivrUrl(meta.imageURL || item.imageURL),
+      resolvedImageSrc: getJsDelivrUrl(item.preview || meta.preview),
+      authors: item.authors || meta.authors,
+      tags: item.tags || meta.tags,
+      installed: false,
+    };
+    setInfoData(data);
+  };
 
   return (
     <div className="flex h-full w-full flex-1 flex-col overflow-hidden">
@@ -170,44 +188,79 @@ export default function InstallWizard({
 
             <div className="flex-1 overflow-y-auto pr-2">
               <div className="flex flex-col gap-2">
-                {preinstall.themes.map((theme) => (
-                  <div key={theme.name} className="flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#1e2228]">
-                      <FaPalette className="h-5 w-5 text-[#d63c6a]" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="truncate text-sm font-bold text-white">{theme.name}</h3>
-                        <span className="rounded bg-[#d63c6a]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#d63c6a]">Theme</span>
+                {preinstall.themes.map((theme: any) => {
+                  const src = getJsDelivrUrl(theme.raw_meta_content?.imageURL || theme.imageURL || theme.preview);
+                  return (
+                    <div key={theme.name} className="group flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#1e2228]">
+                        {src ? (
+                          <StaticImage
+                            src={src}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <FaPalette className="h-5 w-5 text-[#d63c6a]" />
+                        )}
                       </div>
-                      <p className="truncate text-xs text-[#a0a0a0]">
-                        {theme.authors[0]?.description || "Default theme for SpicetifyX."}
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="truncate text-sm font-bold text-white">{theme.name}</h3>
+                          <span className="rounded bg-[#d63c6a]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#d63c6a]">Theme</span>
+                        </div>
+                        <p className="truncate text-xs text-[#a0a0a0]">
+                          {theme.authors[0]?.description || "Default theme for SpicetifyX."}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleShowInfo(theme, "theme")}
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] opacity-0 transition-all hover:bg-[#2a2e34] hover:text-white group-hover:opacity-100"
+                        title="Info"
+                      >
+                        <FaInfoCircle className="h-4 w-4" />
+                      </button>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
-                {preinstall.extensions.map((ext) => (
-                  <div key={ext.name} className="flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#1e2228]">
-                      <FaPuzzlePiece className="h-5 w-5 text-[#d63c6a]" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="truncate text-sm font-bold text-white">{ext.name}</h3>
-                        <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-500">Extension</span>
+                {preinstall.extensions.map((ext: any) => {
+                  const src = getJsDelivrUrl(ext.raw_meta_content?.imageURL || ext.imageURL || ext.preview);
+                  return (
+                    <div key={ext.name} className="group flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#1e2228]">
+                        {src ? (
+                          <StaticImage
+                            src={src}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <FaPuzzlePiece className="h-5 w-5 text-[#d63c6a]" />
+                        )}
                       </div>
-                      <p className="truncate text-xs text-[#a0a0a0]">
-                        {ext.raw_meta_content?.description || "Enhances your Spotify experience."}
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="truncate text-sm font-bold text-white">{ext.name}</h3>
+                          <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-500">Extension</span>
+                        </div>
+                        <p className="truncate text-xs text-[#a0a0a0]">
+                          {ext.raw_meta_content?.description || "Enhances your Spotify experience."}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleShowInfo(ext, "extension")}
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] opacity-0 transition-all hover:bg-[#2a2e34] hover:text-white group-hover:opacity-100"
+                        title="Info"
+                      >
+                        <FaInfoCircle className="h-4 w-4" />
+                      </button>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
         )}
       </div>
+      {infoData && <InfoModal info={infoData} onClose={() => setInfoData(null)} />}
     </div>
   );
 }
