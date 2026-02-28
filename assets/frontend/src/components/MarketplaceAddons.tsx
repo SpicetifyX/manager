@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { AddonInfo } from "../types/addon.d";
 import Addon from "./Addon";
 import { FaDownload } from "react-icons/fa";
-import { fetchExtensionManifest, fetchCurated, getTaggedRepos } from "../utils/fetchRemotes";
+import { fetchExtensionManifest, getTaggedRepos } from "../utils/fetchRemotes";
 import { CardItem } from "../utils/marketplace-types";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import * as backend from "../../wailsjs/go/app/App";
@@ -81,11 +81,7 @@ export default function MarketplaceAddons({
       }
 
       if (targetPage === 1) {
-        const curated = await fetchCurated();
-        const curatedExts = curated.extensions
-          .filter((c) => !extensions.some((e) => e.user === c.user && e.repo === c.repo))
-          .map((c) => ({ ...c, installed: currentAddons.some((a) => a.name === c.title) }));
-        setCommunityExtensions([...curatedExts, ...extensions]);
+        setCommunityExtensions([...extensions]);
       } else {
         setCommunityExtensions((prev) => [...prev, ...extensions]);
       }
@@ -323,6 +319,7 @@ export default function MarketplaceAddons({
                   addonFileName={addon.addonFileName}
                   authors={addon.authors}
                   tags={addon.tags}
+                  imageURL={addon.imageURL}
                 />
               ))
             ) : (
