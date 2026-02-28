@@ -1,25 +1,21 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { FaDiscord, FaFolder, FaTrashAlt, FaExternalLinkAlt, FaGithub, FaArrowUp } from "react-icons/fa";
+import { FaDiscord, FaFolder, FaTrashAlt, FaExternalLinkAlt, FaGithub } from "react-icons/fa";
 import * as backend from "../../wailsjs/go/app/App";
 
 interface AppSettings {
   discordRpc: boolean;
   closeToTray: boolean;
-  checkUpdatesOnLaunch: boolean;
 }
 
 const DEFAULTS: AppSettings = {
   discordRpc: true,
   closeToTray: false,
-  checkUpdatesOnLaunch: true,
 };
 
 export default function Settings() {
   const [settings, setSettings] = useState<AppSettings>(DEFAULTS);
   const [loading, setLoading] = useState(true);
-  const [appVersion, setAppVersion] = useState<string>("");
   const [cacheCleared, setCacheCleared] = useState(false);
-  const [updateInfo, setUpdateInfo] = useState<{ available: boolean; version: string; url: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -53,14 +49,9 @@ export default function Settings() {
   useEffect(() => {
     (async () => {
       try {
-        const [fetched, version] = await Promise.all([backend.GetSettings(), backend.GetAppVersion()]);
+        const [fetched] = await Promise.all([backend.GetSettings()]);
         const merged = { ...DEFAULTS, ...fetched };
         setSettings(merged);
-        setAppVersion(version);
-        if (merged.checkUpdatesOnLaunch) {
-          const info = await (backend as any).CheckForUpdates();
-          if (info?.available) setUpdateInfo(info);
-        }
       } catch (err) {
         console.error("Failed to load settings:", err);
       } finally {
@@ -105,28 +96,11 @@ export default function Settings() {
   }
 
   return (
-    <div ref={scrollRef} className="settings-scrollbar flex h-full flex-1 flex-col overflow-y-auto overflow-x-hidden bg-[#171b20] p-5">
+    <div ref={scrollRef} className="settings-scrollbar flex h-full flex-1 flex-col overflow-y-auto overflow-x-hidden bg-[#171b20] p-4">
       <div className="mb-4 border-b border-[#1e2228] pb-4">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="mt-1 text-sm text-[#a0a0a0]">Configure SpicetifyX Manager preferences</p>
       </div>
-
-      {updateInfo?.available && (
-        <div className="mb-4 flex items-center justify-between rounded-lg border border-[#d63c6a]/30 bg-[#d63c6a]/10 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <FaArrowUp className="text-[#d63c6a]" size={13} />
-            <p className="text-sm text-white">
-              Update available — <span className="font-semibold text-[#d63c6a]">{updateInfo.version}</span>
-            </p>
-          </div>
-          <button
-            onClick={() => backend.OpenExternalLink(updateInfo.url)}
-            className="flex items-center gap-1.5 rounded bg-[#d63c6a] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#c52c5a] transition-colors"
-          >
-            Download <FaExternalLinkAlt size={10} />
-          </button>
-        </div>
-      )}
 
       <div className="flex flex-1 flex-col space-y-4">
         <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
@@ -144,26 +118,20 @@ export default function Settings() {
               checked={settings.closeToTray}
               onChange={(v) => updateSetting("closeToTray", v)}
             />
-            <ToggleSetting
-              label="Check for Updates on Launch"
-              description="Automatically check for SpicetifyX updates when the app starts"
-              checked={settings.checkUpdatesOnLaunch}
-              onChange={(v) => updateSetting("checkUpdatesOnLaunch", v)}
-            />
           </div>
         </div>
 
         <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
           <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">Actions</p>
           <div className="space-y-3">
-            <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f] p-3">
+            <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
               <div>
                 <p className="text-sm font-medium text-white">Clear Marketplace Cache</p>
                 <p className="text-xs text-[#666]">Force re-fetch all community data on next browse</p>
               </div>
               <button
                 onClick={handleClearCache}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${cacheCleared ? "bg-green-600 text-white" : "bg-[#2a2a2a] text-white hover:bg-[#3a3a3a] active:scale-95"
+                className={`flex items-center gap-2 rounded px-4 py-2 text-sm font-semibold transition-all duration-200 ${cacheCleared ? "bg-green-600 text-white" : "bg-[#2a2a2a] text-white hover:bg-[#3a3a3a] active:scale-95"
                   }`}
               >
                 <FaTrashAlt className="h-3 w-3" />
@@ -171,14 +139,14 @@ export default function Settings() {
               </button>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f] p-3">
+            <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
               <div>
                 <p className="text-sm font-medium text-white">Open Config Folder</p>
                 <p className="text-xs text-[#666]">Open the Spicetify configuration directory in File Explorer</p>
               </div>
               <button
                 onClick={handleOpenConfigFolder}
-                className="flex items-center gap-2 rounded-lg bg-[#2a2a2a] px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#3a3a3a] active:scale-95"
+                className="flex items-center gap-2 rounded bg-[#2a2a2a] px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#3a3a3a] active:scale-95"
               >
                 <FaFolder className="h-3 w-3" />
                 Open Folder
@@ -190,13 +158,9 @@ export default function Settings() {
         <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
           <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">About</p>
           <div className="space-y-3">
-            <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f] p-3">
-              <span className="text-sm text-[#a0a0a0]">Version</span>
-              <span className="text-sm font-semibold text-white">{appVersion || "—"}</span>
-            </div>
             <button
               onClick={handleOpenDiscord}
-              className="flex w-full items-center justify-between rounded-lg bg-[#0a0c0f] p-3 transition-colors hover:bg-[#161a1f]"
+              className="flex w-full items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3 transition-colors hover:bg-[#0a0c0f]/75"
             >
               <div className="flex items-center gap-3">
                 <FaDiscord className="h-5 w-5 text-[#5865F2]" />
@@ -209,7 +173,7 @@ export default function Settings() {
             </button>
             <button
               onClick={handleOpenGitHub}
-              className="flex w-full items-center justify-between rounded-lg bg-[#0a0c0f] p-3 transition-colors hover:bg-[#161a1f]"
+              className="flex w-full items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3 transition-colors hover:bg-[#0a0c0f]/75"
             >
               <div className="flex items-center gap-3">
                 <FaGithub className="h-5 w-5 text-white" />
@@ -239,7 +203,7 @@ function ToggleSetting({
   onChange: (value: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f] p-3">
+    <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
       <div className="mr-4">
         <p className="text-sm font-medium text-white">{label}</p>
         <p className="text-xs text-[#666]">{description}</p>
