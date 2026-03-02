@@ -17,7 +17,7 @@ export default function MarketplaceApps({
   resetKey: number;
   snapshotKey: number;
 }) {
-  const { apps: contextApps, appsLoaded, refreshApps, setAppsLocally } = useSpicetify();
+  const { apps: contextApps, appsLoaded, refreshApps, setAppsLocally, baselineApps } = useSpicetify();
 
   const [apps, setApps] = useState<AppInfo[]>(contextApps);
   const [loading, setLoading] = useState(!appsLoaded);
@@ -121,20 +121,15 @@ export default function MarketplaceApps({
     setApps(contextApps);
   }, [contextApps, appsLoaded]);
 
-  const [baseline, setBaseline] = useState<Map<string, boolean>>(new Map());
   useEffect(() => {
-    if (snapshotKey > 0 || appsLoaded) {
-      setBaseline(new Map(contextApps.map((a) => [a.id, a.isEnabled])));
-    }
-  }, [snapshotKey, appsLoaded]);
-
-  useEffect(() => {
-    const isDirty = apps.some((a) => {
-      const base = baseline.get(a.id);
-      return base === undefined || base !== a.isEnabled;
-    });
+    const isDirty =
+      apps.length !== baselineApps.length ||
+      apps.some((a) => {
+        const base = baselineApps.find((b) => b.id === a.id);
+        return base === undefined || base.isEnabled !== a.isEnabled;
+      });
     onDirtyChange(isDirty);
-  }, [apps, baseline]);
+  }, [apps, baselineApps]);
 
   useEffect(() => {
     if (browsingContent) {
@@ -168,16 +163,9 @@ export default function MarketplaceApps({
     if (!pendingDelete) return;
     const { id: appId } = pendingDelete;
     setPendingDelete(null);
-    try {
-      const success = await backend.DeleteSpicetifyApp(appId);
-      if (!success) {
-        alert(`Failed to delete app: ${appId}`);
-      }
-      fetchApps(true);
-    } catch (err: any) {
-      console.error(`Error deleting app ${appId}:`, err);
-      alert(`Error deleting app: ${err.message}`);
-    }
+    const updated = apps.filter((a) => a.id !== appId);
+    setApps(updated);
+    setAppsLocally(updated);
   };
 
   const handleInstallApp = async (app: CardItem, index: number) => {
@@ -198,7 +186,7 @@ export default function MarketplaceApps({
       const success = await backend.InstallMarketplaceApp(app.user, app.repo, appName, app.branch, meta as any);
       if (success) {
         setCommunityApps((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
-        fetchApps(true);
+        await refreshApps(false);
       } else {
         alert(`Failed to install ${app.title}`);
       }
