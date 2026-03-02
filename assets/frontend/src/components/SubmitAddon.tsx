@@ -103,7 +103,7 @@ export default function SubmitAddon() {
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#171b20] px-6 pt-4 pb-10">
+    <div className="relative flex h-full w-full flex-col bg-[#171b20]">
       {urlError && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50 p-3">
           <div className="pointer-events-auto flex items-center justify-between rounded-xl border border-red-500/30 bg-[#0e1114]/95 px-4 py-2.5 shadow-2xl shadow-black/60 backdrop-blur-md">
@@ -111,35 +111,38 @@ export default function SubmitAddon() {
               <FaExclamationCircle className="h-3.5 w-3.5 shrink-0 text-red-400" />
               <span className="text-sm text-red-400">{urlError}</span>
             </div>
-            <button onClick={() => setUrlError(null)} className="ml-3 text-[#a0a0a0] hover:text-white transition-colors">
+            <button onClick={() => setUrlError(null)} className="ml-3 text-[#a0a0a0] transition-colors hover:text-white">
               <FaTimes className="h-3 w-3" />
             </button>
           </div>
         </div>
       )}
+
+      <div className="custom-scrollbar flex h-full w-full flex-col overflow-y-auto overflow-x-hidden bg-[#171b20] p-4">
+
       {showSpamModal && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-sm rounded-lg border border-[#2a2e34] bg-[#1a1e24] p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-sm rounded-lg border border-[#2a2a2a] bg-[#121418] p-6 shadow-xl">
             <div className="mb-3 flex items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-yellow-500/15 text-yellow-400">
                 <FaExclamationCircle size={16} />
               </div>
               <h2 className="text-base font-semibold text-white">Hold on a second</h2>
             </div>
-            <p className="mb-5 text-sm text-[#a0a0a0] leading-relaxed">
+            <p className="mb-5 text-sm leading-relaxed text-[#a0a0a0]">
               You've already submitted a few reports, we really do see them all and we'll get to yours as soon as possible. Please don't spam
               submissions, it just makes our review harder.
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowSpamModal(false)}
-                className="flex-1 rounded bg-[#2a2e34] px-4 py-2 text-sm font-medium text-[#a0a0a0] hover:bg-[#333] transition-colors"
+                className="flex-1 rounded border border-[#2a2a2a] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#a0a0a0] transition hover:bg-[#1e2228] hover:text-white"
               >
                 Go back
               </button>
               <button
                 onClick={dismissSpamModal}
-                className="flex-1 rounded bg-[#d63c6a] px-4 py-2 text-sm font-medium text-white hover:bg-[#c52c5a] transition-colors"
+                className="flex-1 rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a]"
               >
                 Submit anyway
               </button>
@@ -148,112 +151,115 @@ export default function SubmitAddon() {
         </div>
       )}
 
-      <div className="mx-auto w-full">
-        <div className="mb-4 flex items-center gap-4 border-b border-[#1e2228] pb-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#d63c6a]/20 text-[#d63c6a]">
-            <FaFlag size={18} />
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold text-white">Report Missing Listing</h1>
-            <p className="text-sm text-[#a0a0a0]">Found an extension, theme, or app that isn't showing up? Let us know and we'll add it manually.</p>
-          </div>
-        </div>
+      <div className="mb-4 border-b border-[#1e2228] pb-4">
+        <h1 className="text-2xl font-bold text-white">Report Missing Listing</h1>
+        <p className="mt-1 text-sm text-[#a0a0a0]">Found an extension, theme, or app that isn't showing up? Let us know and we'll add it manually.</p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#c0c0c0]">Category</label>
-            <div className="flex gap-2">
-              {(["extension", "theme", "app"] as Category[]).map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setCategory(c)}
-                  className={`rounded px-5 py-2 text-sm font-medium capitalize transition-colors ${category === c ? "bg-[#d63c6a] text-white" : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
+      <div className="flex flex-1 flex-col space-y-4">
+        <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">Submission</p>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-white">Category</label>
+              <div className="flex gap-2">
+                {(["extension", "theme", "app"] as Category[]).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setCategory(c)}
+                    className={`rounded px-5 py-2 text-sm font-semibold capitalize transition-all duration-200 active:scale-95 ${
+                      category === c ? "bg-[#d63c6a] text-white" : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
                     }`}
-                >
-                  {c}
-                </button>
-              ))}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-[#c0c0c0]">
-              GitHub Repository URL <span className="text-[#d63c6a]">*</span>
-            </label>
-            <input
-              type="text"
-              value={repoURL}
-              onChange={(e) => {
-                setRepoURL(e.target.value);
-                setUrlError(null);
-              }}
-              onBlur={() => setUrlError(validateURL(repoURL))}
-              placeholder="https://github.com/username/repo"
-              className="rounded bg-[#1e2228] px-4 py-3 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2e34] transition focus:ring-[#d63c6a]"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-[#c0c0c0]">
-              Note <span className="text-[#555] font-normal">(optional)</span>
-            </label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Any extra context e.g. where the JS file is located, what the app is called..."
-              rows={2}
-              maxLength={300}
-              className="resize-none rounded bg-[#1e2228] px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2e34] transition focus:ring-[#d63c6a]"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-[#c0c0c0]">
-              Discord Username <span className="text-[#555] font-normal">(optional)</span>
-            </label>
-            <input
-              type="text"
-              value={discordUser}
-              onChange={(e) => setDiscordUser(e.target.value)}
-              placeholder="e.g. stormpiehhh, jeff53978.2"
-              maxLength={32}
-              className="rounded bg-[#1e2228] px-4 py-3 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2e34] transition focus:ring-[#d63c6a]"
-            />
-            <p className="text-xs text-[#555]">So we can ping and or message you when your submission is reviewed.</p>
-          </div>
-
-          {result === "success" && (
-            <div className="flex items-center gap-2 rounded bg-green-900/30 px-3 py-2 text-sm text-green-400 ring-1 ring-green-700/40">
-              <FaCheckCircle size={13} />
-              Submitted! We'll review it and add it to the marketplace.
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-white">
+                GitHub Repository URL <span className="text-[#d63c6a]">*</span>
+              </label>
+              <input
+                type="text"
+                value={repoURL}
+                onChange={(e) => {
+                  setRepoURL(e.target.value);
+                  setUrlError(null);
+                }}
+                onBlur={() => setUrlError(validateURL(repoURL))}
+                placeholder="https://github.com/username/repo"
+                className="rounded bg-[#0a0c0f]/45 px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2a2a] transition focus:ring-[#d63c6a]"
+              />
             </div>
-          )}
-          {result === "error" && (
-            <div className="flex items-center gap-2 rounded bg-red-900/30 px-3 py-2 text-sm text-red-400 ring-1 ring-red-700/40">
-              <FaExclamationCircle size={13} />
-              Something went wrong. Check your connection and try again.
-            </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={submitting || !!urlError || !repoURL.trim()}
-            className={`flex items-center justify-center gap-2 rounded px-5 py-3 text-sm font-semibold transition-all ${submitting || !!urlError || !repoURL.trim()
-              ? "cursor-not-allowed bg-[#2a2e34] text-[#555]"
-              : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-white">
+                Note <span className="font-normal text-[#555]">(optional)</span>
+              </label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Any extra context e.g. where the JS file is located, what the app is called..."
+                rows={2}
+                maxLength={300}
+                className="resize-none rounded bg-[#0a0c0f]/45 px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2a2a] transition focus:ring-[#d63c6a]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-white">
+                Discord Username <span className="font-normal text-[#555]">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={discordUser}
+                onChange={(e) => setDiscordUser(e.target.value)}
+                placeholder="e.g. stormpiehhh, jeff53978.2"
+                maxLength={32}
+                className="rounded bg-[#0a0c0f]/45 px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2a2a] transition focus:ring-[#d63c6a]"
+              />
+              <p className="text-xs text-[#666]">So we can ping you when your submission is reviewed.</p>
+            </div>
+
+            {result === "success" && (
+              <div className="flex items-center gap-2 rounded bg-green-900/30 px-3 py-2 text-sm text-green-400 ring-1 ring-green-700/40">
+                <FaCheckCircle size={13} />
+                Submitted! We'll review it and add it to the marketplace.
+              </div>
+            )}
+            {result === "error" && (
+              <div className="flex items-center gap-2 rounded bg-red-900/30 px-3 py-2 text-sm text-red-400 ring-1 ring-red-700/40">
+                <FaExclamationCircle size={13} />
+                Something went wrong. Check your connection and try again.
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={submitting || !!urlError || !repoURL.trim()}
+              className={`flex w-full items-center justify-center gap-2 rounded px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                submitting || !!urlError || !repoURL.trim()
+                  ? "cursor-not-allowed bg-[#1e2228] text-[#555]"
+                  : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:scale-95 active:bg-[#b51c4a]"
               }`}
-          >
-            <FaFlag size={12} />
-            {submitting ? "Submitting..." : "Submit"}
-          </button>
-        </form>
-
-        <div className="mt-4 mb-5 rounded bg-[#1e2228] px-4 py-3 text-sm text-[#a0a0a0] ring-1 ring-[#2a2e34]">
-          <span className="font-medium text-[#c0c0c0]">How does this work? </span>
-          Your submission goes to the SpicetifyX dev team. We'll find the correct file paths and add a manual override so it shows up in the
-          marketplace for everyone, usually within a day or two.
+            >
+              <FaFlag size={12} />
+              {submitting ? "Submitting..." : "Submit"}
+            </button>
+          </form>
         </div>
+
+        <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">How does this work?</p>
+          <p className="text-sm text-[#a0a0a0]">
+            Your submission goes to the SpicetifyX dev team. We'll find the correct file paths and add a manual override so it shows up in the
+            marketplace for everyone, usually within a day or two.
+          </p>
+        </div>
+      </div>
       </div>
     </div>
   );
