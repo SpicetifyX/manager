@@ -33,8 +33,10 @@ func (a *App) CheckInstallation() InstallStatus {
 
 	if runtime.GOOS == "windows" {
 		spotifyPath = filepath.Join(os.Getenv("APPDATA"), "Spotify")
+	} else if runtime.GOOS == "darwin" {
+		spotifyPath = "/Applications/Spotify.app/Contents/Resources"
 	} else {
-		spotifyPath = filepath.Join(home, "Library", "Application Support", "Spotify")
+		spotifyPath = filepath.Join(home, ".var", "app", "com.spotify.Client", "config", "spotify")
 	}
 
 	spotifyInstalled := fileExists(spotifyPath)
