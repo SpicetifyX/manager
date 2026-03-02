@@ -57,3 +57,22 @@ body {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
+
+/* Wails frameless mode injects resize cursors via inline styles on <html>.
+   Override so the fixed-size window never shows resize cursors. */
+html {
+  cursor: default !important;
+}
+button,
+a,
+[role="button"],
+select {
+  cursor: pointer !important;
+}
+input:not([type="submit"]):not([type="button"]):not([type="range"]),
+textarea {
+  cursor: text !important;
+}
+input[type="range"] {
+  cursor: ew-resize !important;
+}
