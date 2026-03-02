@@ -22,11 +22,14 @@ export default function Dashboard({
   const [restoreOutputError, setRestoreOutputError] = useState<string | null>(null);
   const [restoreSuccess, setRestoreSuccess] = useState(false);
   const [isReloading, setIsReloading] = useState(false);
+  const [reloadSuccess, setReloadSuccess] = useState(false);
 
   const handleReload = async () => {
     setIsReloading(true);
+    setReloadSuccess(false);
     try {
       await backend.ReloadSpicetify();
+      setReloadSuccess(true);
     } catch (err) {
       console.error("Reload failed:", err);
     } finally {
@@ -314,6 +317,36 @@ export default function Dashboard({
                 Reload
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {isReloading && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="relative flex w-full max-w-sm flex-col items-center overflow-hidden rounded-xl border border-[#2a2a2a] bg-[#121418] p-8 shadow-2xl">
+            <div className="mb-6 h-12 w-12 animate-spin rounded-full border-4 border-[#2a2a2a] border-t-[#d63c6a]"></div>
+            <h2 className="mb-2 text-lg font-bold text-white">Reloading Spicetify</h2>
+            <p className="text-sm text-[#a0a0a0]">Running spicetify apply, please wait...</p>
+          </div>
+        </div>
+      )}
+
+      {reloadSuccess && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="relative flex w-full max-w-sm flex-col items-center overflow-hidden rounded-xl border border-[#2a2a2a] bg-[#121418] p-8 shadow-2xl">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#1e2228]">
+              <FaRocket className="h-6 w-6 text-[#d63c6a]" />
+            </div>
+            <h2 className="mb-1 text-lg font-bold text-white">Reload Complete</h2>
+            <p className="mb-6 text-center text-sm text-[#a0a0a0]">
+              Spicetify has been applied successfully. Spotify will restart shortly.
+            </p>
+            <button
+              onClick={() => setReloadSuccess(false)}
+              className="w-full rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+            >
+              OK
+            </button>
           </div>
         </div>
       )}
