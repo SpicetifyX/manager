@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"manager/internal/helpers"
 	"os"
 	"path/filepath"
@@ -18,9 +19,6 @@ type MarketplaceMeta struct {
 	Authors     []AuthorInfo `json:"authors,omitempty"`
 	Tags        []string     `json:"tags,omitempty"`
 	Stars       int          `json:"stars,omitempty"`
-	// Subdir is the subdirectory inside the repo zip that contains the app
-	// files (e.g. "stats" for harbassan/spicetify-apps). Empty for single-app
-	// repos where relevant files are at the zip root.
 	Subdir string `json:"subdir,omitempty"`
 }
 
@@ -112,62 +110,102 @@ func (a *App) InstallMarketplaceTheme(themeID, cssURL string, schemesURL *string
 }
 
 func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, meta *MarketplaceMeta) bool {
+	branchVal := ""
+	if branch != nil {
+		branchVal = *branch
+	}
+	log.Printf("[install-marketplace-app] START: user=%s repo=%s appName=%s branch=%s\n", user, repo, appName, branchVal)
+
 	ghHeaders := map[string]string{"User-Agent": "SpicetifyX"}
 
 	archiveURL := ""
 	subdir := ""
 	if meta != nil {
 		subdir = meta.Subdir
+		log.Printf("[install-marketplace-app] Subdir from meta: %s\n", subdir)
 	}
 
-	// Search releases for a zip asset matching the app's subdir/name.
-	// Multi-app repos (e.g. harbassan/spicetify-apps) publish per-app zips
-	// (spicetify-stats.release.zip, spicetify-library.release.zip) on separate
-	// release tags — so we must scan all releases, not just /releases/latest.
-	releasesURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=30", user, repo)
-	if resp, err := helpers.HttpGetWithHeaders(releasesURL, ghHeaders); err == nil && resp.StatusCode == 200 {
-		defer resp.Body.Close()
-		var releases []struct {
-			Assets []struct {
-				Name               string `json:"name"`
-				BrowserDownloadURL string `json:"browser_download_url"`
-			} `json:"assets"`
-			ZipballURL string `json:"zipball_url"`
+	// Try branch if provided and NOT a default branch
+	isDefaultBranch := branchVal == "" || branchVal == "main" || branchVal == "master"
+	if !isDefaultBranch {
+		candidateURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/zipball/%s", user, repo, branchVal)
+		log.Printf("[install-marketplace-app] Trying specific branch zipball: %s\n", candidateURL)
+		resp, err := helpers.HttpGetWithHeaders(candidateURL, ghHeaders)
+		if err == nil {
+			if resp.StatusCode == 200 {
+				archiveURL = candidateURL
+				log.Printf("[install-marketplace-app] Found branch archive: %s\n", archiveURL)
+			} else {
+				log.Printf("[install-marketplace-app] Branch request HTTP %d\n", resp.StatusCode)
+			}
+			resp.Body.Close()
+		} else {
+			log.Printf("[install-marketplace-app] Branch request error: %v\n", err)
 		}
-		if err := json.NewDecoder(resp.Body).Decode(&releases); err == nil {
-			needle := strings.ToLower(subdir)
-			for _, release := range releases {
-				for _, asset := range release.Assets {
-					if !strings.HasSuffix(asset.Name, ".zip") {
-						continue
-					}
-					assetLow := strings.ToLower(asset.Name)
-					// Match when subdir is known, or take the first zip for single-app repos
-					if needle == "" || strings.Contains(assetLow, needle) {
-						archiveURL = asset.BrowserDownloadURL
-						subdir = "" // release zip is app-specific; no hoisting needed
-						break
-					}
+	} else {
+		log.Printf("[install-marketplace-app] Skipping branch try because it is default: %s\n", branchVal)
+	}
+
+	// If branch didn't work or is a default branch, try releases
+	if archiveURL == "" {
+		releasesURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=30", user, repo)
+		log.Printf("[install-marketplace-app] Fetching releases: %s\n", releasesURL)
+		if resp, err := helpers.HttpGetWithHeaders(releasesURL, ghHeaders); err == nil {
+			if resp.StatusCode == 200 {
+				var releases []struct {
+					Assets []struct {
+						Name               string `json:"name"`
+						BrowserDownloadURL string `json:"browser_download_url"`
+					} `json:"assets"`
+					ZipballURL string `json:"zipball_url"`
 				}
-				if archiveURL != "" {
-					break
+				if err := json.NewDecoder(resp.Body).Decode(&releases); err == nil {
+					log.Printf("[install-marketplace-app] Found %d releases\n", len(releases))
+					needle := strings.ToLower(subdir)
+					for _, release := range releases {
+						for _, asset := range release.Assets {
+							if !strings.HasSuffix(asset.Name, ".zip") {
+								continue
+							}
+							assetLow := strings.ToLower(asset.Name)
+							if needle == "" || strings.Contains(assetLow, needle) {
+								archiveURL = asset.BrowserDownloadURL
+								subdir = ""
+								log.Printf("[install-marketplace-app] Found release asset match: %s\n", archiveURL)
+								break
+							}
+						}
+						if archiveURL != "" {
+							break
+						}
+					}
+
+					if archiveURL == "" && len(releases) > 0 {
+						archiveURL = releases[0].ZipballURL
+						log.Printf("[install-marketplace-app] Falling back to first release zipball: %s\n", archiveURL)
+					}
+				} else {
+					log.Printf("[install-marketplace-app] Failed to decode releases JSON: %v\n", err)
 				}
+			} else {
+				log.Printf("[install-marketplace-app] Releases request HTTP %d\n", resp.StatusCode)
 			}
-			// If no per-app asset found, fall back to the zipball of the first release
-			if archiveURL == "" && len(releases) > 0 {
-				archiveURL = releases[0].ZipballURL
-			}
+			resp.Body.Close()
+		} else {
+			log.Printf("[install-marketplace-app] Releases request error: %v\n", err)
 		}
 	}
 
 	if archiveURL == "" {
 		b := "main"
-		if branch != nil && *branch != "" {
-			b = *branch
+		if branchVal != "" && branchVal != "master" {
+			b = branchVal
 		}
 		archiveURL = fmt.Sprintf("https://api.github.com/repos/%s/%s/zipball/%s", user, repo, b)
+		log.Printf("[install-marketplace-app] Final fallback to branch %s zipball: %s\n", b, archiveURL)
 	}
 
+	log.Printf("[install-marketplace-app] FINAL archiveURL: %s\n", archiveURL)
 	resp, err := helpers.HttpGetWithHeaders(archiveURL, ghHeaders)
 	if err != nil {
 		fmt.Printf("[install-marketplace-app] Failed to download archive: %v\n", err)
@@ -178,6 +216,7 @@ func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, 
 		fmt.Printf("[install-marketplace-app] HTTP %d downloading archive\n", resp.StatusCode)
 		return false
 	}
+
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -195,10 +234,6 @@ func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, 
 		return false
 	}
 
-	// If a subdirectory is specified, hoist its contents to the dest root.
-	// This only applies when we fell back to the full repo zipball and the
-	// app lives in a subdirectory (e.g. projects/stats/ in the source tree).
-	// When a per-app release zip was found, subdir was cleared to "" above.
 	if subdir != "" {
 		subPath := filepath.Join(destDir, subdir)
 		if info, err := os.Stat(subPath); err == nil && info.IsDir() {
@@ -208,7 +243,7 @@ func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, 
 				movedNames[e.Name()] = struct{}{}
 				_ = os.Rename(filepath.Join(subPath, e.Name()), filepath.Join(destDir, e.Name()))
 			}
-			// Remove everything not hoisted (other app dirs, repo-level files)
+
 			topEntries, _ := os.ReadDir(destDir)
 			for _, te := range topEntries {
 				if _, keep := movedNames[te.Name()]; !keep {
