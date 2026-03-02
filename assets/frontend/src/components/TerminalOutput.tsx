@@ -22,6 +22,7 @@ const TerminalOutput = forwardRef<TerminalOutputRef, TerminalOutputProps>(({ ini
       term.current = new Terminal({
         cursorBlink: false,
         convertEol: true,
+        scrollback: 0,
         theme: {
           background: "#0c0e11",
           foreground: "#abaeb3",
