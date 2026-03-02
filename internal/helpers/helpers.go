@@ -1,11 +1,47 @@
 package helpers
 
 import (
+	"io"
 	"net/http"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"time"
 )
+
+func CopyDir(src string, dst string) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(dst, rel)
+		if info.IsDir() {
+			return os.MkdirAll(target, info.Mode())
+		}
+		
+		s, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer s.Close()
+		
+		d, err := os.Create(target)
+		if err != nil {
+			return err
+		}
+		defer d.Close()
+		
+		if _, err := io.Copy(d, s); err != nil {
+			return err
+		}
+		return os.Chmod(target, info.Mode())
+	})
+}
 
 func HttpGetWithHeaders(url string, headers map[string]string) (*http.Response, error) {
 	client := &http.Client{}
