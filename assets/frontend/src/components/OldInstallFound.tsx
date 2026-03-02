@@ -13,6 +13,17 @@ export default function OldInstallFound({ fetchInstall }: { fetchInstall: () => 
   const busy = restoring;
 
   useEffect(() => {
+    if (busy) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [busy]);
+
+  useEffect(() => {
     const handleRestoreComplete = (_event: any, { success, error: restoreError }: { success: boolean; error?: string }) => {
       setRestoring(false);
       if (success) {
