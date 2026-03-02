@@ -17,9 +17,8 @@ export default function MarketplaceApps({
   resetKey: number;
   snapshotKey: number;
 }) {
-  const { apps: contextApps, appsLoaded, refreshApps, setAppsLocally, baselineApps } = useSpicetify();
+  const { apps, appsLoaded, refreshApps, setAppsLocally, baselineApps } = useSpicetify();
 
-  const [apps, setApps] = useState<AppInfo[]>(contextApps);
   const [loading, setLoading] = useState(!appsLoaded);
   const [error, setError] = useState<string | null>(null);
   const [browsingContent, setBrowsingContent] = useState(false);
@@ -117,11 +116,6 @@ export default function MarketplaceApps({
   };
 
   useEffect(() => {
-    if (!appsLoaded) return;
-    setApps(contextApps);
-  }, [contextApps, appsLoaded]);
-
-  useEffect(() => {
     const isDirty =
       apps.length !== baselineApps.length ||
       apps.some((a) => {
@@ -150,7 +144,6 @@ export default function MarketplaceApps({
 
   const handleToggleApp = (appId: string, enable: boolean) => {
     const updated = apps.map((app) => (app.id === appId ? { ...app, isEnabled: enable } : app));
-    setApps(updated);
     setAppsLocally(updated);
   };
 
@@ -164,7 +157,6 @@ export default function MarketplaceApps({
     const { id: appId } = pendingDelete;
     setPendingDelete(null);
     const updated = apps.filter((a) => a.id !== appId);
-    setApps(updated);
     setAppsLocally(updated);
   };
 
