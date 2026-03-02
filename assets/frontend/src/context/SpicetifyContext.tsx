@@ -65,6 +65,14 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
 
   const refreshExtensions = async (syncBaseline = true) => {
     const data = await backend.GetInstalledExtensions();
+    if (!syncBaseline) {
+      const baselineIds = new Set(baselineExtensions.map((e) => e.addonFileName));
+      data.forEach((ext) => {
+        if (!baselineIds.has(ext.addonFileName)) {
+          ext.isEnabled = true;
+        }
+      });
+    }
     setExtensions(data);
     if (syncBaseline) setBaselineExtensions(data);
     setExtensionsLoaded(true);
@@ -73,6 +81,14 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
 
   const refreshThemes = async (syncBaseline = true) => {
     const data = await backend.GetSpicetifyThemes();
+    // For themes, we usually want the newly installed one to become active
+    if (!syncBaseline) {
+      const baselineIds = new Set(baselineThemes.map((t) => t.id));
+      const newTheme = data.find((t) => !baselineIds.has(t.id));
+      if (newTheme) {
+        data.forEach((t) => (t.isActive = t.id === newTheme.id));
+      }
+    }
     setThemes(data);
     if (syncBaseline) setBaselineThemes(data);
     setThemesLoaded(true);
@@ -81,6 +97,14 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
 
   const refreshApps = async (syncBaseline = true) => {
     const data = await backend.GetSpicetifyApps();
+    if (!syncBaseline) {
+      const baselineIds = new Set(baselineApps.map((a) => a.id));
+      data.forEach((app) => {
+        if (!baselineIds.has(app.id)) {
+          app.isEnabled = true;
+        }
+      });
+    }
     setApps(data);
     if (syncBaseline) setBaselineApps(data);
     setAppsLoaded(true);
@@ -161,11 +185,11 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const fetchAll = () => {
+    const fetchAll = (syncBaseline = false) => {
       const tasks: Promise<void>[] = [
-        refreshExtensions(),
-        refreshThemes(),
-        refreshApps(),
+        refreshExtensions(syncBaseline),
+        refreshThemes(syncBaseline),
+        refreshApps(syncBaseline),
         backend
           .GetSpotifyVersion()
           .then((v) => {
@@ -184,8 +208,11 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
       Promise.all(tasks).catch((err) => console.error("[SpicetifyContext] Background fetch error:", err));
     };
 
-    fetchAll();
-    const interval = setInterval(fetchAll, CACHE_TTL_MS);
+    // Initial load: sync baseline
+    fetchAll(true);
+    
+    // Background polling: do NOT sync baseline
+    const interval = setInterval(() => fetchAll(false), CACHE_TTL_MS);
     return () => clearInterval(interval);
   }, []);
 
