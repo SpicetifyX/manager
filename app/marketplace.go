@@ -44,10 +44,7 @@ func (a *App) InstallMarketplaceExtension(extensionURL, filename string, meta *M
 		_ = os.WriteFile(destPath+".meta.json", metaData, 0644)
 	}
 
-	exec := helpers.GetSpicetifyExec()
-	if err := helpers.SpicetifyCommand(exec, []string{"config", "extensions", filename}, nil); err != nil {
-		return false
-	}
+	log.Printf("[install-marketplace-extension] STAGED: %s\n", filename)
 	return true
 }
 
@@ -91,21 +88,7 @@ func (a *App) InstallMarketplaceTheme(themeID, cssURL string, schemesURL *string
 		_ = os.WriteFile(filepath.Join(destThemeDir, "theme.meta.json"), metaData, 0644)
 	}
 
-	exec := helpers.GetSpicetifyExec()
-	if err := helpers.SpicetifyCommand(exec, []string{"config", "current_theme", themeID}, nil); err != nil {
-		return false
-	}
-
-	firstScheme := ""
-	colorIniPath := filepath.Join(destThemeDir, "color.ini")
-	if data, err := os.ReadFile(colorIniPath); err == nil {
-		re := regexp.MustCompile(`(?m)^\[(.+)\]`)
-		if m := re.FindSubmatch(data); len(m) > 1 {
-			firstScheme = strings.TrimSpace(string(m[1]))
-		}
-	}
-	_ = helpers.SpicetifyCommand(exec, []string{"config", "color_scheme", firstScheme}, nil)
-
+	log.Printf("[install-marketplace-theme] STAGED: %s\n", themeID)
 	return true
 }
 
@@ -223,34 +206,55 @@ func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, 
 		return false
 	}
 
+	tempExtractDir, err := os.MkdirTemp("", "spicetify-app-extract-*")
+	if err != nil {
+		return false
+	}
+	defer os.RemoveAll(tempExtractDir)
+
+	if err := helpers.ExtractZipToDir(data, tempExtractDir, true); err != nil {
+		fmt.Printf("[install-marketplace-app] Failed to extract to temp: %v\n", err)
+		return false
+	}
+
+	// Scan for first folder containing a .js file
+	targetRoot := tempExtractDir
+	if subdir != "" {
+		candidate := filepath.Join(tempExtractDir, subdir)
+		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
+			targetRoot = candidate
+		}
+	}
+
+	// Deep search for the first folder containing a .js file if we haven't found a good one yet
+	foundJsDir := ""
+	_ = filepath.Walk(tempExtractDir, func(path string, info os.FileInfo, err error) error {
+		if err == nil && !info.IsDir() && strings.HasSuffix(strings.ToLower(info.Name()), ".js") {
+			foundJsDir = filepath.Dir(path)
+			return filepath.SkipAll
+		}
+		return nil
+	})
+
+	if foundJsDir != "" {
+		log.Printf("[install-marketplace-app] Auto-detected app root (js found): %s\n", foundJsDir)
+		targetRoot = foundJsDir
+	}
+
 	customAppsDir := helpers.GetCustomAppsDir()
 	destDir := filepath.Join(customAppsDir, appName)
+	if err := os.RemoveAll(destDir); err != nil {
+		log.Printf("[install-marketplace-app] Failed to clean destDir: %v\n", err)
+	}
 	if err := os.MkdirAll(destDir, 0755); err != nil {
 		return false
 	}
 
-	if err := helpers.ExtractZipToDir(data, destDir, true); err != nil {
-		fmt.Printf("[install-marketplace-app] Failed to extract: %v\n", err)
-		return false
-	}
-
-	if subdir != "" {
-		subPath := filepath.Join(destDir, subdir)
-		if info, err := os.Stat(subPath); err == nil && info.IsDir() {
-			entries, _ := os.ReadDir(subPath)
-			movedNames := make(map[string]struct{})
-			for _, e := range entries {
-				movedNames[e.Name()] = struct{}{}
-				_ = os.Rename(filepath.Join(subPath, e.Name()), filepath.Join(destDir, e.Name()))
-			}
-
-			topEntries, _ := os.ReadDir(destDir)
-			for _, te := range topEntries {
-				if _, keep := movedNames[te.Name()]; !keep {
-					_ = os.RemoveAll(filepath.Join(destDir, te.Name()))
-				}
-			}
-		}
+	entries, _ := os.ReadDir(targetRoot)
+	for _, e := range entries {
+		oldPath := filepath.Join(targetRoot, e.Name())
+		newPath := filepath.Join(destDir, e.Name())
+		_ = os.Rename(oldPath, newPath)
 	}
 
 	if meta != nil {
@@ -258,10 +262,7 @@ func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, 
 		_ = os.WriteFile(filepath.Join(destDir, "app.meta.json"), metaData, 0644)
 	}
 
-	exec := helpers.GetSpicetifyExec()
-	if err := helpers.SpicetifyCommand(exec, []string{"config", "custom_apps", appName}, nil); err != nil {
-		return false
-	}
+	log.Printf("[install-marketplace-app] STAGED: %s\n", appName)
 
 	return true
 }
