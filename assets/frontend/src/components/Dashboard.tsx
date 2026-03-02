@@ -86,6 +86,17 @@ export default function Dashboard({
     };
   }, []);
 
+  useEffect(() => {
+    if (showRestoreModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showRestoreModal]);
+
   return (
     <div className="flex h-full w-full flex-col overflow-x-hidden overflow-y-auto bg-[#171b20] p-4">
       <div className="mb-4 border-b border-[#1e2228] pb-4">
