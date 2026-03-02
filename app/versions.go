@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"manager/internal/helpers"
 	"os"
 	"os/exec"
@@ -45,10 +46,13 @@ func (a *App) GetSpotifyVersion() string {
 
 func (a *App) ReloadSpicetify() bool {
 	spicetifyPath := helpers.GetSpicetifyExec()
+	log.Printf("[ReloadSpicetify] Running: %s apply\n", spicetifyPath)
 
 	if err := helpers.SpicetifyCommand(spicetifyPath, []string{"apply"}, nil); err != nil {
+		log.Printf("[ReloadSpicetify] Error: %v\n", err)
 		return false
 	}
 
+	log.Printf("[ReloadSpicetify] Success\n")
 	return true
 }
