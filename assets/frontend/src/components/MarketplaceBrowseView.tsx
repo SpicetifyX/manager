@@ -81,6 +81,10 @@ export default function MarketplaceBrowseView({
       title: infoItem.title,
       description: infoItem.subtitle || infoItem.description,
       imageURL: infoItem.imageURL,
+      previews: [infoItem.imageURL, infoItem.manifest?.preview]
+        .filter(Boolean)
+        .filter((v, i, a) => a.indexOf(v) === i) as string[],
+      repoURL: `https://github.com/${infoItem.user}/${infoItem.repo}`,
       authors: infoItem.authors,
       tags: infoItem.tags,
       stars: infoItem.stargazers_count,
