@@ -107,14 +107,17 @@ async function urlExists(url: string): Promise<boolean> {
 async function getRepoManifest(user: string, repo: string, branch: string) {
   const key = `${user}-${repo}`;
   const sessionStorageItem = window.sessionStorage.getItem(key);
+  console.log("Session", sessionStorageItem);
   if (sessionStorageItem) return JSON.parse(sessionStorageItem);
 
   const failedKey = "noManifests";
   const failedSessionStorageItems: string[] = JSON.parse(window.sessionStorage.getItem(failedKey) || "[]");
 
-  const rootUrl = `https://raw.githubusercontent.com/${user}/${repo}/${branch}/manifest.json`;
+  const rootUrl = `https://raw.githubusercontent.com/${user}/${repo}/refs/heads/${branch}/manifest.json`;
+  console.log(rootUrl);
   if (!failedSessionStorageItems.includes(rootUrl)) {
     let manifest = await fetchRepoManifest(rootUrl);
+    console.log(manifest);
     if (manifest) {
       if (!Array.isArray(manifest)) manifest = [manifest];
       window.sessionStorage.setItem(key, JSON.stringify(manifest));
@@ -238,8 +241,8 @@ export async function fetchThemeManifest(contents_url: string, branch: string, s
           include:
             manifest.include && Array.isArray(manifest.include)
               ? manifest.include.map((inc: string) =>
-                inc.startsWith("http") ? inc : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${inc}`,
-              )
+                  inc.startsWith("http") ? inc : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${inc}`,
+                )
               : undefined,
         };
 
@@ -256,33 +259,32 @@ export async function fetchThemeManifest(contents_url: string, branch: string, s
 }
 
 export async function fetchAppManifest(contents_url: string, branch: string, stars: number) {
+  console.log(contents_url, branch, stars);
+
   try {
     const regex_result = contents_url.match(/https:\/\/api\.github\.com\/repos\/(?<user>.+)\/(?<repo>.+)\/contents/);
     if (!regex_result || !regex_result.groups) return null;
     const { user, repo } = regex_result.groups;
 
     const manifests = await getRepoManifest(user, repo, branch);
+    console.log(manifests);
 
     if (!manifests) return [];
 
     const parsedManifests: any[] = [];
     for (const manifest of manifests) {
-      if (manifest?.name && manifest.description && manifest.main && !manifest.usercss) {
+      if (manifest?.name && manifest.description && !manifest.usercss) {
         const selectedBranch = manifest.branch || branch;
         const refPath: string = manifest.preview || manifest.readme || "";
         const firstSlash = refPath.indexOf("/");
         const hasSubdir = firstSlash > 0;
         const subdir: string = hasSubdir ? refPath.slice(0, firstSlash) : "";
-        const mainURL = manifest.main.startsWith("http")
-          ? manifest.main
-          : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.main}`;
-        if (!(await urlExists(mainURL))) continue;
 
         let imageURL = "";
         if (manifest.preview) {
           const rawPreview = manifest.preview.startsWith("http")
             ? manifest.preview
-            : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.preview}`;
+            : `https://raw.githubusercontent.com/${user}/${repo}/refs/heads/${selectedBranch}/${manifest.preview}`;
           if (isImageUrl(rawPreview)) {
             imageURL = rawPreview;
           }
@@ -301,7 +303,7 @@ export async function fetchAppManifest(contents_url: string, branch: string, sta
           readmeURL: manifest.readme
             ? manifest.readme.startsWith("http")
               ? manifest.readme
-              : `https://raw.githubusercontent.com/${user}/${repo}/${selectedBranch}/${manifest.readme}`
+              : `https://raw.githubusercontent.com/${user}/${repo}/refs/heads/${selectedBranch}/${manifest.readme}`
             : "",
           stars,
           tags: manifest.tags,
