@@ -18,9 +18,8 @@ export default function MarketplaceAddons({
   resetKey: number;
   snapshotKey: number;
 }) {
-  const { extensions: contextExtensions, extensionsLoaded, setExtensionsLocally, refreshExtensions, baselineExtensions } = useSpicetify();
+  const { extensions, extensionsLoaded, setExtensionsLocally, refreshExtensions, baselineExtensions } = useSpicetify();
 
-  const [addons, setAddons] = useState<AddonInfo[]>(contextExtensions);
   const [loading, setLoading] = useState(!extensionsLoaded);
   const [error, setError] = useState<string | null>(null);
   const [browsingContent, setBrowsingContent] = useState(false);
@@ -33,7 +32,6 @@ export default function MarketplaceAddons({
     id: string;
     name: string;
   } | null>(null);
-  const addonsRef = useRef<AddonInfo[]>([]);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -44,7 +42,7 @@ export default function MarketplaceAddons({
     const targetPage = loadMore ? page + 1 : 1;
     if (targetPage === 1) {
       setCommunityLoading(true);
-      setCommunityThemes([]);
+      setCommunityExtensions([]);
       setHasMore(true);
     } else {
       setLoadingMore(true);
@@ -67,23 +65,22 @@ export default function MarketplaceAddons({
           ),
         ),
       );
-      const extensions: CardItem[] = [];
-      const currentAddons = addonsRef.current;
+      const extensionsList: CardItem[] = [];
       for (const result of results) {
         if (result.status === "fulfilled" && result.value.length) {
-          extensions.push(
+          extensionsList.push(
             ...result.value.map((ext: any) => ({
               ...ext,
-              installed: currentAddons.some((a) => a.name === ext.title),
+              installed: extensions.some((a) => a.name === ext.title),
             })),
           );
         }
       }
 
       if (targetPage === 1) {
-        setCommunityExtensions([...extensions]);
+        setCommunityExtensions([...extensionsList]);
       } else {
-        setCommunityExtensions((prev) => [...prev, ...extensions]);
+        setCommunityExtensions((prev) => [...prev, ...extensionsList]);
       }
       setPage(targetPage);
       if (pageOfRepos.items.length === 0 || pageOfRepos.items.length < 30) {
@@ -117,20 +114,14 @@ export default function MarketplaceAddons({
   };
 
   useEffect(() => {
-    if (!extensionsLoaded) return;
-    setAddons(contextExtensions);
-    addonsRef.current = contextExtensions;
-  }, [contextExtensions, extensionsLoaded]);
-
-  useEffect(() => {
     const isDirty =
-      addons.length !== baselineExtensions.length ||
-      addons.some((a) => {
+      extensions.length !== baselineExtensions.length ||
+      extensions.some((a) => {
         const base = baselineExtensions.find((b) => b.addonFileName === a.addonFileName);
         return base === undefined || base.isEnabled !== a.isEnabled;
       });
     onDirtyChange(isDirty);
-  }, [addons, baselineExtensions]);
+  }, [extensions, baselineExtensions]);
 
   useEffect(() => {
     if (browsingContent) {
@@ -143,20 +134,19 @@ export default function MarketplaceAddons({
       setCommunityExtensions((prev) =>
         prev.map((ce) => ({
           ...ce,
-          installed: addons.some((a) => a.name === ce.title),
+          installed: extensions.some((a) => a.name === ce.title),
         })),
       );
     }
-  }, [addons]);
+  }, [extensions]);
 
   const handleToggleAddon = (addonFileName: string, enable: boolean) => {
-    const updated = addons.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: enable } : addon));
-    setAddons(updated);
+    const updated = extensions.map((addon) => (addon.addonFileName === addonFileName ? { ...addon, isEnabled: enable } : addon));
     setExtensionsLocally(updated);
   };
 
   const handleDeleteAddon = (addonFileName: string) => {
-    const addonName = addons.find((a) => a.addonFileName === addonFileName)?.name || addonFileName;
+    const addonName = extensions.find((a) => a.addonFileName === addonFileName)?.name || addonFileName;
     setPendingDelete({ id: addonFileName, name: addonName });
   };
 
@@ -164,8 +154,7 @@ export default function MarketplaceAddons({
     if (!pendingDelete) return;
     const { id: addonFileName } = pendingDelete;
     setPendingDelete(null);
-    const updated = addons.filter((a) => a.addonFileName !== addonFileName);
-    setAddons(updated);
+    const updated = extensions.filter((a) => a.addonFileName !== addonFileName);
     setExtensionsLocally(updated);
   };
 
@@ -293,8 +282,8 @@ export default function MarketplaceAddons({
 
         {!loading && !error && (
           <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-            {addons.length > 0 ? (
-              addons.map((addon) => (
+            {extensions.length > 0 ? (
+              extensions.map((addon) => (
                 <Addon
                   key={addon.id}
                   name={addon.name}
