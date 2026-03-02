@@ -36,6 +36,17 @@ export default function InstallWizard({
   }, [isInstalling]);
 
   useEffect(() => {
+    if (isInstalling) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isInstalling]);
+
+  useEffect(() => {
     const listener = (_event: any, data: string) => {
       terminalRef.current?.write(data);
 
