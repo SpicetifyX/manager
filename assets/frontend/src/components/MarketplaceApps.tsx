@@ -185,7 +185,7 @@ export default function MarketplaceApps({
     setInstallingIndex(index);
     setInfoIndex(null);
     try {
-      const appName = app.title.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const appName = app.title.replace(/[^a-zA-Z0-9_-]/g, "-");
       const meta = {
         name: app.title,
         description: app.subtitle,
