@@ -17,9 +17,8 @@ export default function MarketplaceThemes({
   resetKey: number;
   snapshotKey: number;
 }) {
-  const { themes: contextThemes, themesLoaded, refreshThemes, setThemesLocally, baselineThemes } = useSpicetify();
+  const { themes, themesLoaded, refreshThemes, setThemesLocally, baselineThemes } = useSpicetify();
 
-  const [themes, setThemes] = useState<ThemeInfo[]>(contextThemes);
   const [loading, setLoading] = useState(!themesLoaded);
   const [error, setError] = useState<string | null>(null);
   const [browsingContent, setBrowsingContent] = useState(false);
@@ -32,7 +31,6 @@ export default function MarketplaceThemes({
     id: string;
     name: string;
   } | null>(null);
-  const themesRef = useRef<ThemeInfo[]>([]);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -66,13 +64,13 @@ export default function MarketplaceThemes({
         ),
       );
       const allThemes: CardItem[] = [];
-      const currentThemes = themesRef.current;
+      const currentThemesList = themes;
       for (const result of results) {
         if (result.status === "fulfilled" && result.value.length) {
           allThemes.push(
             ...result.value.map((t: any) => ({
               ...t,
-              installed: currentThemes.some((th) => th.name === t.title),
+              installed: currentThemesList.some((th) => th.name === t.title),
             })),
           );
         }
@@ -115,12 +113,6 @@ export default function MarketplaceThemes({
   };
 
   useEffect(() => {
-    if (!themesLoaded) return;
-    setThemes(contextThemes);
-    themesRef.current = contextThemes;
-  }, [contextThemes, themesLoaded]);
-
-  useEffect(() => {
     const activeTheme = themes.find((t) => t.isActive);
     const currentId = activeTheme?.id ?? "";
     const currentScheme = activeTheme?.activeColorScheme ?? "";
@@ -159,13 +151,11 @@ export default function MarketplaceThemes({
 
   const handleSelectTheme = (themeId: string) => {
     const updated = themes.map((t) => ({ ...t, isActive: t.id === themeId }));
-    setThemes(updated);
     setThemesLocally(updated);
   };
 
   const handleSetColorScheme = (themeId: string, scheme: string) => {
     const updated = themes.map((t) => (t.id === themeId ? { ...t, activeColorScheme: scheme } : t));
-    setThemes(updated);
     setThemesLocally(updated);
   };
 
@@ -179,7 +169,6 @@ export default function MarketplaceThemes({
     const { id: themeId } = pendingDelete;
     setPendingDelete(null);
     const updated = themes.filter((t) => t.id !== themeId);
-    setThemes(updated);
     setThemesLocally(updated);
   };
 
