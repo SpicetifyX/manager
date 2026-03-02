@@ -103,7 +103,7 @@ export default function SubmitAddon() {
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#171b20] px-6 pt-6 pb-10">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#171b20] px-6 pt-4 pb-10">
       {urlError && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50 p-3">
           <div className="pointer-events-auto flex items-center justify-between rounded-xl border border-red-500/30 bg-[#0e1114]/95 px-4 py-2.5 shadow-2xl shadow-black/60 backdrop-blur-md">
@@ -159,7 +159,7 @@ export default function SubmitAddon() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-[#c0c0c0]">Category</label>
             <div className="flex gap-2">
@@ -249,7 +249,7 @@ export default function SubmitAddon() {
           </button>
         </form>
 
-        <div className="mt-4 mb-2 rounded bg-[#1e2228] px-4 py-3 text-sm text-[#a0a0a0] ring-1 ring-[#2a2e34]">
+        <div className="mt-4 mb-5 rounded bg-[#1e2228] px-4 py-3 text-sm text-[#a0a0a0] ring-1 ring-[#2a2e34]">
           <span className="font-medium text-[#c0c0c0]">How does this work? </span>
           Your submission goes to the SpicetifyX dev team. We'll find the correct file paths and add a manual override so it shows up in the
           marketplace for everyone, usually within a day or two.
