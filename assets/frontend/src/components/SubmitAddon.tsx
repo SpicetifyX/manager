@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { FaFlag, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { FaFlag, FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import * as backend from "../../wailsjs/go/app/App";
 
 type Category = "extension" | "theme" | "app";
@@ -39,6 +39,12 @@ export default function SubmitAddon() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<"success" | "error" | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!urlError) return;
+    const t = setTimeout(() => setUrlError(null), 4000);
+    return () => clearTimeout(t);
+  }, [urlError]);
   const [showSpamModal, setShowSpamModal] = useState(false);
 
   const GITHUB_REPO_RE = /^https?:\/\/github\.com\/[^/]+/;
@@ -98,6 +104,19 @@ export default function SubmitAddon() {
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#171b20] px-6 pt-6 pb-10">
+      {urlError && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50 p-3">
+          <div className="pointer-events-auto flex items-center justify-between rounded-xl border border-red-500/30 bg-[#0e1114]/95 px-4 py-2.5 shadow-2xl shadow-black/60 backdrop-blur-md">
+            <div className="flex items-center gap-2">
+              <FaExclamationCircle className="h-3.5 w-3.5 shrink-0 text-red-400" />
+              <span className="text-sm text-red-400">{urlError}</span>
+            </div>
+            <button onClick={() => setUrlError(null)} className="ml-3 text-[#a0a0a0] hover:text-white transition-colors">
+              <FaTimes className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+      )}
       {showSpamModal && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="mx-4 w-full max-w-sm rounded-lg border border-[#2a2e34] bg-[#1a1e24] p-6 shadow-xl">
@@ -171,16 +190,8 @@ export default function SubmitAddon() {
               }}
               onBlur={() => setUrlError(validateURL(repoURL))}
               placeholder="https://github.com/username/repo"
-              className={`rounded bg-[#1e2228] px-4 py-3 text-sm text-white placeholder-[#555] outline-none ring-1 transition focus:ring-[#d63c6a] ${urlError ? "ring-red-500" : "ring-[#2a2e34]"}`}
+              className="rounded bg-[#1e2228] px-4 py-3 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2e34] transition focus:ring-[#d63c6a]"
             />
-            <div className="h-6 flex items-center">
-              {urlError && (
-                <div className="flex items-center gap-2 rounded border border-red-500/30 bg-red-900/20 px-3 py-1 text-xs w-full">
-                  <FaExclamationCircle size={11} className="shrink-0 text-red-400" />
-                  <span className="text-red-400">{urlError}</span>
-                </div>
-              )}
-            </div>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -205,7 +216,7 @@ export default function SubmitAddon() {
               type="text"
               value={discordUser}
               onChange={(e) => setDiscordUser(e.target.value)}
-              placeholder="e.g. stormpiehhh, jeff"
+              placeholder="e.g. stormpiehhh, jeff53978.2"
               maxLength={32}
               className="rounded bg-[#1e2228] px-4 py-3 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2e34] transition focus:ring-[#d63c6a]"
             />
@@ -238,7 +249,7 @@ export default function SubmitAddon() {
           </button>
         </form>
 
-        <div className="mt-4 rounded bg-[#1e2228] px-4 py-3 text-sm text-[#a0a0a0] ring-1 ring-[#2a2e34]">
+        <div className="mt-4 mb-2 rounded bg-[#1e2228] px-4 py-3 text-sm text-[#a0a0a0] ring-1 ring-[#2a2e34]">
           <span className="font-medium text-[#c0c0c0]">How does this work? </span>
           Your submission goes to the SpicetifyX dev team. We'll find the correct file paths and add a manual override so it shows up in the
           marketplace for everyone, usually within a day or two.
