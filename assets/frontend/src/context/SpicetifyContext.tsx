@@ -4,7 +4,7 @@ import { AddonInfo } from "../types/addon.d";
 import { ThemeInfo } from "../types/theme.d";
 import { AppInfo } from "../types/app.d";
 
-const CACHE_TTL_MS = 5 * 60_000; // 5 minutes — avoids spawning spicetify -v too often
+const CACHE_TTL_MS = 5 * 60_000; // 5 minutes
 
 function readCache<T>(key: string): T | null {
   try {
@@ -28,14 +28,17 @@ interface SpicetifyContextValue {
   extensions: AddonInfo[];
   themes: ThemeInfo[];
   apps: AppInfo[];
+  baselineExtensions: AddonInfo[];
+  baselineThemes: ThemeInfo[];
+  baselineApps: AppInfo[];
   spotifyVersion: string | null;
   spicetifyVersion: string | null;
   extensionsLoaded: boolean;
   themesLoaded: boolean;
   appsLoaded: boolean;
-  refreshExtensions: () => Promise<void>;
-  refreshThemes: () => Promise<void>;
-  refreshApps: () => Promise<void>;
+  refreshExtensions: (syncBaseline?: boolean) => Promise<void>;
+  refreshThemes: (syncBaseline?: boolean) => Promise<void>;
+  refreshApps: (syncBaseline?: boolean) => Promise<void>;
   setExtensionsLocally: (extensions: AddonInfo[]) => void;
   setThemesLocally: (themes: ThemeInfo[]) => void;
   setAppsLocally: (apps: AppInfo[]) => void;
@@ -60,26 +63,26 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
   const [themesLoaded, setThemesLoaded] = useState(() => readCache("sx_themes") !== null);
   const [appsLoaded, setAppsLoaded] = useState(() => readCache("sx_apps") !== null);
 
-  const refreshExtensions = async () => {
+  const refreshExtensions = async (syncBaseline = true) => {
     const data = await backend.GetInstalledExtensions();
     setExtensions(data);
-    setBaselineExtensions(data);
+    if (syncBaseline) setBaselineExtensions(data);
     setExtensionsLoaded(true);
     writeCache("sx_extensions", data);
   };
 
-  const refreshThemes = async () => {
+  const refreshThemes = async (syncBaseline = true) => {
     const data = await backend.GetSpicetifyThemes();
     setThemes(data);
-    setBaselineThemes(data);
+    if (syncBaseline) setBaselineThemes(data);
     setThemesLoaded(true);
     writeCache("sx_themes", data);
   };
 
-  const refreshApps = async () => {
+  const refreshApps = async (syncBaseline = true) => {
     const data = await backend.GetSpicetifyApps();
     setApps(data);
-    setBaselineApps(data);
+    if (syncBaseline) setBaselineApps(data);
     setAppsLoaded(true);
     writeCache("sx_apps", data);
   };
@@ -97,19 +100,35 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
   };
 
   const commitChanges = async () => {
+    console.log("[SpicetifyContext] commitChanges START");
+
     // 1. Extensions
     for (const ext of extensions) {
       const baseline = baselineExtensions.find((b) => b.addonFileName === ext.addonFileName);
-      if (baseline && baseline.isEnabled !== ext.isEnabled) {
+      if (!baseline || baseline.isEnabled !== ext.isEnabled) {
+        console.log(`[SpicetifyContext] Toggling extension ${ext.addonFileName} to ${ext.isEnabled}`);
         await backend.ToggleSpicetifyExtension(ext.addonFileName, ext.isEnabled);
+      }
+    }
+    for (const base of baselineExtensions) {
+      if (!extensions.some((ext) => ext.addonFileName === base.addonFileName)) {
+        console.log(`[SpicetifyContext] Deleting extension ${base.addonFileName}`);
+        await backend.DeleteSpicetifyExtension(base.addonFileName);
       }
     }
 
     // 2. Apps
     for (const app of apps) {
       const baseline = baselineApps.find((b) => b.id === app.id);
-      if (baseline && baseline.isEnabled !== app.isEnabled) {
+      if (!baseline || baseline.isEnabled !== app.isEnabled) {
+        console.log(`[SpicetifyContext] Toggling app ${app.id} to ${app.isEnabled}`);
         await backend.ToggleSpicetifyApp(app.id, app.isEnabled);
+      }
+    }
+    for (const base of baselineApps) {
+      if (!apps.some((app) => app.id === base.id)) {
+        console.log(`[SpicetifyContext] Deleting app ${base.id}`);
+        await backend.DeleteSpicetifyApp(base.id);
       }
     }
 
@@ -117,18 +136,28 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
     const activeTheme = themes.find((t) => t.isActive);
     const baselineActiveTheme = baselineThemes.find((t) => t.isActive);
     if (activeTheme) {
-      if (activeTheme.id !== baselineActiveTheme?.id) {
+      if (!baselineActiveTheme || activeTheme.id !== baselineActiveTheme.id) {
+        console.log(`[SpicetifyContext] Applying theme ${activeTheme.id}`);
         await backend.ApplySpicetifyTheme(activeTheme.id);
-      } else if (activeTheme.activeColorScheme && activeTheme.activeColorScheme !== baselineActiveTheme?.activeColorScheme) {
-        const scheme: string = activeTheme.activeColorScheme;
-        await backend.SetColorScheme(activeTheme.id, scheme);
+      } else if (activeTheme.activeColorScheme && activeTheme.activeColorScheme !== baselineActiveTheme.activeColorScheme) {
+        console.log(`[SpicetifyContext] Setting color scheme ${activeTheme.activeColorScheme}`);
+        await backend.SetColorScheme(activeTheme.id, activeTheme.activeColorScheme);
       }
     }
+    for (const base of baselineThemes) {
+       if (!themes.some(t => t.id === base.id) && !base.isBundled) {
+         console.log(`[SpicetifyContext] Deleting theme ${base.id}`);
+         await backend.DeleteSpicetifyTheme(base.id);
+       }
+    }
 
-    await backend.ReloadSpicetify();
+    console.log("[SpicetifyContext] Calling ReloadSpicetify (spicetify apply)");
+    const success = await backend.ReloadSpicetify();
+    console.log("[SpicetifyContext] ReloadSpicetify result:", success);
 
     // Refresh baselines after apply
     await Promise.all([refreshExtensions(), refreshThemes(), refreshApps()]);
+    console.log("[SpicetifyContext] commitChanges END");
   };
 
   useEffect(() => {
@@ -172,6 +201,9 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
         extensions,
         themes,
         apps,
+        baselineExtensions,
+        baselineThemes,
+        baselineApps,
         spotifyVersion,
         spicetifyVersion,
         extensionsLoaded,
