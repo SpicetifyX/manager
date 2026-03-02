@@ -8,7 +8,6 @@ import (
 	"manager/internal/helpers"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -239,6 +238,8 @@ func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, 
 	if foundJsDir != "" {
 		log.Printf("[install-marketplace-app] Auto-detected app root (js found): %s\n", foundJsDir)
 		targetRoot = foundJsDir
+	} else {
+		log.Printf("[install-marketplace-app] No .js file found in any subdirectory, using extract root: %s\n", targetRoot)
 	}
 
 	customAppsDir := helpers.GetCustomAppsDir()
@@ -250,11 +251,10 @@ func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, 
 		return false
 	}
 
-	entries, _ := os.ReadDir(targetRoot)
-	for _, e := range entries {
-		oldPath := filepath.Join(targetRoot, e.Name())
-		newPath := filepath.Join(destDir, e.Name())
-		_ = os.Rename(oldPath, newPath)
+	log.Printf("[install-marketplace-app] Moving files from %s to %s\n", targetRoot, destDir)
+	if err := helpers.CopyDir(targetRoot, destDir); err != nil {
+		log.Printf("[install-marketplace-app] Failed to CopyDir: %v\n", err)
+		return false
 	}
 
 	if meta != nil {
