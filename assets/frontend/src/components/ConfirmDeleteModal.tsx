@@ -1,4 +1,4 @@
-import { FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt, FaExclamationTriangle } from "react-icons/fa";
 
 interface ConfirmDeleteModalProps {
   show: boolean;
@@ -12,22 +12,19 @@ export default function ConfirmDeleteModal({ show, itemName, itemType, onConfirm
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-      <div className="flex w-full max-w-md flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] p-6 shadow-lg">
-        <div className="flex-1">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#3c1212]">
-              <FaTrashAlt className="h-5 w-5 text-red-400" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white">Delete {itemType.charAt(0).toUpperCase() + itemType.slice(1)}</h2>
-              <p className="text-sm text-[#a0a0a0]">This action cannot be undone</p>
-            </div>
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="relative flex w-full max-w-sm flex-col items-center overflow-hidden rounded-xl border border-[#2a2a2a] bg-[#121418] p-8 shadow-2xl text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20">
+          <FaExclamationTriangle className="h-8 w-8 text-red-400" />
+        </div>
+        <h2 className="mb-3 text-lg font-bold text-white">Delete {itemType.charAt(0).toUpperCase() + itemType.slice(1)}?</h2>
+        <div className="mb-5 w-full rounded-lg bg-[#1e2228] p-4 text-left">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">Item to remove</p>
+          <div className="flex items-center gap-2 text-sm text-white">
+            <FaTrashAlt className="h-3 w-3 flex-shrink-0 text-red-400" />
+            <span className="font-medium truncate">{itemName}</span>
           </div>
-          <p className="mb-2 text-[#a0a0a0]">
-            Are you sure you want to delete <span className="font-semibold text-white">"{itemName}"</span>?
-          </p>
-          <p className="text-sm text-[#666]">
+          <p className="mt-3 text-xs text-[#a0a0a0] leading-relaxed">
             {itemType === "theme"
               ? "The theme files will be permanently removed and Spotify will revert to the default theme if this one is active."
               : itemType === "app"
@@ -35,16 +32,18 @@ export default function ConfirmDeleteModal({ show, itemName, itemType, onConfirm
                 : "The extension file will be permanently removed from Spicetify."}
           </p>
         </div>
-        <div className="mt-6 flex justify-end space-x-3">
-          <button onClick={onCancel} className="rounded-md bg-gray-600 px-4 py-2 text-white duration-150 hover:bg-gray-700">
-            Cancel
-          </button>
+        <div className="flex w-full flex-col gap-2">
           <button
             onClick={onConfirm}
-            className="flex items-center justify-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white duration-150 hover:bg-red-700"
+            className="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
           >
-            <FaTrashAlt className="h-3.5 w-3.5" />
-            Delete
+            Confirm Delete
+          </button>
+          <button
+            onClick={onCancel}
+            className="w-full rounded-lg bg-transparent px-4 py-2 text-sm font-semibold text-[#a0a0a0] transition-colors hover:text-white"
+          >
+            Cancel
           </button>
         </div>
       </div>
