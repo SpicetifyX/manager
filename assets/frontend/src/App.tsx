@@ -5,11 +5,12 @@ import TitleBar from "./components/TitleBar";
 import CheckingInstallation from "./components/CheckingInstallation";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { FaDownload, FaHome, FaPuzzlePiece, FaPalette, FaAppStore, FaCog, FaRocket } from "react-icons/fa";
+import { FaDownload, FaHome, FaPuzzlePiece, FaPalette, FaAppStore, FaCog, FaRocket, FaFlag } from "react-icons/fa";
 import Dashboard from "./components/Dashboard";
 import MarketplaceThemes from "./components/MarketplaceThemes";
 import MarketplaceApps from "./components/MarketplaceApps";
 import Settings from "./components/Settings";
+import SubmitAddon from "./components/SubmitAddon";
 import { FaShield } from "react-icons/fa6";
 import MarketplaceAddons from "./components/MarketplaceAddons";
 import PendingChangesBar from "./components/PendingChangesBar";
@@ -237,6 +238,12 @@ export default function App() {
                 </button>
                 <div className="mt-auto flex flex-col gap-2">
                   <button
+                    className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "submit" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
+                    onClick={() => setActiveTab("submit")}
+                  >
+                    <FaFlag size={20} />
+                  </button>
+                  <button
                     className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "settings" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
                     onClick={() => setActiveTab("settings")}
                   >
@@ -260,6 +267,11 @@ export default function App() {
                   {mountedTabs.has("apps") && (
                     <div className={activeTab === "apps" ? "h-full" : "hidden"}>
                       <MarketplaceApps onDirtyChange={(d) => setAppsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
+                    </div>
+                  )}
+                  {activeTab === "submit" && (
+                    <div className="h-full">
+                      <SubmitAddon />
                     </div>
                   )}
                   {activeTab === "settings" && (
