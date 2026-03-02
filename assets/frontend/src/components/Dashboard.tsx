@@ -4,6 +4,7 @@ import RestoreModal from "./RestoreModal";
 import * as backend from "../../wailsjs/go/app/App";
 import { onRestoreComplete } from "../utils/bridge";
 import { useSpicetify } from "../context/SpicetifyContext";
+import { WindowSetMaxSize, WindowSetMinSize, WindowSetSize } from "../../wailsjs/runtime/runtime";
 
 export default function Dashboard({
   installStatus,
@@ -69,6 +70,10 @@ export default function Dashboard({
   };
 
   useEffect(() => {
+    WindowSetSize(950, 640);
+    WindowSetMaxSize(950, 640);
+    WindowSetMinSize(950, 640);
+
     const handleRestoreComplete = (_event: any, { success, error }: { success: boolean; error?: string }) => {
       setIsRestoringProcess(false);
       if (success) {
@@ -138,10 +143,11 @@ export default function Dashboard({
                 <button
                   onClick={() => setShowReloadModal(true)}
                   disabled={isReloading}
-                  className={`flex items-center gap-2 rounded px-4 py-2 text-sm font-semibold transition-all duration-200 ${isReloading
+                  className={`flex items-center gap-2 rounded px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                    isReloading
                       ? "cursor-not-allowed bg-[#1e2228] text-[#a0a0a0]"
                       : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white active:scale-95"
-                    }`}
+                  }`}
                 >
                   <FaRocket className={isReloading ? "animate-pulse" : ""} />
                   {isReloading ? "Reloading..." : "Reload"}
@@ -149,10 +155,11 @@ export default function Dashboard({
                 <button
                   onClick={handleRestore}
                   disabled={isRestoringProcess}
-                  className={`flex items-center gap-2 rounded px-4 py-2 text-sm font-semibold transition-all duration-200 ${isRestoringProcess
+                  className={`flex items-center gap-2 rounded px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                    isRestoringProcess
                       ? "cursor-not-allowed bg-[#a02950] text-white"
                       : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:scale-95 active:bg-[#b51c4a]"
-                    }`}
+                  }`}
                 >
                   <FaSync className={isRestoringProcess ? "animate-spin" : ""} />
                   {isRestoringProcess ? "Restoring..." : "Restore"}
@@ -349,9 +356,7 @@ export default function Dashboard({
               <FaRocket className="h-6 w-6 text-[#d63c6a]" />
             </div>
             <h2 className="mb-1 text-lg font-bold text-white">Reload Complete</h2>
-            <p className="mb-6 text-center text-sm text-[#a0a0a0]">
-              Spicetify has been applied successfully. Spotify will restart shortly.
-            </p>
+            <p className="mb-6 text-center text-sm text-[#a0a0a0]">Spicetify has been applied successfully. Spotify will restart shortly.</p>
             <button
               onClick={() => setReloadSuccess(false)}
               className="w-full rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a]"
