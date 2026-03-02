@@ -53,8 +53,8 @@ export default function MarketplaceApps({
     try {
       const pageOfRepos = await getTaggedRepos("spicetify-apps", targetPage, [], false);
       const results = await Promise.allSettled(
-        pageOfRepos.items.map((repo: any) =>
-          fetchAppManifest(repo.contents_url, repo.default_branch, repo.stargazers_count).then(
+        pageOfRepos.items.map((repo: any) => {
+          return fetchAppManifest(repo.contents_url, repo.default_branch, repo.stargazers_count).then(
             (apps) =>
               apps?.map((a) => ({
                 ...a,
@@ -62,12 +62,14 @@ export default function MarketplaceApps({
                 lastUpdated: repo.pushed_at,
                 created: repo.created_at,
               })) || [],
-          ),
-        ),
+          );
+        }),
       );
       const allApps: CardItem[] = [];
       const currentApps = apps;
       for (const result of results) {
+        console.log(result);
+
         if (result.status === "fulfilled" && result.value.length) {
           allApps.push(
             ...result.value.map((a: any) => ({
