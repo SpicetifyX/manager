@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os/exec"
@@ -21,11 +20,13 @@ func SpicetifyCommand(execPath string, args []string, onData func(string)) error
 	hideWindowIfNeeded(cmd)
 
 	if onData == nil {
-		var buf bytes.Buffer
-		cmd.Stdout = &buf
-		cmd.Stderr = &buf
+		// Leave cmd.Stdout/Stderr nil so Go uses os.DevNull internally.
+		// On Windows, attaching a bytes.Buffer creates a pipe whose write end
+		// is inherited by any child process spicetify spawns (e.g. Spotify on
+		// "apply"). Go's cmd.Wait() then blocks until every holder of that
+		// write handle exits, causing 20-30 s stalls. DevNull avoids the pipe.
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("spicetify exited with error: %w\nOutput:\n%s", err, buf.String())
+			return fmt.Errorf("spicetify %v exited with error: %w", args, err)
 		}
 		return nil
 	}
