@@ -18,7 +18,7 @@ export default function MarketplaceAddons({
   resetKey: number;
   snapshotKey: number;
 }) {
-  const { extensions: contextExtensions, extensionsLoaded, setExtensionsLocally, refreshExtensions } = useSpicetify();
+  const { extensions: contextExtensions, extensionsLoaded, setExtensionsLocally, refreshExtensions, baselineExtensions } = useSpicetify();
 
   const [addons, setAddons] = useState<AddonInfo[]>(contextExtensions);
   const [loading, setLoading] = useState(!extensionsLoaded);
@@ -44,7 +44,7 @@ export default function MarketplaceAddons({
     const targetPage = loadMore ? page + 1 : 1;
     if (targetPage === 1) {
       setCommunityLoading(true);
-      setCommunityExtensions([]);
+      setCommunityThemes([]);
       setHasMore(true);
     } else {
       setLoadingMore(true);
@@ -122,20 +122,15 @@ export default function MarketplaceAddons({
     addonsRef.current = contextExtensions;
   }, [contextExtensions, extensionsLoaded]);
 
-  const [baseline, setBaseline] = useState<Map<string, boolean>>(new Map());
   useEffect(() => {
-    if (snapshotKey > 0 || extensionsLoaded) {
-      setBaseline(new Map(contextExtensions.map((a) => [a.addonFileName, a.isEnabled])));
-    }
-  }, [snapshotKey, extensionsLoaded]);
-
-  useEffect(() => {
-    const isDirty = addons.some((a) => {
-      const base = baseline.get(a.addonFileName);
-      return base === undefined || base !== a.isEnabled;
-    });
+    const isDirty =
+      addons.length !== baselineExtensions.length ||
+      addons.some((a) => {
+        const base = baselineExtensions.find((b) => b.addonFileName === a.addonFileName);
+        return base === undefined || base.isEnabled !== a.isEnabled;
+      });
     onDirtyChange(isDirty);
-  }, [addons, baseline]);
+  }, [addons, baselineExtensions]);
 
   useEffect(() => {
     if (browsingContent) {
@@ -169,16 +164,9 @@ export default function MarketplaceAddons({
     if (!pendingDelete) return;
     const { id: addonFileName } = pendingDelete;
     setPendingDelete(null);
-    try {
-      const success = await backend.DeleteSpicetifyExtension(addonFileName);
-      if (!success) {
-        alert(`Failed to delete extension: ${addonFileName}`);
-      }
-      fetchAddons(true);
-    } catch (err: any) {
-      console.error(`Error deleting extension ${addonFileName}:`, err);
-      alert(`Error deleting extension: ${err.message}`);
-    }
+    const updated = addons.filter((a) => a.addonFileName !== addonFileName);
+    setAddons(updated);
+    setExtensionsLocally(updated);
   };
 
   const handleInstallExtension = async (ext: CardItem, index: number) => {
@@ -199,7 +187,7 @@ export default function MarketplaceAddons({
       const success = await backend.InstallMarketplaceExtension(ext.extensionURL, filename, meta as any);
       if (success) {
         setCommunityExtensions((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
-        fetchAddons(true);
+        await refreshExtensions(false);
       } else {
         alert(`Failed to install ${ext.title}`);
       }
