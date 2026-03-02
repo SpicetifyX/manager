@@ -7,6 +7,8 @@ import preinstall from "../../../preinstall.json";
 import StaticImage from "./StaticImage";
 import InfoModal, { InfoData } from "./InfoModal";
 import { getJsDelivrUrl } from "../utils/github";
+import * as backend from "../../wailsjs/go/app/App.js";
+import { WindowSetMaxSize, WindowSetMinSize, WindowSetSize } from "../../wailsjs/runtime/runtime";
 
 export default function InstallWizard({
   isInstalling,
@@ -30,6 +32,10 @@ export default function InstallWizard({
   const hasStartedInstall = useRef(false);
 
   useEffect(() => {
+    WindowSetSize(800, 575);
+    WindowSetMinSize(800, 575);
+    WindowSetMaxSize(800, 575);
+
     if (isInstalling && !hasStartedInstall.current) {
       hasStartedInstall.current = true;
     }
@@ -146,16 +152,18 @@ export default function InstallWizard({
                   return (
                     <div
                       key={step.id}
-                      className={`flex items-start gap-3 rounded-lg border p-3 transition-all ${isActive
+                      className={`flex items-start gap-3 rounded-lg border p-3 transition-all ${
+                        isActive
                           ? "border-[#d63c6a] bg-[#d63c6a]/10"
                           : isComplete
                             ? "border-[#2a2a2a] bg-[#121418]"
                             : "border-[#2a2a2a] bg-[#121418]/50 opacity-60"
-                        }`}
+                      }`}
                     >
                       <div
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${isActive ? "bg-[#d63c6a] shadow-lg shadow-[#d63c6a]/50" : isComplete ? "bg-[#2a2a2a]" : "bg-[#1a1a1a]"
-                          }`}
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
+                          isActive ? "bg-[#d63c6a] shadow-lg shadow-[#d63c6a]/50" : isComplete ? "bg-[#2a2a2a]" : "bg-[#1a1a1a]"
+                        }`}
                       >
                         {isComplete ? (
                           <FaCheckCircle className="h-4 w-4 text-white" />
@@ -190,7 +198,7 @@ export default function InstallWizard({
           </div>
         ) : (
           <div className="flex h-full flex-col">
-            <div className="mb-6 rounded-lg border border-[#d63c6a]/20 bg-[#d63c6a]/5 p-4 text-sm text-[#a0a0a0]">
+            <div className="mb-5 rounded-lg border border-[#d63c6a]/20 bg-[#d63c6a]/5 p-4 text-sm text-[#a0a0a0]">
               <p className="leading-relaxed">
                 SpicetifyX will manage Spicetify installations internally, so an existing Spicetify installation isn't required. After clicking{" "}
                 <span className="font-semibold text-white">Install</span>, the following extensions and themes will be automatically installed:
@@ -236,7 +244,7 @@ export default function InstallWizard({
                       key={ext.name}
                       className="group flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]"
                     >
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#1e2228]">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded bg-[#1e2228]">
                         {src ? (
                           <StaticImage src={src} className="h-full w-full object-cover" />
                         ) : (
