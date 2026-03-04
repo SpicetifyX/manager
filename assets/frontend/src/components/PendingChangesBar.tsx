@@ -42,7 +42,7 @@ export default function PendingChangesBar({ onApplied, onReset }: { onApplied: (
         <div className="pointer-events-auto flex items-center justify-between rounded-xl border border-[#2a2a2a] bg-[#0e1114]/95 px-4 py-2.5 shadow-2xl shadow-black/60 backdrop-blur-md">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 animate-pulse rounded-full bg-[#d63c6a]" />
-            <span className="text-sm text-[#a0a0a0]">Unsaved changes — Spotify will restart to apply them.</span>
+            <span className="text-sm text-[#a0a0a0]">Unsaved changes. Spotify will restart to apply them.</span>
           </div>
           <div className="flex items-center gap-2">
             <button
