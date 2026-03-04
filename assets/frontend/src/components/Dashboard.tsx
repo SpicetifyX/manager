@@ -262,7 +262,7 @@ export default function Dashboard({
                 </div>
                 <div className="flex items-center justify-between rounded-md bg-[#0a0c0f]/45 p-3">
                   <span className="text-sm text-[#a0a0a0]">Version</span>
-                  <span className="text-sm font-semibold text-white">{spotifyVersion || "—"}</span>
+                  <span className="text-sm font-semibold text-white">{spotifyVersion || "N/A"}</span>
                 </div>
               </div>
             </div>
@@ -288,7 +288,7 @@ export default function Dashboard({
                 </div>
                 <div className="flex items-center justify-between rounded bg-[#0a0c0f]/45 p-3">
                   <span className="text-sm text-[#a0a0a0]">Version</span>
-                  <span className="text-sm font-semibold text-white">{spicetifyVersion || "—"}</span>
+                  <span className="text-sm font-semibold text-white">{spicetifyVersion || "N/A"}</span>
                 </div>
               </div>
             </div>
