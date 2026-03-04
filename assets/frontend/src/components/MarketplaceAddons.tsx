@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { AddonInfo } from "../types/addon.d";
 import Addon from "./Addon";
-import { FaDownload } from "react-icons/fa";
+import { FaDownload, FaExclamationTriangle } from "react-icons/fa";
 import { fetchExtensionManifest, getTaggedRepos } from "../utils/fetchRemotes";
 import { CardItem } from "../utils/marketplace-types";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
@@ -37,6 +37,7 @@ export default function MarketplaceAddons({
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [installError, setInstallError] = useState<string | null>(null);
 
   const fetchCommunityExtensions = async (loadMore = false) => {
     const targetPage = loadMore ? page + 1 : 1;
@@ -159,7 +160,11 @@ export default function MarketplaceAddons({
   };
 
   const handleInstallExtension = async (ext: CardItem, index: number) => {
-    if (!ext.extensionURL || ext.installed) return;
+    if (ext.installed) return;
+    if (!ext.extensionURL) {
+      setInstallError(`"${ext.title}" doesn't have a valid download URL in its manifest.`);
+      return;
+    }
     setInstallingIndex(index);
     setInfoIndex(null);
     try {
@@ -174,14 +179,20 @@ export default function MarketplaceAddons({
         stars: ext.stargazers_count,
       };
       const success = await backend.InstallMarketplaceExtension(ext.extensionURL, filename, meta as any);
-      if (success) {
+      if (!success) {
+        setInstallError(`Failed to install "${ext.title}". The file could not be downloaded or was invalid.`);
+        return;
+      }
+      // Verify the file is actually recognised by the scanner after install
+      const updated = await refreshExtensions(false);
+      const wasFound = updated.some((e) => e.addonFileName === filename);
+      if (wasFound) {
         setCommunityExtensions((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
-        await refreshExtensions(false);
       } else {
-        alert(`Failed to install ${ext.title}`);
+        setInstallError(`"${ext.title}" was downloaded but couldn't be loaded. The file format may not be supported.`);
       }
     } catch (err: any) {
-      alert(`Error installing ${ext.title}: ${err.message}`);
+      setInstallError(`Failed to install "${ext.title}": ${err.message ?? "Unknown error"}`);
     } finally {
       setInstallingIndex(null);
     }
@@ -234,7 +245,9 @@ export default function MarketplaceAddons({
     [communityLoading, loadingMore, hasMore],
   );
 
-  return browsingContent ? (
+  return (
+    <>
+      {browsingContent ? (
     <MarketplaceBrowseView
       title="Browsing Community Extensions"
       searchPlaceholder="Search extensions..."
@@ -282,23 +295,28 @@ export default function MarketplaceAddons({
 
         {!loading && !error && (
           <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-            {extensions.length > 0 ? (
-              extensions.map((addon) => (
-                <Addon
-                  key={addon.id}
-                  name={addon.name}
-                  description={addon.description}
-                  isEnabled={addon.isEnabled}
-                  onToggle={handleToggleAddon}
-                  onDelete={handleDeleteAddon}
-                  preview={addon.preview ? addon.preview : undefined}
-                  isToggling={false}
-                  addonFileName={addon.addonFileName}
-                  authors={addon.authors}
-                  tags={addon.tags}
-                  imageURL={addon.imageURL}
-                />
-              ))
+            {baselineExtensions.length > 0 ? (
+              baselineExtensions.map((base) => {
+                const current = extensions.find((e) => e.addonFileName === base.addonFileName);
+                const display = current ?? base;
+                return (
+                  <Addon
+                    key={base.id}
+                    name={display.name}
+                    description={display.description}
+                    isEnabled={display.isEnabled}
+                    onToggle={handleToggleAddon}
+                    onDelete={handleDeleteAddon}
+                    preview={display.preview ? display.preview : undefined}
+                    isToggling={false}
+                    addonFileName={display.addonFileName}
+                    authors={display.authors}
+                    tags={display.tags}
+                    imageURL={display.imageURL}
+                    pendingDelete={!current}
+                  />
+                );
+              })
             ) : (
               <p className="text-[#a0a0a0]">No addons found.</p>
             )}
@@ -312,6 +330,27 @@ export default function MarketplaceAddons({
         onConfirm={confirmDeleteAddon}
         onCancel={() => setPendingDelete(null)}
       />
+    </>
+      )}
+      {installError && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="flex w-full max-w-sm flex-col rounded-xl border border-[#2a2a2a] bg-[#121418] p-6 shadow-lg">
+            <div className="mb-4 flex flex-col items-center">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20">
+                <FaExclamationTriangle className="h-6 w-6 text-red-400" />
+              </div>
+              <h2 className="mb-1 text-lg font-bold text-white">Install Failed</h2>
+              <p className="mt-1 text-center text-sm text-[#a0a0a0]">{installError}</p>
+            </div>
+            <button
+              onClick={() => setInstallError(null)}
+              className="w-full rounded-lg bg-[#2a2a2a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3a3a3a] active:scale-95"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
