@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { ThemeInfo } from "../types/theme.d";
 import Theme from "./Theme";
-import { FaDownload } from "react-icons/fa";
+import { FaDownload, FaExclamationTriangle } from "react-icons/fa";
 import { fetchThemeManifest, getTaggedRepos } from "../utils/fetchRemotes";
 import { CardItem } from "../utils/marketplace-types";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
@@ -36,6 +36,7 @@ export default function MarketplaceThemes({
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [installError, setInstallError] = useState<string | null>(null);
 
   const fetchCommunityThemes = async (loadMore = false) => {
     const targetPage = loadMore ? page + 1 : 1;
@@ -173,7 +174,11 @@ export default function MarketplaceThemes({
   };
 
   const handleInstallTheme = async (ext: CardItem, index: number) => {
-    if (!ext.cssURL || ext.installed) return;
+    if (ext.installed) return;
+    if (!ext.cssURL) {
+      setInstallError(`"${ext.title}" doesn't have a valid stylesheet URL in its manifest.`);
+      return;
+    }
     setInstallingIndex(index);
     setInfoIndex(null);
     try {
@@ -187,14 +192,19 @@ export default function MarketplaceThemes({
         stars: ext.stargazers_count,
       };
       const success = await backend.InstallMarketplaceTheme(themeId, ext.cssURL!, ext.schemesURL || "", ext.include || [], meta as any);
-      if (success) {
+      if (!success) {
+        setInstallError(`Failed to install "${ext.title}". The stylesheet could not be downloaded.`);
+        return;
+      }
+      const updated = await refreshThemes(false);
+      const wasFound = updated.some((t) => t.id === themeId);
+      if (wasFound) {
         setCommunityThemes((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
-        await refreshThemes(false);
       } else {
-        alert(`Failed to install ${ext.title}`);
+        setInstallError(`"${ext.title}" was downloaded but couldn't be loaded. Something may be wrong with the theme.`);
       }
     } catch (err: any) {
-      alert(`Error installing ${ext.title}: ${err.message}`);
+      setInstallError(`Failed to install "${ext.title}": ${err.message ?? "Unknown error"}`);
     } finally {
       setInstallingIndex(null);
     }
@@ -247,7 +257,9 @@ export default function MarketplaceThemes({
     [communityLoading, loadingMore, hasMore],
   );
 
-  return browsingContent ? (
+  return (
+    <>
+      {browsingContent ? (
     <MarketplaceBrowseView
       title="Browsing Community Themes"
       searchPlaceholder="Search themes..."
@@ -295,17 +307,22 @@ export default function MarketplaceThemes({
 
         {!loading && !error && (
           <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-            {themes.length > 0 ? (
-              themes.map((theme, idx) => (
-                <Theme
-                  key={idx}
-                  theme={theme}
-                  onSelect={handleSelectTheme}
-                  onSetColorScheme={handleSetColorScheme}
-                  onDelete={!theme.isBundled ? handleDeleteTheme : undefined}
-                  isApplying={false}
-                />
-              ))
+            {baselineThemes.length > 0 ? (
+              baselineThemes.map((base) => {
+                const current = themes.find((t) => t.id === base.id);
+                const display = current ?? base;
+                return (
+                  <Theme
+                    key={base.id}
+                    theme={display}
+                    onSelect={handleSelectTheme}
+                    onSetColorScheme={handleSetColorScheme}
+                    onDelete={!base.isBundled ? handleDeleteTheme : undefined}
+                    isApplying={false}
+                    pendingDelete={!current}
+                  />
+                );
+              })
             ) : (
               <p className="text-[#a0a0a0]">No themes found.</p>
             )}
@@ -319,6 +336,27 @@ export default function MarketplaceThemes({
         onConfirm={confirmDeleteTheme}
         onCancel={() => setPendingDelete(null)}
       />
+    </>
+      )}
+      {installError && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="flex w-full max-w-sm flex-col rounded-xl border border-[#2a2a2a] bg-[#121418] p-6 shadow-lg">
+            <div className="mb-4 flex flex-col items-center">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20">
+                <FaExclamationTriangle className="h-6 w-6 text-red-400" />
+              </div>
+              <h2 className="mb-1 text-lg font-bold text-white">Install Failed</h2>
+              <p className="mt-1 text-center text-sm text-[#a0a0a0]">{installError}</p>
+            </div>
+            <button
+              onClick={() => setInstallError(null)}
+              className="w-full rounded-lg bg-[#2a2a2a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3a3a3a] active:scale-95"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
