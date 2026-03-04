@@ -1,33 +1,39 @@
 import { useState } from "react";
 import { FaCog, FaRocket } from "react-icons/fa";
-import ApplyModal from "./ApplyModal";
+import ApplyModal, { ApplyPhase } from "./ApplyModal";
 import { useSpicetify } from "../context/SpicetifyContext";
 
 export default function PendingChangesBar({ onApplied, onReset }: { onApplied: () => void; onReset: () => void }) {
-  const [isApplying, setIsApplying] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [phase, setPhase] = useState<"idle" | ApplyPhase>("idle");
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const { commitChanges, resetChanges } = useSpicetify();
 
+  const isApplying = phase === "applying";
+
   const handleApply = async () => {
-    setIsApplying(true);
-    setShowModal(true);
+    setErrorMessage(undefined);
+    setPhase("applying");
     try {
       await commitChanges();
-    } catch (err) {
+      setPhase("success");
+    } catch (err: any) {
       console.error("[PendingChangesBar] Failed to apply:", err);
-    } finally {
-      setIsApplying(false);
+      const msg = typeof err === "string" ? err : err?.message ?? "An unexpected error occurred.";
+      setErrorMessage(msg);
+      setPhase("error");
     }
   };
 
-  const handleReset = () => {
-    resetChanges();
+  const handleReset = async () => {
+    await resetChanges();
     onReset();
   };
 
   const handleModalClose = () => {
-    setShowModal(false);
-    onApplied();
+    if (phase === "success") {
+      onApplied();
+    }
+    setPhase("idle");
   };
 
   return (
@@ -36,7 +42,7 @@ export default function PendingChangesBar({ onApplied, onReset }: { onApplied: (
         <div className="pointer-events-auto flex items-center justify-between rounded-xl border border-[#2a2a2a] bg-[#0e1114]/95 px-4 py-2.5 shadow-2xl shadow-black/60 backdrop-blur-md">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 animate-pulse rounded-full bg-[#d63c6a]" />
-            <span className="text-sm text-[#a0a0a0]">Unsaved changes, Spotify needs to restart to apply them.</span>
+            <span className="text-sm text-[#a0a0a0]">Unsaved changes — Spotify will restart to apply them.</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -66,9 +72,10 @@ export default function PendingChangesBar({ onApplied, onReset }: { onApplied: (
           </div>
         </div>
       </div>
-      {showModal && (
-        <ApplyModal action="Applying Changes" items={["Restarting Spotify with your changes"]} isApplying={isApplying} onClose={handleModalClose} />
+      {phase !== "idle" && (
+        <ApplyModal phase={phase} errorMessage={errorMessage} onClose={handleModalClose} />
       )}
     </>
   );
 }
+
