@@ -5,7 +5,7 @@ import TitleBar from "./components/TitleBar";
 import CheckingInstallation from "./components/CheckingInstallation";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { FaDownload, FaHome, FaPuzzlePiece, FaPalette, FaAppStore, FaCog, FaRocket, FaFlag } from "react-icons/fa";
+import { FaDownload, FaHome, FaPuzzlePiece, FaPalette, FaAppStore, FaCog, FaRocket, FaFlag, FaExclamationTriangle, FaExternalLinkAlt } from "react-icons/fa";
 import Dashboard from "./components/Dashboard";
 import MarketplaceThemes from "./components/MarketplaceThemes";
 import MarketplaceApps from "./components/MarketplaceApps";
@@ -35,6 +35,7 @@ export default function App() {
     spotify_installed: boolean;
     spicetify_installed: boolean;
     already_patched: boolean;
+    microsoft_store: boolean;
   }>(null);
   const [installing, setInstalling] = useState(false);
   const [installCompleted, setInstallCompleted] = useState(false);
@@ -130,6 +131,7 @@ export default function App() {
         spicetify_installed: status.spicetify,
         spotify_installed: status.spotify,
         already_patched: status.patched,
+        microsoft_store: status.microsoft_store,
       });
     } catch (error) {
       console.error("Failed to check installation status:", error);
@@ -182,6 +184,30 @@ export default function App() {
           <>
             <Header title="Spicetify Installer" description="Checking Existing Spicetify & Spotify Installations" />
             <CheckingInstallation />
+            <Footer hidden />
+          </>
+        ) : installStatus && installStatus.microsoft_store ? (
+          <>
+            <Header title="Spicetify Installer" description="Incompatible Spotify Installation" />
+            <div className="flex flex-1 flex-col items-center justify-center gap-6 p-8">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
+                <FaExclamationTriangle className="h-8 w-8 text-red-500" />
+              </div>
+              <div className="max-w-md text-center">
+                <h2 className="mb-3 text-lg font-bold text-white">Microsoft Store Spotify Detected</h2>
+                <p className="text-sm leading-relaxed text-[#a0a0a0]">
+                  SpicetifyX cannot patch the Microsoft Store version of Spotify. Please uninstall Spotify from the
+                  Microsoft Store and install the official version from spotify.com.
+                </p>
+              </div>
+              <button
+                onClick={() => backend.OpenExternalLink("https://www.spotify.com/download")}
+                className="flex items-center gap-2 rounded-lg bg-[#d63c6a] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+              >
+                <FaExternalLinkAlt className="h-3.5 w-3.5" />
+                Download Official Spotify
+              </button>
+            </div>
             <Footer hidden />
           </>
         ) : installStatus && installStatus.spicetify_installed && !installStatus.already_patched ? (
