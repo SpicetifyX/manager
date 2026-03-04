@@ -261,10 +261,6 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
 
     // Initial load: sync baseline
     fetchAll(true);
-    
-    // Background polling: do NOT sync baseline
-    const interval = setInterval(() => fetchAll(false), CACHE_TTL_MS);
-    return () => clearInterval(interval);
   }, []);
 
   const resetChanges = async () => {
