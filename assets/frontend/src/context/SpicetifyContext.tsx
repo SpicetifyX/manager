@@ -222,7 +222,7 @@ export function SpicetifyProvider({ children }: { children: ReactNode }) {
       const success = await backend.ReloadSpicetify();
       console.log("[SpicetifyContext] ReloadSpicetify result:", success);
       if (!success) {
-        throw new Error("spicetify apply failed — check that Spotify is installed and Spicetify is configured correctly.");
+        throw new Error("spicetify apply failed. Check that Spotify is installed and Spicetify is configured correctly.");
       }
 
       // 5. Sync baselines to current state so dirty flags clear
