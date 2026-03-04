@@ -9,9 +9,10 @@ import (
 )
 
 type InstallStatus struct {
-	Spotify   bool `json:"spotify"`
-	Spicetify bool `json:"spicetify"`
-	Patched   bool `json:"patched"`
+	Spotify        bool `json:"spotify"`
+	Spicetify      bool `json:"spicetify"`
+	Patched        bool `json:"patched"`
+	MicrosoftStore bool `json:"microsoft_store"`
 }
 
 // isActuallyPatched checks whether spicetify's injection is present in Spotify's
@@ -49,9 +50,28 @@ func (a *App) CheckInstallation() InstallStatus {
 	// .spicetify marker stale. Checking the real file is the reliable signal.
 	alreadyPatched := isActuallyPatched(spotifyPath)
 
+	// Detect Microsoft Store installs of Spotify (Windows only).
+	// Store installs live under %LOCALAPPDATA%\Packages\SpotifyAB.SpotifyMusic_*
+	// and cannot be patched by spicetify.
+	microsoftStore := false
+	if runtime.GOOS == "windows" {
+		localAppData := os.Getenv("LOCALAPPDATA")
+		packagesDir := filepath.Join(localAppData, "Packages")
+		entries, err := os.ReadDir(packagesDir)
+		if err == nil {
+			for _, entry := range entries {
+				if entry.IsDir() && strings.HasPrefix(entry.Name(), "SpotifyAB.SpotifyMusic_") {
+					microsoftStore = true
+					break
+				}
+			}
+		}
+	}
+
 	return InstallStatus{
-		Spotify:   spotifyInstalled,
-		Spicetify: spicetifyInstalled,
-		Patched:   alreadyPatched,
+		Spotify:        spotifyInstalled,
+		Spicetify:      spicetifyInstalled,
+		Patched:        alreadyPatched,
+		MicrosoftStore: microsoftStore,
 	}
 }
