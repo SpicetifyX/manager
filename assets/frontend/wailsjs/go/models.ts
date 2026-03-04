@@ -109,6 +109,7 @@ export namespace app {
 	    spotify: boolean;
 	    spicetify: boolean;
 	    patched: boolean;
+	    microsoft_store: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new InstallStatus(source);
@@ -119,6 +120,7 @@ export namespace app {
 	        this.spotify = source["spotify"];
 	        this.spicetify = source["spicetify"];
 	        this.patched = source["patched"];
+	        this.microsoft_store = source["microsoft_store"];
 	    }
 	}
 	export class MarketplaceMeta {
