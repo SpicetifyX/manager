@@ -18,7 +18,7 @@ type MarketplaceMeta struct {
 	Authors     []AuthorInfo `json:"authors,omitempty"`
 	Tags        []string     `json:"tags,omitempty"`
 	Stars       int          `json:"stars,omitempty"`
-	Subdir string `json:"subdir,omitempty"`
+	Subdir      string       `json:"subdir,omitempty"`
 }
 
 func (a *App) InstallMarketplaceExtension(extensionURL, filename string, meta *MarketplaceMeta) bool {
@@ -30,6 +30,17 @@ func (a *App) InstallMarketplaceExtension(extensionURL, filename string, meta *M
 	content, err := downloadText(extensionURL)
 	if err != nil {
 		fmt.Printf("[install-marketplace-extension] Failed to download: %v\n", err)
+		return false
+	}
+
+	// Validate the download looks like JavaScript, not an HTML error page or empty response
+	trimmed := strings.TrimSpace(content)
+	if len(trimmed) == 0 {
+		fmt.Printf("[install-marketplace-extension] Downloaded content is empty for %s\n", filename)
+		return false
+	}
+	if strings.HasPrefix(trimmed, "<!DOCTYPE") || strings.HasPrefix(trimmed, "<html") || strings.HasPrefix(trimmed, "<HTML") {
+		fmt.Printf("[install-marketplace-extension] Downloaded content is HTML (not valid JS) for %s — likely a bad URL\n", filename)
 		return false
 	}
 
@@ -198,7 +209,6 @@ func (a *App) InstallMarketplaceApp(user, repo, appName string, branch *string, 
 		fmt.Printf("[install-marketplace-app] HTTP %d downloading archive\n", resp.StatusCode)
 		return false
 	}
-
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
