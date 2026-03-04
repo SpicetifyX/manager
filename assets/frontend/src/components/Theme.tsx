@@ -12,12 +12,14 @@ export default function Theme({
   onSetColorScheme,
   onDelete,
   isApplying,
+  pendingDelete,
 }: {
   theme: ThemeInfo;
   onSelect: (themeId: string) => void;
   onSetColorScheme: (themeId: string, scheme: string) => void;
   onDelete?: (themeId: string) => void;
   isApplying: boolean;
+  pendingDelete?: boolean;
 }) {
   const [showInfo, setShowInfo] = useState(false);
   const [schemeOpen, setSchemeOpen] = useState(false);
@@ -67,13 +69,16 @@ export default function Theme({
 
   return (
     <>
-      <div className="flex w-full items-center justify-between border-b border-[#2a2a2a] px-3 py-2 transition-colors duration-200 hover:bg-[#1e2228]">
+      <div className={`flex w-full items-center justify-between border-b border-[#2a2a2a] px-3 py-2 transition-colors duration-200 hover:bg-[#1e2228] ${pendingDelete ? "opacity-40" : ""}`}>
         <div className="flex min-w-0 flex-grow items-center">
           <div className="mr-4 h-14 w-14 flex-shrink-0 overflow-hidden rounded">
-            <StaticImage src={theme.preview} alt={`${theme.name} preview`} className="h-full w-full object-cover" />
+            <StaticImage src={theme.preview || "/spicetifyx-logo.png"} fallbackSrc="/spicetifyx-logo.png" alt={`${theme.name} preview`} className="h-full w-full object-cover" />
           </div>
           <div className="min-w-0 flex-1 pr-4">
-            <h3 className="truncate text-lg font-semibold text-white">{theme.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className={`truncate text-lg font-semibold ${pendingDelete ? "line-through text-[#666]" : "text-white"}`}>{theme.name}</h3>
+              {pendingDelete && <span className="shrink-0 rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-red-400">Pending removal</span>}
+            </div>
             <p className="truncate text-sm text-[#a0a0a0]">{theme.description}</p>
           </div>
         </div>
