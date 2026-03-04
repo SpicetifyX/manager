@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { AppInfo } from "../types/app.d";
-import { FaDownload } from "react-icons/fa";
+import { FaDownload, FaExclamationTriangle } from "react-icons/fa";
 import App from "./App";
 import { fetchAppManifest, getTaggedRepos } from "../utils/fetchRemotes";
 import { CardItem } from "../utils/marketplace-types";
@@ -36,6 +36,7 @@ export default function MarketplaceApps({
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [installError, setInstallError] = useState<string | null>(null);
   const observer = useRef<IntersectionObserver>();
 
   const fetchCommunityApps = async (loadMore = false) => {
@@ -176,14 +177,19 @@ export default function MarketplaceApps({
         subdir: (app.manifest as any)?.subdir || "",
       };
       const success = await backend.InstallMarketplaceApp(app.user, app.repo, appName, app.branch, meta as any);
-      if (success) {
+      if (!success) {
+        setInstallError(`Failed to install "${app.title}". The download failed.`);
+        return;
+      }
+      const updated = await refreshApps(false);
+      const wasFound = updated.some((a) => a.id === appName || a.name === app.title);
+      if (wasFound) {
         setCommunityApps((prev) => prev.map((e, i) => (i === index ? { ...e, installed: true } : e)));
-        await refreshApps(false);
       } else {
-        alert(`Failed to install ${app.title}`);
+        setInstallError(`"${app.title}" was downloaded but couldn't be loaded. Something may be wrong with the app.`);
       }
     } catch (err: any) {
-      alert(`Error installing ${app.title}: ${err.message}`);
+      setInstallError(`Failed to install "${app.title}": ${err.message ?? "Unknown error"}`);
     } finally {
       setInstallingIndex(null);
     }
@@ -235,7 +241,9 @@ export default function MarketplaceApps({
     [communityLoading, loadingMore, hasMore],
   );
 
-  return browsingContent ? (
+  return (
+    <>
+      {browsingContent ? (
     <MarketplaceBrowseView
       title="Browsing Community Apps"
       searchPlaceholder="Search apps..."
@@ -281,19 +289,24 @@ export default function MarketplaceApps({
         {error && <p className="text-red-500">Error: {error}</p>}
         {!loading && !error && (
           <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-            {apps.length > 0 ? (
-              apps.map((app) => (
-                <App
-                  key={app.id}
-                  name={app.name}
-                  appId={app.id}
-                  isEnabled={app.isEnabled}
-                  onToggle={handleToggleApp}
-                  onDelete={handleDeleteApp}
-                  isToggling={false}
-                  imageURL={app.imageURL}
-                />
-              ))
+            {baselineApps.length > 0 ? (
+              baselineApps.map((base) => {
+                const current = apps.find((a) => a.id === base.id);
+                const display = current ?? base;
+                return (
+                  <App
+                    key={base.id}
+                    name={display.name}
+                    appId={display.id}
+                    isEnabled={display.isEnabled}
+                    onToggle={handleToggleApp}
+                    onDelete={handleDeleteApp}
+                    isToggling={false}
+                    imageURL={display.imageURL}
+                    pendingDelete={!current}
+                  />
+                );
+              })
             ) : (
               <p className="text-[#a0a0a0]">No apps found.</p>
             )}
@@ -307,6 +320,27 @@ export default function MarketplaceApps({
         onConfirm={confirmDeleteApp}
         onCancel={() => setPendingDelete(null)}
       />
+    </>
+      )}
+      {installError && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="flex w-full max-w-sm flex-col rounded-xl border border-[#2a2a2a] bg-[#121418] p-6 shadow-lg">
+            <div className="mb-4 flex flex-col items-center">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20">
+                <FaExclamationTriangle className="h-6 w-6 text-red-400" />
+              </div>
+              <h2 className="mb-1 text-lg font-bold text-white">Install Failed</h2>
+              <p className="mt-1 text-center text-sm text-[#a0a0a0]">{installError}</p>
+            </div>
+            <button
+              onClick={() => setInstallError(null)}
+              className="w-full rounded-lg bg-[#2a2a2a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3a3a3a] active:scale-95"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
