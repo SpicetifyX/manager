@@ -51,44 +51,24 @@ export default function MarketplaceApps({
     setCommunityError(null);
 
     try {
-      const pageOfRepos = await getTaggedRepos("spicetify-apps", targetPage, [], false);
-      const results = await Promise.allSettled(
-        pageOfRepos.items.map((repo: any) => {
-          return fetchAppManifest(repo.contents_url, repo.default_branch, repo.stargazers_count).then(
-            (apps) =>
-              apps?.map((a) => ({
-                ...a,
-                archived: repo.archived,
-                lastUpdated: repo.pushed_at,
-                created: repo.created_at,
-              })) || [],
-          );
-        }),
-      );
-      const allApps: CardItem[] = [];
-      const currentApps = apps;
-      for (const result of results) {
-        console.log(result);
+      const allApps = await backend.GetMarketplaceItems("Apps", targetPage, false);
 
-        if (result.status === "fulfilled" && result.value.length) {
-          allApps.push(
-            ...result.value.map((a: any) => ({
-              ...a,
-              installed: currentApps.some((ia) => ia.name === a.title),
-            })),
-          );
+      if (!allApps || allApps.length === 0) {
+        setHasMore(false);
+      } else {
+        const currentApps = apps;
+        const enriched = allApps.map((a: any) => ({
+          ...a,
+          installed: currentApps.some((ia) => ia.name === a.title),
+        }));
+
+        if (targetPage === 1) {
+          setCommunityApps(enriched);
+        } else {
+          setCommunityApps((prev) => [...prev, ...enriched]);
         }
       }
-
-      if (targetPage === 1) {
-        setCommunityApps([...allApps]);
-      } else {
-        setCommunityApps((prev) => [...prev, ...allApps]);
-      }
       setPage(targetPage);
-      if (pageOfRepos.items.length === 0 || pageOfRepos.items.length < 30) {
-        setHasMore(false);
-      }
     } catch (err: any) {
       console.error("Failed to fetch community apps:", err);
       setCommunityError(err.message?.includes("403") ? "GitHub API rate limit reached. Try again later." : "Failed to load community apps.");
