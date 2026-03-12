@@ -86,9 +86,9 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <div className="flex h-full flex-1 items-center justify-center bg-[#171b20]">
+      <div className="flex h-full flex-1 items-center justify-center bg-secondary">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#2a2a2a] border-t-[#d63c6a]"></div>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#2a2a2a] border-t-#d63c6a"></div>
           <p className="text-sm text-[#a0a0a0]">Loading settings...</p>
         </div>
       </div>
@@ -96,14 +96,14 @@ export default function Settings() {
   }
 
   return (
-    <div ref={scrollRef} className="settings-scrollbar flex h-full flex-1 flex-col overflow-y-auto overflow-x-hidden bg-[#171b20] p-4">
-      <div className="mb-4 border-b border-[#1e2228] pb-4">
+    <div ref={scrollRef} className="settings-scrollbar flex h-full flex-1 flex-col overflow-y-auto overflow-x-hidden bg-secondary p-4">
+      <div className="mb-4 border-b border-[#2a2a2a] pb-4">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="mt-1 text-sm text-[#a0a0a0]">Configure SpicetifyX Manager preferences</p>
       </div>
 
       <div className="flex flex-1 flex-col space-y-4">
-        <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
+        <div className="rounded-lg border border-[#2a2a2a] bg-main p-5">
           <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">General</p>
           <div className="space-y-4">
             <ToggleSetting
@@ -121,10 +121,10 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
+        <div className="rounded-lg border border-[#2a2a2a] bg-main p-5">
           <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">Actions</p>
           <div className="space-y-3">
-            <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
+            <div className="flex items-center justify-between rounded-lg bg-deep/45 p-3">
               <div>
                 <p className="text-sm font-medium text-white">Clear Marketplace Cache</p>
                 <p className="text-xs text-[#666]">Force re-fetch all community data on next browse</p>
@@ -139,7 +139,7 @@ export default function Settings() {
               </button>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
+            <div className="flex items-center justify-between rounded-lg bg-deep/45 p-3">
               <div>
                 <p className="text-sm font-medium text-white">Open Config Folder</p>
                 <p className="text-xs text-[#666]">Open the Spicetify configuration directory in File Explorer</p>
@@ -155,15 +155,15 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
+        <div className="rounded-lg border border-[#2a2a2a] bg-main p-5">
           <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">About</p>
           <div className="space-y-3">
             <button
               onClick={handleOpenDiscord}
-              className="flex w-full items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3 transition-colors hover:bg-[#0a0c0f]/75"
+              className="flex w-full items-center justify-between rounded-lg bg-deep/45 p-3 transition-colors hover:bg-deep/75"
             >
               <div className="flex items-center gap-3">
-                <FaDiscord className="h-5 w-5 text-[#5865F2]" />
+                <FaDiscord className="h-5 w-5 text-discord-blurple" />
                 <div className="text-left">
                   <p className="text-sm font-medium text-white">Join our Discord</p>
                   <p className="text-xs text-[#666]">Get support, share feedback, and stay updated</p>
@@ -173,7 +173,7 @@ export default function Settings() {
             </button>
             <button
               onClick={handleOpenGitHub}
-              className="flex w-full items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3 transition-colors hover:bg-[#0a0c0f]/75"
+              className="flex w-full items-center justify-between rounded-lg bg-deep/45 p-3 transition-colors hover:bg-deep/75"
             >
               <div className="flex items-center gap-3">
                 <FaGithub className="h-5 w-5 text-white" />
@@ -203,14 +203,14 @@ function ToggleSetting({
   onChange: (value: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-[#0a0c0f]/45 p-3">
+    <div className="flex items-center justify-between rounded-lg bg-deep/45 p-3">
       <div className="mr-4">
         <p className="text-sm font-medium text-white">{label}</p>
         <p className="text-xs text-[#666]">{description}</p>
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${checked ? "bg-[#d63c6a]" : "bg-[#2a2a2a]"}`}
+        className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${checked ? "bg-brand" : "bg-[#2a2a2a]"}`}
       >
         <span
           className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${checked ? "translate-x-5" : "translate-x-0"
