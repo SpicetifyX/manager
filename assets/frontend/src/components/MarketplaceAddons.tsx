@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { AddonInfo } from "../types/addon.d";
 import Addon from "./Addon";
 import { FaDownload, FaExclamationTriangle } from "react-icons/fa";
 import { fetchExtensionManifest, getTaggedRepos } from "../utils/fetchRemotes";
@@ -51,42 +50,23 @@ export default function MarketplaceAddons({
     setCommunityError(null);
 
     try {
-      const pageOfRepos = await getTaggedRepos("spicetify-extensions", targetPage, [], false);
+      const extensionsList = await backend.GetMarketplaceItems("Extensions", targetPage, false);
 
-      const results = await Promise.allSettled(
-        pageOfRepos.items.map((repo: any) =>
-          fetchExtensionManifest(repo.contents_url, repo.default_branch, repo.stargazers_count).then(
-            (exts) =>
-              exts?.map((ext) => ({
-                ...ext,
-                archived: repo.archived,
-                lastUpdated: repo.pushed_at,
-                created: repo.created_at,
-              })) || [],
-          ),
-        ),
-      );
-      const extensionsList: CardItem[] = [];
-      for (const result of results) {
-        if (result.status === "fulfilled" && result.value.length) {
-          extensionsList.push(
-            ...result.value.map((ext: any) => ({
-              ...ext,
-              installed: extensions.some((a) => a.name === ext.title),
-            })),
-          );
+      if (!extensionsList || extensionsList.length === 0) {
+        setHasMore(false);
+      } else {
+        const enriched = extensionsList.map((ext: any) => ({
+          ...ext,
+          installed: extensions.some((a) => a.name === ext.title),
+        }));
+
+        if (targetPage === 1) {
+          setCommunityExtensions(enriched);
+        } else {
+          setCommunityExtensions((prev) => [...prev, ...enriched]);
         }
       }
-
-      if (targetPage === 1) {
-        setCommunityExtensions([...extensionsList]);
-      } else {
-        setCommunityExtensions((prev) => [...prev, ...extensionsList]);
-      }
       setPage(targetPage);
-      if (pageOfRepos.items.length === 0 || pageOfRepos.items.length < 30) {
-        setHasMore(false);
-      }
     } catch (err: any) {
       console.error("Failed to fetch community extensions:", err);
       setCommunityError(err.message?.includes("403") ? "GitHub API rate limit reached. Try again later." : "Failed to load community extensions.");
@@ -248,89 +228,89 @@ export default function MarketplaceAddons({
   return (
     <>
       {browsingContent ? (
-    <MarketplaceBrowseView
-      title="Browsing Community Extensions"
-      searchPlaceholder="Search extensions..."
-      searchQuery={searchQuery}
-      onSearchChange={setSearchQuery}
-      onBack={() => setBrowsingContent(false)}
-      allTags={smartTags}
-      sortTags={sortTags}
-      selectedTags={selectedTags}
-      onTagsChange={setSelectedTags}
-      error={communityError}
-      onRetry={fetchCommunityExtensions}
-      loading={communityLoading}
-      loadingLabel="Fetching Extensions"
-      emptyLabel="No community extensions found."
-      items={filteredExtensions}
-      allItems={communityExtensions}
-      installingIndex={installingIndex}
-      onInstall={handleInstallExtension}
-      loadingMore={loadingMore}
-      lastItemRef={lastAddonElementRef}
-      infoIndex={infoIndex}
-      onInfo={setInfoIndex}
-      onInfoClose={() => setInfoIndex(null)}
-    />
-  ) : (
-    <>
-      <div className="flex h-full flex-col p-4">
-        <div className="mb-4 flex w-full items-center justify-between border-b border-[#2a2a2a] pb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Installed Addons</h1>
-            <p className="text-sm mt-1 text-[#a0a0a0]">Manage your Spicetify extensions.</p>
-          </div>
-          <button
-            onClick={() => setBrowsingContent(true)}
-            className="flex h-8 w-fit items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-all duration-200 hover:bg-brand-hover active:bg-brand-active"
-          >
-            Browse content
-            <FaDownload />
-          </button>
-        </div>
+        <MarketplaceBrowseView
+          title="Browsing Community Extensions"
+          searchPlaceholder="Search extensions..."
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onBack={() => setBrowsingContent(false)}
+          allTags={smartTags}
+          sortTags={sortTags}
+          selectedTags={selectedTags}
+          onTagsChange={setSelectedTags}
+          error={communityError}
+          onRetry={fetchCommunityExtensions}
+          loading={communityLoading}
+          loadingLabel="Fetching Extensions"
+          emptyLabel="No community extensions found."
+          items={filteredExtensions}
+          allItems={communityExtensions}
+          installingIndex={installingIndex}
+          onInstall={handleInstallExtension}
+          loadingMore={loadingMore}
+          lastItemRef={lastAddonElementRef}
+          infoIndex={infoIndex}
+          onInfo={setInfoIndex}
+          onInfoClose={() => setInfoIndex(null)}
+        />
+      ) : (
+        <>
+          <div className="flex h-full flex-col p-4">
+            <div className="mb-4 flex w-full items-center justify-between border-b border-[#2a2a2a] pb-4">
+              <div>
+                <h1 className="text-2xl font-bold text-white">Installed Addons</h1>
+                <p className="text-sm mt-1 text-[#a0a0a0]">Manage your Spicetify extensions.</p>
+              </div>
+              <button
+                onClick={() => setBrowsingContent(true)}
+                className="flex h-8 w-fit items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-all duration-200 hover:bg-brand-hover active:bg-brand-active"
+              >
+                Browse content
+                <FaDownload />
+              </button>
+            </div>
 
-        {loading && <p className="text-[#a0a0a0]">Loading addons...</p>}
-        {error && <p className="text-red-500">Error: {error}</p>}
+            {loading && <p className="text-[#a0a0a0]">Loading addons...</p>}
+            {error && <p className="text-red-500">Error: {error}</p>}
 
-        {!loading && !error && (
-          <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-            {baselineExtensions.length > 0 ? (
-              baselineExtensions.map((base) => {
-                const current = extensions.find((e) => e.addonFileName === base.addonFileName);
-                const display = current ?? base;
-                return (
-                  <Addon
-                    key={base.id}
-                    name={display.name}
-                    description={display.description}
-                    isEnabled={display.isEnabled}
-                    onToggle={handleToggleAddon}
-                    onDelete={handleDeleteAddon}
-                    preview={display.preview ? display.preview : undefined}
-                    isToggling={false}
-                    addonFileName={display.addonFileName}
-                    authors={display.authors}
-                    tags={display.tags}
-                    imageURL={display.imageURL}
-                    pendingDelete={!current}
-                  />
-                );
-              })
-            ) : (
-              <p className="text-[#a0a0a0]">No addons found.</p>
+            {!loading && !error && (
+              <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
+                {baselineExtensions.length > 0 ? (
+                  baselineExtensions.map((base) => {
+                    const current = extensions.find((e) => e.addonFileName === base.addonFileName);
+                    const display = current ?? base;
+                    return (
+                      <Addon
+                        key={base.id}
+                        name={display.name}
+                        description={display.description}
+                        isEnabled={display.isEnabled}
+                        onToggle={handleToggleAddon}
+                        onDelete={handleDeleteAddon}
+                        preview={display.preview ? display.preview : undefined}
+                        isToggling={false}
+                        addonFileName={display.addonFileName}
+                        authors={display.authors}
+                        tags={display.tags}
+                        imageURL={display.imageURL}
+                        pendingDelete={!current}
+                      />
+                    );
+                  })
+                ) : (
+                  <p className="text-[#a0a0a0]">No addons found.</p>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
-      <ConfirmDeleteModal
-        show={!!pendingDelete}
-        itemName={pendingDelete?.name || ""}
-        itemType="extension"
-        onConfirm={confirmDeleteAddon}
-        onCancel={() => setPendingDelete(null)}
-      />
-    </>
+          <ConfirmDeleteModal
+            show={!!pendingDelete}
+            itemName={pendingDelete?.name || ""}
+            itemType="extension"
+            onConfirm={confirmDeleteAddon}
+            onCancel={() => setPendingDelete(null)}
+          />
+        </>
       )}
       {installError && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
