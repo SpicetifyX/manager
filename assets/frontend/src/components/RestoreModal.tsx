@@ -37,9 +37,9 @@ export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, r
   if (restoreSuccess) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75">
-        <div className="flex w-full max-w-sm flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] p-6 shadow-lg">
+        <div className="flex w-full max-w-sm flex-col rounded-lg border border-[#2a2a2a] bg-main p-6 shadow-lg">
           <div className="mb-4 flex flex-col items-center">
-            <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#1e2228]">
+            <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-tertiary">
               <FaSync className="h-6 w-6 text-[#d63c6a]" />
             </div>
             <h2 className="mb-1 text-lg font-bold text-white">Restore Complete</h2>
@@ -49,7 +49,7 @@ export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, r
           </div>
           <button
             onClick={onSuccessClose}
-            className="w-full rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+            className="w-full rounded bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover active:bg-brand-active"
           >
             OK
           </button>
@@ -61,13 +61,13 @@ export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, r
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75">
       <div
-        className={`flex flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] shadow-lg transition-all duration-300 ${isRestoring ? "h-[75%] w-full max-w-2xl p-5" : "w-full max-w-sm p-6"
+        className={`flex flex-col rounded-lg border border-[#2a2a2a] bg-main shadow-lg transition-all duration-300 ${isRestoring ? "h-[75%] w-full max-w-2xl p-5" : "w-full max-w-sm p-6"
           }`}
       >
         {!isRestoring ? (
           <>
             <div className="mb-4 flex flex-col items-center">
-              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#1e2228]">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-tertiary">
                 <FaSync className="h-6 w-6 text-[#d63c6a]" />
               </div>
               <h2 className="mb-1 text-lg font-bold text-white">Restore Spotify</h2>
@@ -80,14 +80,14 @@ export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, r
               <button
                 onClick={onCancel}
                 disabled={isRestoring}
-                className="flex-1 rounded border border-[#2a2a2a] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#a0a0a0] transition hover:bg-[#1e2228] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 rounded border border-[#2a2a2a] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#a0a0a0] transition hover:bg-tertiary hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={onConfirm}
                 disabled={isRestoring}
-                className="flex-1 rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a] disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 rounded bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover active:bg-brand-active disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Restore
               </button>
@@ -96,9 +96,9 @@ export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, r
         ) : (
           <>
             {/* Status bar */}
-            <div className="mb-4 flex items-center justify-between rounded-lg border border-[#2a2a2a] bg-[#121418] p-3.5">
+            <div className="mb-4 flex items-center justify-between rounded-lg border border-[#2a2a2a] bg-main p-3.5">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d63c6a]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand">
                   <FaSync className="h-5 w-5 animate-spin text-white" />
                 </div>
                 <div>
@@ -108,11 +108,11 @@ export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, r
               </div>
             </div>
 
-            <div className="flex-1 overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#0c0e11]">
+            <div className="flex-1 overflow-hidden rounded-lg border border-[#2a2a2a] bg-blacker">
               <div className="flex items-center justify-between border-b border-[#2a2a2a] px-3 py-2">
                 <span className="text-xs font-medium text-white">Restore Log</span>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 animate-pulse rounded-full bg-[#d63c6a]"></div>
+                  <div className="h-2 w-2 animate-pulse rounded-full bg-brand"></div>
                   <span className="text-xs text-[#a0a0a0]">Live</span>
                 </div>
               </div>
@@ -124,7 +124,7 @@ export default function RestoreModal({ show, onConfirm, onCancel, isRestoring, r
         )}
 
         {restoreError && (
-          <div className="mt-4 rounded-lg bg-[#3c1212] p-3">
+          <div className="mt-4 rounded-lg bg-error-dark p-3">
             <p className="text-xs text-[#ff9999]">{restoreError}</p>
           </div>
         )}
