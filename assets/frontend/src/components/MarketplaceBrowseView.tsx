@@ -96,7 +96,7 @@ export default function MarketplaceBrowseView({
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <div className="flex w-full flex-shrink-0 flex-col border-b border-[#2a2a2a] bg-[#121418] select-none">
+      <div className="flex w-full flex-shrink-0 flex-col border-b border-[#2a2a2a] bg-main select-none">
         <div className="flex h-12 items-center justify-between pl-1 pr-3">
           <div className="flex items-center gap-3">
             <button
@@ -115,7 +115,7 @@ export default function MarketplaceBrowseView({
               placeholder={searchPlaceholder}
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="h-8 w-72 rounded-full border border-[#2a2a2a] bg-[#1a1a1a] pl-8 pr-3 text-sm text-white placeholder-[#666] outline-none transition-colors focus:border-[#d63c6a]"
+              className="h-8 w-72 rounded-full border border-[#2a2a2a] bg-dark pl-8 pr-3 text-sm text-white placeholder-[#666] outline-none transition-colors focus:border-[#d63c6a]"
             />
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function MarketplaceBrowseView({
             <button
               key={tag}
               onClick={() => handleTagClick(tag)}
-              className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${selectedTags.includes(tag) ? "bg-[#d63c6a] text-white" : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
+              className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${selectedTags.includes(tag) ? "bg-brand text-white" : "bg-tertiary text-[#a0a0a0] hover:bg-highlight hover:text-white"
                 }`}
             >
               {tag}
