@@ -6,7 +6,7 @@ export default function CheckingInstallation() {
       <div className="flex flex-col items-center space-y-3 px-6 text-center">
         <Spinner className="h-12 w-12" />
         <h2 className="text-sm font-medium text-white">Checking Installation Status</h2>
-        <p className="text-xs text-[#999999]">Please wait...</p>
+        <p className="text-xs text-text-grayed">Please wait...</p>
       </div>
     </div>
   );
