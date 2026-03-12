@@ -47,7 +47,7 @@ function AuthorAvatar({ url, name }: { url?: string; name: string }) {
     );
   }
   return (
-    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2a2e34] text-[9px] font-bold text-[#a0a0a0] uppercase">
+    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-highlight text-[9px] font-bold text-[#a0a0a0] uppercase">
       {name[0]}
     </div>
   );
@@ -118,7 +118,7 @@ export default function AddonInfoModal({ info, onClose, onInstall, isInstalling 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="relative flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-[#2a2a2a] bg-[#121418] shadow-2xl"
+        className="relative flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-[#2a2a2a] bg-main shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Image / slideshow header */}
@@ -130,7 +130,7 @@ export default function AddonInfoModal({ info, onClose, onInstall, isInstalling 
               <img src={imgSrc} className="relative z-0 h-full w-full object-contain" alt="" />
             </>
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1e2228] to-[#121418]">
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-tertiary to-main">
               <img src="/spicetifyx-logo.png" alt="SpicetifyX" className="h-20 w-20 opacity-40" />
             </div>
           )}
@@ -225,7 +225,7 @@ export default function AddonInfoModal({ info, onClose, onInstall, isInstalling 
                 <FaTag className="h-3 w-3 flex-shrink-0" />
                 <div className="flex flex-wrap gap-1">
                   {info.tags.map((tag) => (
-                    <span key={tag} className="rounded-full bg-[#2a2e34] px-2 py-0.5 text-xs">
+                    <span key={tag} className="rounded-full bg-highlight px-2 py-0.5 text-xs">
                       {tag}
                     </span>
                   ))}
@@ -247,7 +247,7 @@ export default function AddonInfoModal({ info, onClose, onInstall, isInstalling 
             <button
               onClick={onInstall}
               disabled={isInstalling}
-              className="flex w-full items-center justify-center gap-2 rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#c52c5a] disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded bg-brand px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:opacity-50"
             >
               {isInstalling ? <Spinner className="h-4 w-4" /> : <FaDownload className="h-4 w-4" />}
               {isInstalling ? "Installing..." : "Install"}
@@ -257,7 +257,7 @@ export default function AddonInfoModal({ info, onClose, onInstall, isInstalling 
 
         {info.installed && (
           <div className="flex-shrink-0 border-t border-[#2a2a2a] p-4">
-            <div className="flex w-full items-center justify-center gap-2 rounded bg-[#2a2e34] px-4 py-2.5 text-sm font-semibold text-[#d63c6a]">
+            <div className="flex w-full items-center justify-center gap-2 rounded bg-highlight px-4 py-2.5 text-sm font-semibold text-[#d63c6a]">
               Already installed
             </div>
           </div>
