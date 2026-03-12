@@ -103,8 +103,8 @@ export default function Dashboard({
   }, [showRestoreModal]);
 
   return (
-    <div className="flex h-full w-full flex-col overflow-x-hidden overflow-y-auto bg-[#171b20] p-4">
-      <div className="mb-4 border-b border-[#1e2228] pb-4">
+    <div className="flex h-full w-full flex-col overflow-x-hidden overflow-y-auto bg-secondary p-4">
+      <div className="mb-4 border-b border-[#2a2a2a] pb-4">
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
         <p className="mt-1 text-sm text-[#a0a0a0]">Overview of your Spicetify installation</p>
       </div>
@@ -112,13 +112,13 @@ export default function Dashboard({
       {loading ? (
         <div className="flex w-full flex-1 items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#2a2a2a] border-t-[#d63c6a]"></div>
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#2a2a2a] border-t-#d63c6a"></div>
             <p className="text-sm text-[#a0a0a0]">Loading dashboard...</p>
           </div>
         </div>
       ) : (
         <div className="flex flex-1 flex-col space-y-4">
-          <div className="overflow-hidden rounded-md border border-[#2a2a2a]/75 bg-[#121418] px-4 py-3">
+          <div className="overflow-hidden rounded-md border border-[#2a2a2a]/75 bg-main px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {installStatus.already_patched ? (
@@ -145,8 +145,8 @@ export default function Dashboard({
                   disabled={isReloading}
                   className={`flex items-center gap-2 rounded px-4 py-2 text-sm font-semibold transition-all duration-200 ${
                     isReloading
-                      ? "cursor-not-allowed bg-[#1e2228] text-[#a0a0a0]"
-                      : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white active:scale-95"
+                      ? "cursor-not-allowed bg-tertiary text-[#a0a0a0]"
+                      : "bg-tertiary text-[#a0a0a0] hover:bg-highlight hover:text-white active:scale-95"
                   }`}
                 >
                   <FaRocket className={isReloading ? "animate-pulse" : ""} />
@@ -157,8 +157,8 @@ export default function Dashboard({
                   disabled={isRestoringProcess}
                   className={`flex items-center gap-2 rounded px-4 py-2 text-sm font-semibold transition-all duration-200 ${
                     isRestoringProcess
-                      ? "cursor-not-allowed bg-[#a02950] text-white"
-                      : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:scale-95 active:bg-[#b51c4a]"
+                      ? "cursor-not-allowed bg-brand-disabled text-white"
+                      : "bg-brand text-white hover:bg-brand-hover active:scale-95 active:bg-brand-active"
                   }`}
                 >
                   <FaSync className={isRestoringProcess ? "animate-spin" : ""} />
@@ -171,14 +171,14 @@ export default function Dashboard({
           <div className="grid grid-cols-3 gap-4">
             <button
               onClick={() => onNavigate?.("addons")}
-              className="group relative flex flex-col overflow-hidden rounded-md border border-[#2a2a2a]/75 bg-[#121418] p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-[#d63c6a]/10 active:scale-[0.98]"
+              className="group relative flex flex-col overflow-hidden rounded-md border border-[#2a2a2a]/75 bg-main p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-brand/10 active:scale-[0.98]"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FaPuzzlePiece className="h-4 w-4 text-[#d63c6a]" />
                   <p className="text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">Extensions</p>
                 </div>
-                <FaChevronRight className="h-3 w-3 text-[#333] transition-colors group-hover:text-[#d63c6a]" />
+                <FaChevronRight className="h-3 w-3 text-[#666]est transition-colors group-hover:text-[#d63c6a]" />
               </div>
               <div className="mt-1.5 flex-1">
                 <p className="text-3xl font-bold text-white">{extensionsCount}</p>
@@ -186,7 +186,7 @@ export default function Dashboard({
               </div>
               <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#2a2a2a]">
                 <div
-                  className="h-full bg-[#d63c6a] transition-all duration-500"
+                  className="h-full bg-brand transition-all duration-500"
                   style={{
                     width: extensionsCount > 0 ? `${(activeExtensions / extensionsCount) * 100}%` : "0%",
                   }}
@@ -196,34 +196,34 @@ export default function Dashboard({
 
             <button
               onClick={() => onNavigate?.("themes")}
-              className="group relative flex flex-col overflow-hidden rounded-md border border-[#2a2a2a]/75 bg-[#121418] p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-[#d63c6a]/10 active:scale-[0.98]"
+              className="group relative flex flex-col overflow-hidden rounded-md border border-[#2a2a2a]/75 bg-main p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-brand/10 active:scale-[0.98]"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FaPalette className="h-4 w-4 text-[#d63c6a]" />
                   <p className="text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">Themes</p>
                 </div>
-                <FaChevronRight className="h-3 w-3 text-[#333] transition-colors group-hover:text-[#d63c6a]" />
+                <FaChevronRight className="h-3 w-3 text-[#666]est transition-colors group-hover:text-[#d63c6a]" />
               </div>
               <div className="mt-1.5 flex-1">
                 <p className="text-3xl font-bold text-white">{themesCount}</p>
                 <p className="mt-1 text-sm text-[#a0a0a0]">Available</p>
               </div>
               <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#2a2a2a]">
-                <div className="h-full w-full bg-gradient-to-r from-[#d63c6a] to-[#c52c5a] transition-all duration-500"></div>
+                <div className="h-full w-full bg-gradient-to-r from-brand to-brand-hover transition-all duration-500"></div>
               </div>
             </button>
 
             <button
               onClick={() => onNavigate?.("apps")}
-              className="group relative flex flex-col overflow-hidden rounded-md border border-[#2a2a2a]/75 bg-[#121418] p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-[#d63c6a]/10 active:scale-[0.98]"
+              className="group relative flex flex-col overflow-hidden rounded-md border border-[#2a2a2a]/75 bg-main p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-brand/10 active:scale-[0.98]"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FaAppStore className="h-4 w-4 text-[#d63c6a]" />
                   <p className="text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">Apps</p>
                 </div>
-                <FaChevronRight className="h-3 w-3 text-[#333] transition-colors group-hover:text-[#d63c6a]" />
+                <FaChevronRight className="h-3 w-3 text-[#666]est transition-colors group-hover:text-[#d63c6a]" />
               </div>
               <div className="mt-1.5 flex-1">
                 <p className="text-3xl font-bold text-white">{appsCount}</p>
@@ -231,7 +231,7 @@ export default function Dashboard({
               </div>
               <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#2a2a2a]">
                 <div
-                  className="h-full bg-[#d63c6a] transition-all duration-500"
+                  className="h-full bg-brand transition-all duration-500"
                   style={{
                     width: appsCount > 0 ? `${(activeApps / appsCount) * 100}%` : "0%",
                   }}
@@ -241,10 +241,10 @@ export default function Dashboard({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-md border border-[#2a2a2a]/75 bg-[#121418] p-4 transition-all">
+            <div className="rounded-md border border-[#2a2a2a]/75 bg-main p-4 transition-all">
               <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">Spotify Client</p>
               <div className="space-y-3">
-                <div className="flex items-center justify-between rounded bg-[#0a0c0f]/45 p-3">
+                <div className="flex items-center justify-between rounded bg-deep/45 p-3">
                   <span className="text-sm text-[#a0a0a0]">Status</span>
                   <span className="flex items-center gap-2 text-sm font-semibold text-white">
                     {installStatus.spotify_installed ? (
@@ -260,17 +260,17 @@ export default function Dashboard({
                     )}
                   </span>
                 </div>
-                <div className="flex items-center justify-between rounded-md bg-[#0a0c0f]/45 p-3">
+                <div className="flex items-center justify-between rounded-md bg-deep/45 p-3">
                   <span className="text-sm text-[#a0a0a0]">Version</span>
                   <span className="text-sm font-semibold text-white">{spotifyVersion || "N/A"}</span>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-md border border-[#2a2a2a]/75 bg-[#121418] p-4 transition-all">
+            <div className="rounded-md border border-[#2a2a2a]/75 bg-main p-4 transition-all">
               <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">Spicetify CLI</p>
               <div className="space-y-3">
-                <div className="flex items-center justify-between rounded bg-[#0a0c0f]/45 p-3">
+                <div className="flex items-center justify-between rounded bg-deep/45 p-3">
                   <span className="text-sm text-[#a0a0a0]">Status</span>
                   <span className="flex items-center gap-2 text-sm font-semibold text-white">
                     {installStatus.spicetify_installed ? (
@@ -286,7 +286,7 @@ export default function Dashboard({
                     )}
                   </span>
                 </div>
-                <div className="flex items-center justify-between rounded bg-[#0a0c0f]/45 p-3">
+                <div className="flex items-center justify-between rounded bg-deep/45 p-3">
                   <span className="text-sm text-[#a0a0a0]">Version</span>
                   <span className="text-sm font-semibold text-white">{spicetifyVersion || "N/A"}</span>
                 </div>
@@ -308,9 +308,9 @@ export default function Dashboard({
 
       {showReloadModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75">
-          <div className="flex w-full max-w-sm flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] p-6 shadow-lg">
+          <div className="flex w-full max-w-sm flex-col rounded-lg border border-[#2a2a2a] bg-main p-6 shadow-lg">
             <div className="mb-4 flex flex-col items-center">
-              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#1e2228]">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-tertiary">
                 <FaRocket className="h-6 w-6 text-[#d63c6a]" />
               </div>
               <h2 className="mb-1 text-lg font-bold text-white">Reload Spicetify</h2>
@@ -321,7 +321,7 @@ export default function Dashboard({
             <div className="flex gap-3">
               <button
                 onClick={() => setShowReloadModal(false)}
-                className="flex-1 rounded border border-[#2a2a2a] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#a0a0a0] transition hover:bg-[#1e2228] hover:text-white"
+                className="flex-1 rounded border border-[#2a2a2a] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#a0a0a0] transition hover:bg-tertiary hover:text-white"
               >
                 Cancel
               </button>
@@ -330,7 +330,7 @@ export default function Dashboard({
                   setShowReloadModal(false);
                   handleReload();
                 }}
-                className="flex-1 rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+                className="flex-1 rounded bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover active:bg-brand-active"
               >
                 Reload
               </button>
@@ -341,8 +341,8 @@ export default function Dashboard({
 
       {isReloading && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="relative flex w-full max-w-sm flex-col items-center overflow-hidden rounded-xl border border-[#2a2a2a] bg-[#121418] p-8 shadow-2xl">
-            <div className="mb-6 h-12 w-12 animate-spin rounded-full border-4 border-[#2a2a2a] border-t-[#d63c6a]"></div>
+          <div className="relative flex w-full max-w-sm flex-col items-center overflow-hidden rounded-xl border border-[#2a2a2a] bg-main p-8 shadow-2xl">
+            <div className="mb-6 h-12 w-12 animate-spin rounded-full border-4 border-[#2a2a2a] border-t-#d63c6a"></div>
             <h2 className="mb-2 text-lg font-bold text-white">Reloading Spicetify</h2>
             <p className="text-sm text-[#a0a0a0]">Running spicetify apply, please wait...</p>
           </div>
@@ -351,15 +351,15 @@ export default function Dashboard({
 
       {reloadSuccess && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="relative flex w-full max-w-sm flex-col items-center overflow-hidden rounded-xl border border-[#2a2a2a] bg-[#121418] p-8 shadow-2xl">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#1e2228]">
+          <div className="relative flex w-full max-w-sm flex-col items-center overflow-hidden rounded-xl border border-[#2a2a2a] bg-main p-8 shadow-2xl">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-tertiary">
               <FaRocket className="h-6 w-6 text-[#d63c6a]" />
             </div>
             <h2 className="mb-1 text-lg font-bold text-white">Reload Complete</h2>
             <p className="mb-6 text-center text-sm text-[#a0a0a0]">Spicetify has been applied successfully. Spotify will restart shortly.</p>
             <button
               onClick={() => setReloadSuccess(false)}
-              className="w-full rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+              className="w-full rounded bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover active:bg-brand-active"
             >
               OK
             </button>
