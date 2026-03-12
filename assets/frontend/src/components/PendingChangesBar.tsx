@@ -39,23 +39,23 @@ export default function PendingChangesBar({ onApplied, onReset }: { onApplied: (
   return (
     <>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50 p-5">
-        <div className="pointer-events-auto flex items-center justify-between rounded-xl border border-[#2a2a2a] bg-[#0e1114]/95 px-4 py-2.5 shadow-2xl shadow-black/60 backdrop-blur-md">
+        <div className="pointer-events-auto flex items-center justify-between rounded-xl border border-[#2a2a2a] bg-overlay/95 px-4 py-2.5 shadow-2xl shadow-black/60 backdrop-blur-md">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-[#d63c6a]" />
+            <span className="h-2 w-2 animate-pulse rounded-full bg-brand" />
             <span className="text-sm text-[#a0a0a0]">Unsaved changes. Spotify will restart to apply them.</span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleReset}
               disabled={isApplying}
-              className="flex items-center gap-2 rounded-full border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-1.5 text-sm font-semibold text-[#a0a0a0] transition-all hover:border-[#3a3a3a] hover:bg-[#1e2228] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center gap-2 rounded-full border border-[#2a2a2a] bg-dark px-4 py-1.5 text-sm font-semibold text-[#a0a0a0] transition-all hover:border-[#3a3a3a] hover:bg-tertiary hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
             >
               Reset
             </button>
             <button
               onClick={handleApply}
               disabled={isApplying}
-              className="flex items-center gap-2 rounded-full bg-[#d63c6a] px-4 py-1.5 text-sm font-semibold text-white transition-all hover:bg-[#c52c5a] active:bg-[#b51c4a] disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center gap-2 rounded-full bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-all hover:bg-brand-hover active:bg-brand-active disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isApplying ? (
                 <>
