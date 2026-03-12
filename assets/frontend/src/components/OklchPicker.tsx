@@ -138,17 +138,17 @@ const DiamondSlider: React.FC<SliderProps> = ({ label, symbol, value, min, max, 
   const percentage = ((value - min) / (max - min)) * 100;
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl bg-[#1e1e22] p-4 text-white shadow-lg">
+    <div className="flex flex-col gap-2 rounded-2xl bg-card p-4 text-white shadow-lg">
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold uppercase tracking-wider text-[#a0a0a0]">{label}</span>
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded bg-[#2a2a2e] text-[10px] font-bold text-[#6a6a6e]">{symbol}</span>
+          <span className="flex h-5 w-5 items-center justify-center rounded bg-input text-[10px] font-bold text-text-input-symbol">{symbol}</span>
           <input
             type="number"
             value={value}
             step={step}
             onChange={(e) => onChange(Number(e.target.value))}
-            className="w-20 rounded bg-[#2a2a2e] px-2 py-1 text-right font-mono text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d63c6a]"
+            className="w-20 rounded bg-input px-2 py-1 text-right font-mono text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d63c6a]"
           />
         </div>
       </div>
@@ -294,12 +294,12 @@ export default function OklchPicker({ hex, onChange }: { hex: string; onChange: 
     <div className="grid w-full grid-cols-2 gap-3">
       {/* Left Column: Preview */}
       <div className="flex flex-col gap-3">
-        <div className="flex flex-1 flex-col rounded-xl bg-[#1e1e22] p-3 shadow-md">
+        <div className="flex flex-1 flex-col rounded-xl bg-card p-3 shadow-md">
           <div
             className="h-32 w-full rounded-lg shadow-inner border border-white/5"
             style={{ backgroundColor: currentColor }}
           />
-          <div className="mt-2 text-center text-[8px] font-bold leading-relaxed tracking-widest text-[#4a4a4e] uppercase">
+          <div className="mt-2 text-center text-[8px] font-bold leading-relaxed tracking-widest text-text-input-label uppercase">
              Color Preview
           </div>
         </div>
@@ -343,17 +343,17 @@ export default function OklchPicker({ hex, onChange }: { hex: string; onChange: 
 
         <div className="grid grid-cols-2 gap-2 mt-1">
             <div className="group relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[9px] font-bold text-[#6a6a6e]">O</span>
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[9px] font-bold text-text-input-symbol">O</span>
               <input
                 type="text"
                 readOnly
                 value={`oklch(${l.toFixed(2)} ${c.toFixed(2)} ${Math.round(h)})`}
-                className="w-full rounded-md bg-[#1e1e22] py-2 pl-7 pr-2 font-mono text-[9px] text-white focus:outline-none transition-all group-hover:bg-[#2a2a2e] shadow-sm border border-transparent"
+                className="w-full rounded-md bg-card py-2 pl-7 pr-2 font-mono text-[9px] text-white focus:outline-none transition-all group-hover:bg-input shadow-sm border border-transparent"
               />
             </div>
             
             <div className="group relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[9px] font-bold text-[#6a6a6e]">R</span>
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[9px] font-bold text-text-input-symbol">R</span>
               <input
                 type="text"
                 value={hex.toUpperCase()}
@@ -363,7 +363,7 @@ export default function OklchPicker({ hex, onChange }: { hex: string; onChange: 
                         onChange(val.startsWith('#') ? val : `#${val}`);
                     }
                 }}
-                className="w-full rounded-md bg-[#1e1e22] py-2 pl-7 pr-2 font-mono text-[9px] text-white focus:outline-none transition-all group-hover:bg-[#2a2a2e] focus:ring-1 focus:ring-[#d63c6a] shadow-sm border border-transparent"
+                className="w-full rounded-md bg-card py-2 pl-7 pr-2 font-mono text-[9px] text-white focus:outline-none transition-all group-hover:bg-input focus:ring-1 focus:ring-[#d63c6a] shadow-sm border border-transparent"
               />
             </div>
         </div>
