@@ -103,10 +103,10 @@ export default function SubmitAddon() {
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col bg-[#171b20]">
+    <div className="relative flex h-full w-full flex-col bg-secondary">
       {urlError && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50 p-3">
-          <div className="pointer-events-auto flex items-center justify-between rounded-xl border border-red-500/30 bg-[#0e1114]/95 px-4 py-2.5 shadow-2xl shadow-black/60 backdrop-blur-md">
+          <div className="pointer-events-auto flex items-center justify-between rounded-xl border border-red-500/30 bg-overlay/95 px-4 py-2.5 shadow-2xl shadow-black/60 backdrop-blur-md">
             <div className="flex items-center gap-2">
               <FaExclamationCircle className="h-3.5 w-3.5 shrink-0 text-red-400" />
               <span className="text-sm text-red-400">{urlError}</span>
@@ -118,11 +118,11 @@ export default function SubmitAddon() {
         </div>
       )}
 
-      <div className="custom-scrollbar flex h-full w-full flex-col overflow-y-auto overflow-x-hidden bg-[#171b20] p-4">
+      <div className="custom-scrollbar flex h-full w-full flex-col overflow-y-auto overflow-x-hidden bg-secondary p-4">
 
       {showSpamModal && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-sm rounded-lg border border-[#2a2a2a] bg-[#121418] p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-sm rounded-lg border border-[#2a2a2a] bg-main p-6 shadow-xl">
             <div className="mb-3 flex items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-yellow-500/15 text-yellow-400">
                 <FaExclamationCircle size={16} />
@@ -136,13 +136,13 @@ export default function SubmitAddon() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowSpamModal(false)}
-                className="flex-1 rounded border border-[#2a2a2a] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#a0a0a0] transition hover:bg-[#1e2228] hover:text-white"
+                className="flex-1 rounded border border-[#2a2a2a] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#a0a0a0] transition hover:bg-tertiary hover:text-white"
               >
                 Go back
               </button>
               <button
                 onClick={dismissSpamModal}
-                className="flex-1 rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+                className="flex-1 rounded bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover active:bg-brand-active"
               >
                 Submit anyway
               </button>
@@ -151,13 +151,13 @@ export default function SubmitAddon() {
         </div>
       )}
 
-      <div className="mb-4 border-b border-[#1e2228] pb-4">
+      <div className="mb-4 border-b border-[#2a2a2a] pb-4">
         <h1 className="text-2xl font-bold text-white">Report Missing Listing</h1>
         <p className="mt-1 text-sm text-[#a0a0a0]">Found an extension, theme, or app that isn't showing up? Let us know and we'll add it manually.</p>
       </div>
 
       <div className="flex flex-1 flex-col space-y-4">
-        <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
+        <div className="rounded-lg border border-[#2a2a2a] bg-main p-5">
           <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">Submission</p>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
@@ -169,7 +169,7 @@ export default function SubmitAddon() {
                     type="button"
                     onClick={() => setCategory(c)}
                     className={`rounded px-5 py-2 text-sm font-semibold capitalize transition-all duration-200 active:scale-95 ${
-                      category === c ? "bg-[#d63c6a] text-white" : "bg-[#1e2228] text-[#a0a0a0] hover:bg-[#2a2e34] hover:text-white"
+                      category === c ? "bg-brand text-white" : "bg-tertiary text-[#a0a0a0] hover:bg-highlight hover:text-white"
                     }`}
                   >
                     {c}
@@ -191,7 +191,7 @@ export default function SubmitAddon() {
                 }}
                 onBlur={() => setUrlError(validateURL(repoURL))}
                 placeholder="https://github.com/username/repo"
-                className="rounded bg-[#0a0c0f]/45 px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2a2a] transition focus:ring-[#d63c6a]"
+                className="rounded bg-deep/45 px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2a2a] transition focus:ring-[#d63c6a]"
               />
             </div>
 
@@ -205,7 +205,7 @@ export default function SubmitAddon() {
                 placeholder="Any extra context e.g. where the JS file is located, what the app is called..."
                 rows={2}
                 maxLength={300}
-                className="resize-none rounded bg-[#0a0c0f]/45 px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2a2a] transition focus:ring-[#d63c6a]"
+                className="resize-none rounded bg-deep/45 px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2a2a] transition focus:ring-[#d63c6a]"
               />
             </div>
 
@@ -219,7 +219,7 @@ export default function SubmitAddon() {
                 onChange={(e) => setDiscordUser(e.target.value)}
                 placeholder="e.g. stormpiehhh, jeff53978.2"
                 maxLength={32}
-                className="rounded bg-[#0a0c0f]/45 px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2a2a] transition focus:ring-[#d63c6a]"
+                className="rounded bg-deep/45 px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none ring-1 ring-[#2a2a2a] transition focus:ring-[#d63c6a]"
               />
               <p className="text-xs text-[#666]">So we can ping you when your submission is reviewed.</p>
             </div>
@@ -242,8 +242,8 @@ export default function SubmitAddon() {
               disabled={submitting || !!urlError || !repoURL.trim()}
               className={`flex w-full items-center justify-center gap-2 rounded px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
                 submitting || !!urlError || !repoURL.trim()
-                  ? "cursor-not-allowed bg-[#1e2228] text-[#555]"
-                  : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:scale-95 active:bg-[#b51c4a]"
+                  ? "cursor-not-allowed bg-tertiary text-[#555]"
+                  : "bg-brand text-white hover:bg-brand-hover active:scale-95 active:bg-brand-active"
               }`}
             >
               <FaFlag size={12} />
@@ -252,7 +252,7 @@ export default function SubmitAddon() {
           </form>
         </div>
 
-        <div className="rounded-lg border border-[#2a2a2a] bg-[#121418] p-5">
+        <div className="rounded-lg border border-[#2a2a2a] bg-main p-5">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#d63c6a]">How does this work?</p>
           <p className="text-sm text-[#a0a0a0]">
             Your submission goes to the SpicetifyX dev team. We'll find the correct file paths and add a manual override so it shows up in the
