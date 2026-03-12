@@ -272,14 +272,14 @@ export default function MarketplaceApps({
   ) : (
     <>
       <div className="flex h-full flex-col p-4">
-        <div className="mb-4 flex w-full items-center justify-between border-b border-[#1e2228] pb-4">
+        <div className="mb-4 flex w-full items-center justify-between border-b border-[#2a2a2a] pb-4">
           <div>
             <h1 className="text-2xl font-bold text-white">Installed Apps</h1>
             <p className="text-[#a0a0a0] text-sm mt-1">Manage your Spicetify custom apps.</p>
           </div>
           <button
             onClick={() => setBrowsingContent(true)}
-            className="flex h-8 w-fit items-center gap-2 rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-all duration-200 hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+            className="flex h-8 w-fit items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-all duration-200 hover:bg-brand-hover active:bg-brand-active"
           >
             Browse content
             <FaDownload />
@@ -324,7 +324,7 @@ export default function MarketplaceApps({
       )}
       {installError && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="flex w-full max-w-sm flex-col rounded-xl border border-[#2a2a2a] bg-[#121418] p-6 shadow-lg">
+          <div className="flex w-full max-w-sm flex-col rounded-xl border border-[#2a2a2a] bg-main p-6 shadow-lg">
             <div className="mb-4 flex flex-col items-center">
               <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20">
                 <FaExclamationTriangle className="h-6 w-6 text-red-400" />
