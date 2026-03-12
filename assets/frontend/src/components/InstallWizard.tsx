@@ -110,9 +110,9 @@ export default function InstallWizard({
       <div className="flex flex-1 flex-col overflow-hidden p-5">
         {isInstalling ? (
           <div className="flex h-full flex-col gap-3">
-            <div className="flex items-center justify-between rounded-lg border border-[#2a2a2a] bg-[#121418] p-3.5">
+            <div className="flex items-center justify-between rounded-lg border border-[#2a2a2a] bg-main p-3.5">
               <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${allComplete ? "bg-[#2a2a2a]" : "bg-[#d63c6a]"}`}>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${allComplete ? "bg-[#2a2a2a]" : "bg-brand"}`}>
                   {allComplete ? <FaCheckCircle className="h-5 w-5 text-white" /> : <FaSpinner className="h-5 w-5 animate-spin text-white" />}
                 </div>
                 <div>
@@ -154,15 +154,15 @@ export default function InstallWizard({
                       key={step.id}
                       className={`flex items-start gap-3 rounded-lg border p-3 transition-all ${
                         isActive
-                          ? "border-[#d63c6a] bg-[#d63c6a]/10"
+                          ? "border-[#d63c6a] bg-brand/10"
                           : isComplete
-                            ? "border-[#2a2a2a] bg-[#121418]"
-                            : "border-[#2a2a2a] bg-[#121418]/50 opacity-60"
+                            ? "border-[#2a2a2a] bg-main"
+                            : "border-[#2a2a2a] bg-main/50 opacity-60"
                       }`}
                     >
                       <div
                         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
-                          isActive ? "bg-[#d63c6a] shadow-lg shadow-[#d63c6a]/50" : isComplete ? "bg-[#2a2a2a]" : "bg-[#1a1a1a]"
+                          isActive ? "bg-brand shadow-lg shadow-brand/50" : isComplete ? "bg-[#2a2a2a]" : "bg-dark"
                         }`}
                       >
                         {isComplete ? (
@@ -182,11 +182,11 @@ export default function InstallWizard({
                 })}
               </div>
 
-              <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#0c0e11]">
+              <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-[#2a2a2a] bg-blacker">
                 <div className="flex items-center justify-between border-b border-[#2a2a2a] px-3 py-2">
                   <span className="text-xs font-medium text-white">Installation Log</span>
                   <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-[#d63c6a]"></div>
+                    <div className="h-2 w-2 animate-pulse rounded-full bg-brand"></div>
                     <span className="text-xs text-[#a0a0a0]">Live</span>
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export default function InstallWizard({
           </div>
         ) : (
           <div className="flex h-full flex-col">
-            <div className="mb-5 rounded-lg border border-[#d63c6a]/20 bg-[#d63c6a]/5 p-4 text-sm text-[#a0a0a0]">
+            <div className="mb-5 rounded-lg border border-[#d63c6a]/20 bg-brand/5 p-4 text-sm text-[#a0a0a0]">
               <p className="leading-relaxed">
                 SpicetifyX will manage Spicetify installations internally, so an existing Spicetify installation isn't required. After clicking{" "}
                 <span className="font-semibold text-white">Install</span>, the following extensions and themes will be automatically installed:
@@ -212,15 +212,15 @@ export default function InstallWizard({
                   return (
                     <div
                       key={theme.name}
-                      className="group flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]"
+                      className="group flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-main p-3 transition-colors hover:bg-tertiary"
                     >
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#1e2228]">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-tertiary">
                         {src ? <StaticImage src={src} className="h-full w-full object-cover" /> : <FaPalette className="h-5 w-5 text-[#d63c6a]" />}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <h3 className="truncate text-sm font-bold text-white">{theme.name}</h3>
-                          <span className="rounded bg-[#d63c6a]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#d63c6a]">
+                          <span className="rounded bg-brand/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#d63c6a]">
                             Theme
                           </span>
                         </div>
@@ -228,7 +228,7 @@ export default function InstallWizard({
                       </div>
                       <button
                         onClick={() => handleShowInfo(theme, "theme")}
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] opacity-0 transition-all hover:bg-[#2a2e34] hover:text-white group-hover:opacity-100"
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] opacity-0 transition-all hover:bg-highlight hover:text-white group-hover:opacity-100"
                         title="Info"
                       >
                         <FaInfoCircle className="h-4 w-4" />
@@ -242,9 +242,9 @@ export default function InstallWizard({
                   return (
                     <div
                       key={ext.name}
-                      className="group flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#121418] p-3 transition-colors hover:bg-[#1e2228]"
+                      className="group flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-main p-3 transition-colors hover:bg-tertiary"
                     >
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded bg-[#1e2228]">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded bg-tertiary">
                         {src ? (
                           <StaticImage src={src} className="h-full w-full object-cover" />
                         ) : (
@@ -262,7 +262,7 @@ export default function InstallWizard({
                       </div>
                       <button
                         onClick={() => handleShowInfo(ext, "extension")}
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] opacity-0 transition-all hover:bg-[#2a2e34] hover:text-white group-hover:opacity-100"
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] opacity-0 transition-all hover:bg-highlight hover:text-white group-hover:opacity-100"
                         title="Info"
                       >
                         <FaInfoCircle className="h-4 w-4" />
