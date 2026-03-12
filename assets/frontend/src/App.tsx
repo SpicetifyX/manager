@@ -174,6 +174,13 @@ export default function App() {
         return next;
       });
     }
+
+    // Reset window size when leaving themes tab
+    if (activeTab !== "themes") {
+      backend.SetWindowMaxSize(950, 640);
+      backend.SetWindowMinSize(950, 640);
+      backend.SetWindowSize(950, 640);
+    }
   }, [activeTab]);
 
   return (
@@ -285,8 +292,8 @@ export default function App() {
                       <MarketplaceAddons onDirtyChange={(d) => setAddonsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
                     </div>
                   )}
-                  {mountedTabs.has("themes") && (
-                    <div className={activeTab === "themes" ? "h-full" : "hidden"}>
+                  {activeTab === "themes" && (
+                    <div className="h-full">
                       <MarketplaceThemes onDirtyChange={(d) => setThemesDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
                     </div>
                   )}
