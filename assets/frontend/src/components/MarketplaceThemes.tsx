@@ -52,42 +52,24 @@ export default function MarketplaceThemes({
     setCommunityError(null);
 
     try {
-      const pageOfRepos = await getTaggedRepos("spicetify-themes", targetPage, [], false);
-      const results = await Promise.allSettled(
-        pageOfRepos.items.map((repo: any) =>
-          fetchThemeManifest(repo.contents_url, repo.default_branch, repo.stargazers_count).then(
-            (themes) =>
-              themes?.map((t) => ({
-                ...t,
-                archived: repo.archived,
-                lastUpdated: repo.pushed_at,
-                created: repo.created_at,
-              })) || [],
-          ),
-        ),
-      );
-      const allThemes: CardItem[] = [];
-      const currentThemesList = themes;
-      for (const result of results) {
-        if (result.status === "fulfilled" && result.value.length) {
-          allThemes.push(
-            ...result.value.map((t: any) => ({
-              ...t,
-              installed: currentThemesList.some((th) => th.name === t.title),
-            })),
-          );
+      const allThemes = await backend.GetMarketplaceItems("Themes", targetPage, false);
+
+      if (!allThemes || allThemes.length === 0) {
+        setHasMore(false);
+      } else {
+        const currentThemesList = themes;
+        const enriched = allThemes.map((t: any) => ({
+          ...t,
+          installed: currentThemesList.some((th) => th.name === t.title),
+        }));
+
+        if (targetPage === 1) {
+          setCommunityThemes(enriched);
+        } else {
+          setCommunityThemes((prev) => [...prev, ...enriched]);
         }
       }
-
-      if (targetPage === 1) {
-        setCommunityThemes([...allThemes]);
-      } else {
-        setCommunityThemes((prev) => [...prev, ...allThemes]);
-      }
       setPage(targetPage);
-      if (pageOfRepos.items.length === 0 || pageOfRepos.items.length < 30) {
-        setHasMore(false);
-      }
     } catch (err: any) {
       console.error("Failed to fetch community themes:", err);
       setCommunityError(err.message?.includes("403") ? "GitHub API rate limit reached. Try again later." : "Failed to load community themes.");
