@@ -40,7 +40,7 @@ export default function App({
 
   return (
     <>
-      <div className={`flex w-full items-center justify-between border-b border-[#2a2a2a] px-3 py-2 transition-colors duration-200 hover:bg-[#1e2228] ${pendingDelete ? "opacity-40" : ""}`}>
+      <div className={`flex w-full items-center justify-between border-b border-[#2a2a2a] px-3 py-2 transition-colors duration-200 hover:bg-tertiary ${pendingDelete ? "opacity-40" : ""}`}>
         <div className="flex min-w-0 flex-grow items-center">
           <div className="mr-4 h-14 w-14 flex-shrink-0 overflow-hidden rounded">
             <StaticImage src={imageURL} alt={`${name} icon`} className="h-full w-full object-cover" />
@@ -56,7 +56,7 @@ export default function App({
         <div className="flex items-center gap-2">
           <button
             onClick={handleShowInfo}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2e34] hover:text-white disabled:opacity-50"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-highlight hover:text-white disabled:opacity-50"
             title="Info"
           >
             <FaInfoCircle className="h-4 w-4" />
@@ -83,7 +83,7 @@ export default function App({
                 onChange={(e) => onToggle(appId, e.target.checked)}
                 disabled={isToggling}
               />
-              <div className={`block h-8 w-14 rounded-full ${isEnabled ? "bg-[#d63c6a]" : "bg-gray-600"}`}></div>
+              <div className={`block h-8 w-14 rounded-full ${isEnabled ? "bg-brand" : "bg-gray-600"}`}></div>
               <div className={`dot absolute top-1 left-1 h-6 w-6 rounded-full bg-white transition ${isEnabled ? "translate-x-full" : ""}`}></div>
             </div>
           </label>
