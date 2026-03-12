@@ -130,6 +130,113 @@ func (a *App) GetSpicetifyThemes() []ThemeInfo {
 	return themes
 }
 
+func (a *App) GetThemePresets(themeID string) map[string]map[string]string {
+	themesDir := helpers.GetThemesDir()
+	colorIniPath := filepath.Join(themesDir, themeID, "color.ini")
+
+	data, err := os.ReadFile(colorIniPath)
+	if err != nil {
+		return nil
+	}
+
+	presets := make(map[string]map[string]string)
+	var currentSection string
+
+	content := string(data)
+	content = strings.TrimPrefix(content, "\ufeff") // Remove UTF-8 BOM if present
+	lines := strings.Split(strings.NewReplacer("\r\n", "\n", "\r", "\n").Replace(content), "\n")
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, ";") || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+
+		// Section check: [section]
+		if strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") {
+			currentSection = strings.TrimSpace(trimmed[1 : len(trimmed)-1])
+			if _, ok := presets[currentSection]; !ok {
+				presets[currentSection] = make(map[string]string)
+			}
+			continue
+		}
+
+		// Key-Value check: key = value
+		if currentSection != "" && strings.Contains(trimmed, "=") {
+			parts := strings.SplitN(trimmed, "=", 2)
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+
+			// Remove inline comments from value
+			if idx := strings.Index(value, ";"); idx != -1 {
+				value = strings.TrimSpace(value[:idx])
+			} else if idx := strings.Index(value, "#"); idx != -1 {
+				value = strings.TrimSpace(value[:idx])
+			}
+
+			presets[currentSection][key] = value
+		}
+	}
+
+	return presets
+}
+
+func (a *App) UpdateThemePreset(themeID, preset, key, value string) bool {
+	themesDir := helpers.GetThemesDir()
+	colorIniPath := filepath.Join(themesDir, themeID, "color.ini")
+
+	data, err := os.ReadFile(colorIniPath)
+	if err != nil {
+		return false
+	}
+
+	content := string(data)
+	lines := strings.Split(strings.NewReplacer("\r\n", "\n", "\r", "\n").Replace(content), "\n")
+	var newLines []string
+	var currentSection string
+	found := false
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		// Parse for section tracking, even if line has comments
+		parseLine := trimmed
+		if idx := strings.Index(parseLine, ";"); idx != -1 {
+			parseLine = strings.TrimSpace(parseLine[:idx])
+		} else if idx := strings.Index(parseLine, "#"); idx != -1 {
+			parseLine = strings.TrimSpace(parseLine[:idx])
+		}
+
+		if strings.HasPrefix(parseLine, "[") && strings.HasSuffix(parseLine, "]") {
+			currentSection = strings.TrimSpace(parseLine[1 : len(parseLine)-1])
+		} else if currentSection == preset && strings.Contains(trimmed, "=") {
+			parts := strings.SplitN(trimmed, "=", 2)
+			currentKey := strings.TrimSpace(parts[0])
+			if currentKey == key {
+				// preserve comments if any after the value
+				comment := ""
+				valPart := parts[1]
+				if idx := strings.Index(valPart, ";"); idx != -1 {
+					comment = " " + valPart[idx:]
+				} else if idx := strings.Index(valPart, "#"); idx != -1 {
+					comment = " " + valPart[idx:]
+				}
+
+				line = key + " = " + value + comment
+				found = true
+			}
+		}
+		newLines = append(newLines, line)
+	}
+
+	if !found {
+		return false
+	}
+
+	err = os.WriteFile(colorIniPath, []byte(strings.Join(newLines, "\n")), 0644)
+	return err == nil
+}
+
 func (a *App) ApplySpicetifyTheme(themeID string) bool {
 	exec := helpers.GetSpicetifyExec()
 	themesDir := helpers.GetThemesDir()
