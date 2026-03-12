@@ -4,7 +4,7 @@ import { AddonInfo } from "../types/addon.d";
 import { ThemeInfo } from "../types/theme.d";
 import { AppInfo } from "../types/app.d";
 
-const CACHE_TTL_MS = 5 * 60_000; // 5 minutes
+const CACHE_TTL_MS = 5 * 60_000;
 
 function readCache<T>(key: string): T | null {
   try {
