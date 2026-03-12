@@ -12,7 +12,7 @@ interface ApplyModalProps {
 export default function ApplyModal({ phase, errorMessage, onClose }: ApplyModalProps) {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="relative flex w-full max-w-sm flex-col items-center overflow-hidden rounded-xl border border-[#2a2a2a] bg-[#121418] p-8 shadow-2xl">
+      <div className="relative flex w-full max-w-sm flex-col items-center overflow-hidden rounded-xl border border-[#2a2a2a] bg-main p-8 shadow-2xl">
         {phase === "applying" && (
           <>
             <Spinner className="mb-6 h-12 w-12" />
@@ -30,7 +30,7 @@ export default function ApplyModal({ phase, errorMessage, onClose }: ApplyModalP
             <p className="mb-5 text-center text-sm text-[#a0a0a0]">Your changes have been applied. Spotify is restarting.</p>
             <button
               onClick={onClose}
-              className="w-full rounded-lg bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#c52c5a] active:scale-95"
+              className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-brand-hover active:scale-95"
             >
               Done
             </button>
@@ -46,7 +46,7 @@ export default function ApplyModal({ phase, errorMessage, onClose }: ApplyModalP
             <p className="mb-4 text-center text-sm text-[#a0a0a0]">
               {errorMessage || "Something went wrong while applying your changes."}
             </p>
-            <div className="mb-5 w-full rounded-lg bg-[#1e1014] p-3 border border-red-800/40">
+            <div className="mb-5 w-full rounded-lg bg-error-light p-3 border border-red-800/40">
               <p className="text-xs text-red-400">Your changes were not saved. You can try again or reset.</p>
             </div>
             <button
