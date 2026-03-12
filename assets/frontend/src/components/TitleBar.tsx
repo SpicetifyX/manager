@@ -12,7 +12,7 @@ export default function TitleBar() {
 
   return (
     <div
-      className="flex h-10 w-full flex-shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-[#121418] px-4 select-none"
+      className="flex h-10 w-full flex-shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-main px-4 select-none"
       style={{ "--wails-draggable": "drag" } as React.CSSProperties}
     >
       <div className="text-xs font-semibold text-white">SpicetifyX Manager</div>
@@ -26,7 +26,7 @@ export default function TitleBar() {
         </button>
         <button
           onClick={handleClose}
-          className="flex h-8 w-8 items-center justify-center rounded text-[#a0a0a0] transition-colors hover:bg-[#d63c6a] hover:text-white"
+          className="flex h-8 w-8 items-center justify-center rounded text-[#a0a0a0] transition-colors hover:bg-brand hover:text-white"
           title="Close"
         >
           <FaTimes size={14} />
