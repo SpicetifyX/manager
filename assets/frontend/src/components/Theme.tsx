@@ -75,7 +75,7 @@ export default function Theme({
   return (
     <>
       <div
-        className={`flex w-full items-center justify-between border-b border-[#2a2a2a] px-3 py-2 transition-colors duration-200 hover:bg-[#1e2228] ${pendingDelete ? "opacity-40" : ""}`}
+        className={`flex w-full items-center justify-between border-b border-[#2a2a2a] px-3 py-2 transition-colors duration-200 hover:bg-tertiary ${pendingDelete ? "opacity-40" : ""}`}
       >
         <div className="flex min-w-0 flex-grow items-center">
           <div className="mr-4 h-14 w-14 flex-shrink-0 overflow-hidden rounded">
@@ -101,14 +101,14 @@ export default function Theme({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowInfo(true)}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2e34] hover:text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-highlight hover:text-white"
             title="Info"
           >
             <FaInfoCircle className="h-4 w-4" />
           </button>
           <button
             onClick={() => setEditingTheme && setEditingTheme(theme.id)}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-[#2a2e34] hover:text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[#a0a0a0] transition-colors hover:bg-highlight hover:text-white"
             title="Edit Theme"
           >
             <FaPencil className="h-4 w-4" />
@@ -129,7 +129,7 @@ export default function Theme({
                 ref={schemeButtonRef}
                 onClick={openDropdown}
                 disabled={isApplying}
-                className="flex h-8 items-center gap-1.5 rounded-full border border-[#2a2a2a] bg-[#1a1a1a] pr-2.5 pl-2.5 text-sm text-white transition-all hover:border-[#3a3a3a] hover:bg-[#1e2228] disabled:opacity-50"
+                className="flex h-8 items-center gap-1.5 rounded-full border border-[#2a2a2a] bg-dark pr-2.5 pl-2.5 text-sm text-white transition-all hover:border-[#3a3a3a] hover:bg-tertiary disabled:opacity-50"
                 title="Color scheme"
               >
                 <FaPalette className="h-3 w-3 text-[#d63c6a]" />
@@ -141,7 +141,7 @@ export default function Theme({
                   <div
                     ref={dropdownRef}
                     style={{ top: dropdownPos.top, right: dropdownPos.right }}
-                    className="fixed z-[9999] min-w-[140px] rounded-lg border border-[#2a2a2a] bg-[#161a1e] p-1 shadow-xl shadow-black/40"
+                    className="fixed z-[9999] min-w-[140px] rounded-lg border border-[#2a2a2a] bg-menu p-1 shadow-xl shadow-black/40"
                   >
                     <div className="custom-scrollbar max-h-48 overflow-y-auto">
                       {schemes.map((scheme) => (
@@ -156,11 +156,11 @@ export default function Theme({
                             setSchemeOpen(false);
                             onSetColorScheme(theme.id, scheme);
                           }}
-                          className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors ${selectedScheme === scheme ? "bg-[#d63c6a]/15 text-[#d63c6a]" : "text-[#ccc] hover:bg-[#1e2228] hover:text-white"
+                          className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors ${selectedScheme === scheme ? "bg-brand/15 text-[#d63c6a]" : "text-[#ccc] hover:bg-tertiary hover:text-white"
                             }`}
                         >
                           <span
-                            className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${selectedScheme === scheme ? "bg-[#d63c6a]" : "bg-transparent"}`}
+                            className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${selectedScheme === scheme ? "bg-brand" : "bg-transparent"}`}
                           />
                           <span className="truncate">{scheme}</span>
                         </button>
@@ -180,7 +180,7 @@ export default function Theme({
               <button
                 onClick={() => onSelect(theme.id)}
                 disabled={theme.isActive}
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${theme.isActive ? "cursor-not-allowed bg-[#d63c6a] text-white" : "bg-[#2a2e34] text-[#a0a0a0] hover:bg-[#d63c6a] hover:text-white"}`}
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${theme.isActive ? "cursor-not-allowed bg-brand text-white" : "bg-highlight text-[#a0a0a0] hover:bg-brand hover:text-white"}`}
               >
                 {theme.isActive ? "Active" : "Select"}
               </button>
