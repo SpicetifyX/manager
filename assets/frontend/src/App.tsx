@@ -184,7 +184,7 @@ export default function App() {
   }, [activeTab]);
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#171b20]">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-secondary">
       <TitleBar />
       <div className="flex h-full flex-1 flex-col overflow-hidden">
         {isChecking ? (
@@ -209,7 +209,7 @@ export default function App() {
               </div>
               <button
                 onClick={() => backend.OpenExternalLink("https://www.spotify.com/download")}
-                className="flex items-center gap-2 rounded-lg bg-[#d63c6a] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+                className="flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover active:bg-brand-active"
               >
                 <FaExternalLinkAlt className="h-3.5 w-3.5" />
                 Download Official Spotify
@@ -229,10 +229,10 @@ export default function App() {
                   onClick={installSpicetify}
                   disabled={installing || installCompleted}
                   className={`flex items-center gap-2 rounded px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${installing
-                      ? "cursor-not-allowed bg-[#a02950] text-white"
+                      ? "cursor-not-allowed bg-brand-disabled text-white"
                       : installCompleted
                         ? "cursor-not-allowed bg-[#2a2a2a] text-white"
-                        : "bg-[#d63c6a] text-white hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+                        : "bg-brand text-white hover:bg-brand-hover active:bg-brand-active"
                     }`}
                 >
                   <FaDownload />
@@ -244,40 +244,40 @@ export default function App() {
         ) : (
           <SpicetifyProvider>
             <div className="flex h-full w-full flex-1">
-              <div className="flex w-16 flex-col items-center bg-[#121418] p-4">
+              <div className="flex w-16 flex-col items-center bg-main p-4">
                 <button
-                  className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "dashboard" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2e34]"}`}
+                  className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "dashboard" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-highlight"}`}
                   onClick={() => setActiveTab("dashboard")}
                 >
                   <FaHome size={20} />
                 </button>
                 <button
-                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "addons" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2e34]"}`}
+                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "addons" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-highlight"}`}
                   onClick={() => setActiveTab("addons")}
                 >
                   <FaPuzzlePiece size={20} />
                 </button>
                 <button
-                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "themes" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
+                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "themes" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
                   onClick={() => setActiveTab("themes")}
                 >
                   <FaPalette size={20} />
                 </button>
                 <button
-                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "apps" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
+                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "apps" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
                   onClick={() => setActiveTab("apps")}
                 >
                   <FaAppStore size={20} />
                 </button>
                 <div className="mt-auto flex flex-col gap-2">
                   <button
-                    className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "submit" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
+                    className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "submit" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
                     onClick={() => setActiveTab("submit")}
                   >
                     <FaFlag size={20} />
                   </button>
                   <button
-                    className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "settings" ? "bg-[#d63c6a] text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
+                    className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "settings" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
                     onClick={() => setActiveTab("settings")}
                   >
                     <FaCog size={20} />
