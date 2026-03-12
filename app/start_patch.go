@@ -33,6 +33,7 @@ func (a *App) StartInstall() {
 
 		_ = helpers.SpicetifyCommand(exec, []string{"config", "extensions", "adblock.js"}, nil)
 		_ = helpers.SpicetifyCommand(exec, []string{"config", "extensions", "spotifyGenres.js"}, nil)
+		_ = helpers.SpicetifyCommand(exec, []string{"config", "extensions", "spicetifyx.js"}, nil)
 
 		if err := helpers.SpicetifyCommand(exec, []string{"backup", "apply"}, sendOutput); err != nil {
 			wailsRuntime.EventsEmit(a.ctx, "install-complete", map[string]any{"success": false, "error": err.Error()})
