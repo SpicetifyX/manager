@@ -8,6 +8,7 @@ import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import * as backend from "../../wailsjs/go/app/App";
 import { useSpicetify } from "../context/SpicetifyContext";
 import MarketplaceBrowseView from "./MarketplaceBrowseView";
+import EditingTheme from "./EditingTheme";
 
 export default function MarketplaceThemes({
   onDirtyChange,
@@ -18,6 +19,7 @@ export default function MarketplaceThemes({
   snapshotKey: number;
 }) {
   const { themes, themesLoaded, refreshThemes, setThemesLocally, baselineThemes } = useSpicetify();
+  const [editingTheme, setEditingTheme] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(!themesLoaded);
   const [error, setError] = useState<string | null>(null);
@@ -95,21 +97,6 @@ export default function MarketplaceThemes({
       } else {
         setLoadingMore(false);
       }
-    }
-  };
-
-  const fetchThemes = async (silent = false) => {
-    if (!silent) {
-      setLoading(true);
-      setError(null);
-    }
-    try {
-      await refreshThemes();
-    } catch (err: any) {
-      if (!silent) setError(err.message || "Failed to fetch themes.");
-      console.error("Error fetching themes:", err);
-    } finally {
-      if (!silent) setLoading(false);
     }
   };
 
@@ -260,83 +247,87 @@ export default function MarketplaceThemes({
   return (
     <>
       {browsingContent ? (
-    <MarketplaceBrowseView
-      title="Browsing Community Themes"
-      searchPlaceholder="Search themes..."
-      searchQuery={searchQuery}
-      onSearchChange={setSearchQuery}
-      onBack={() => setBrowsingContent(false)}
-      allTags={smartTags}
-      sortTags={sortTags}
-      selectedTags={selectedTags}
-      onTagsChange={setSelectedTags}
-      error={communityError}
-      onRetry={fetchCommunityThemes}
-      loading={communityLoading}
-      loadingLabel="Fetching Themes"
-      emptyLabel="No community themes found."
-      items={filteredThemes}
-      allItems={communityThemes}
-      installingIndex={installingIndex}
-      onInstall={handleInstallTheme}
-      loadingMore={loadingMore}
-      lastItemRef={lastThemeElementRef}
-      infoIndex={infoIndex}
-      onInfo={setInfoIndex}
-      onInfoClose={() => setInfoIndex(null)}
-    />
-  ) : (
-    <>
-      <div className="flex h-full flex-col p-4">
-        <div className="mb-4 flex w-full items-center justify-between border-b border-[#1e2228] pb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Installed Themes</h1>
-            <p className="text-[#a0a0a0] text-sm mt-1">Select a theme for your Spotify client.</p>
-          </div>
-          <button
-            onClick={() => setBrowsingContent(true)}
-            className="flex h-8 w-fit items-center gap-2 rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-all duration-200 hover:bg-[#c52c5a] active:bg-[#b51c4a]"
-          >
-            Browse content
-            <FaDownload />
-          </button>
-        </div>
+        <MarketplaceBrowseView
+          title="Browsing Community Themes"
+          searchPlaceholder="Search themes..."
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onBack={() => setBrowsingContent(false)}
+          allTags={smartTags}
+          sortTags={sortTags}
+          selectedTags={selectedTags}
+          onTagsChange={setSelectedTags}
+          error={communityError}
+          onRetry={fetchCommunityThemes}
+          loading={communityLoading}
+          loadingLabel="Fetching Themes"
+          emptyLabel="No community themes found."
+          items={filteredThemes}
+          allItems={communityThemes}
+          installingIndex={installingIndex}
+          onInstall={handleInstallTheme}
+          loadingMore={loadingMore}
+          lastItemRef={lastThemeElementRef}
+          infoIndex={infoIndex}
+          onInfo={setInfoIndex}
+          onInfoClose={() => setInfoIndex(null)}
+        />
+      ) : editingTheme ? (
+        <EditingTheme editingTheme={editingTheme} setEditingTheme={setEditingTheme} />
+      ) : (
+        <>
+          <div className="flex h-full flex-col p-4">
+            <div className="mb-4 flex w-full items-center justify-between border-b border-[#1e2228] pb-4">
+              <div>
+                <h1 className="text-2xl font-bold text-white">Installed Themes</h1>
+                <p className="text-[#a0a0a0] text-sm mt-1">Select a theme for your Spotify client.</p>
+              </div>
+              <button
+                onClick={() => setBrowsingContent(true)}
+                className="flex h-8 w-fit items-center gap-2 rounded-full bg-[#d63c6a] px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-all duration-200 hover:bg-[#c52c5a] active:bg-[#b51c4a]"
+              >
+                Browse content
+                <FaDownload />
+              </button>
+            </div>
 
-        {loading && <p className="text-[#a0a0a0]">Loading themes...</p>}
-        {error && <p className="text-red-500">Error: {error}</p>}
+            {loading && <p className="text-[#a0a0a0]">Loading themes...</p>}
+            {error && <p className="text-red-500">Error: {error}</p>}
 
-        {!loading && !error && (
-          <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-            {baselineThemes.length > 0 ? (
-              baselineThemes.map((base) => {
-                const current = themes.find((t) => t.id === base.id);
-                const display = current ?? base;
-                return (
-                  <Theme
-                    key={base.id}
-                    theme={display}
-                    onSelect={handleSelectTheme}
-                    onSetColorScheme={handleSetColorScheme}
-                    onDelete={!base.isBundled ? handleDeleteTheme : undefined}
-                    isApplying={false}
-                    pendingDelete={!current}
-                  />
-                );
-              })
-            ) : (
-              <p className="text-[#a0a0a0]">No themes found.</p>
+            {!loading && !error && (
+              <div className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
+                {baselineThemes.length > 0 ? (
+                  baselineThemes.map((base) => {
+                    const current = themes.find((t) => t.id === base.id);
+                    const display = current ?? base;
+                    return (
+                      <Theme
+                        key={base.id}
+                        theme={display}
+                        onSelect={handleSelectTheme}
+                        onSetColorScheme={handleSetColorScheme}
+                        editingTheme={editingTheme}
+                        setEditingTheme={setEditingTheme}
+                        onDelete={!base.isBundled ? handleDeleteTheme : undefined}
+                        isApplying={false}
+                        pendingDelete={!current}
+                      />
+                    );
+                  })
+                ) : (
+                  <p className="text-[#a0a0a0]">No themes found.</p>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
-      <ConfirmDeleteModal
-        show={!!pendingDelete}
-        itemName={pendingDelete?.name || ""}
-        itemType="theme"
-        onConfirm={confirmDeleteTheme}
-        onCancel={() => setPendingDelete(null)}
-      />
-    </>
+          <ConfirmDeleteModal
+            show={!!pendingDelete}
+            itemName={pendingDelete?.name || ""}
+            itemType="theme"
+            onConfirm={confirmDeleteTheme}
+            onCancel={() => setPendingDelete(null)}
+          />
+        </>
       )}
       {installError && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
