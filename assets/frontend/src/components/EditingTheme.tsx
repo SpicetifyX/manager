@@ -117,7 +117,7 @@ export default function EditingTheme({
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <div className="flex w-full flex-shrink-0 flex-col border-b border-[#2a2a2a] bg-[#121418] select-none">
+      <div className="flex w-full flex-shrink-0 flex-col border-b border-[#2a2a2a] bg-main select-none">
         <div className="flex h-12 items-center justify-between pl-1 pr-3">
           <div className="flex items-center gap-3">
             <button
@@ -140,7 +140,7 @@ export default function EditingTheme({
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="rounded bg-[#d63c6a] px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a] disabled:opacity-50"
+                    className="rounded bg-brand px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-brand-hover active:bg-brand-active disabled:opacity-50"
                 >
                     {saving ? "Saving..." : "Save Changes"}
                 </button>
@@ -149,7 +149,7 @@ export default function EditingTheme({
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden bg-[#0a0c0e]">
+      <div className="flex flex-1 overflow-hidden bg-darker">
         {loading ? (
           <div className="flex flex-1 items-center justify-center text-[#a0a0a0]">
             <div className="animate-pulse">Loading presets...</div>
@@ -157,7 +157,7 @@ export default function EditingTheme({
         ) : (
           <>
             {/* Sidebar with presets and keys */}
-            <div className="w-1/4 border-r border-[#2a2a2a] overflow-hidden bg-[#121418]/50 flex flex-col">
+            <div className="w-1/4 border-r border-[#2a2a2a] overflow-hidden bg-main/50 flex flex-col">
               <div className="p-4 border-b border-[#2a2a2a]">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-[#a0a0a0] mb-2 block">Theme Preset</label>
                 <select
@@ -172,7 +172,7 @@ export default function EditingTheme({
                       setCurrentColor(formatColor(presets[newPreset][firstKey]));
                     }
                   }}
-                  className="w-full bg-[#1e2228] text-white border border-[#2a2a2a] rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#d63c6a]"
+                  className="w-full bg-tertiary text-white border border-[#2a2a2a] rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#d63c6a]"
                 >
                   {Object.keys(presets).map((p) => (
                     <option key={p} value={p}>{p}</option>
@@ -190,8 +190,8 @@ export default function EditingTheme({
                         onClick={() => handleKeyClick(selectedPreset, key, value)}
                         className={`flex w-full items-center justify-between rounded px-3 py-2 text-sm transition-all ${
                           selectedKey === key
-                            ? "bg-[#d63c6a] text-white"
-                            : "text-[#a0a0a0] hover:bg-[#1e2228] hover:text-white"
+                            ? "bg-brand text-white"
+                            : "text-[#a0a0a0] hover:bg-tertiary hover:text-white"
                         }`}
                       >
                         <span className="truncate mr-2 font-medium">{key}</span>
@@ -212,13 +212,13 @@ export default function EditingTheme({
             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
               {selectedKey ? (
                 <div className="mx-auto max-w-4xl">
-                   <div className="mb-4 flex items-end justify-between border-b border-[#1e1e22] pb-2">
+                   <div className="mb-4 flex items-end justify-between border-b border-[#2a2a2a] pb-2">
                       <div>
                         <h2 className="text-xl font-bold text-white leading-tight">{selectedKey}</h2>
                         <p className="text-xs text-[#a0a0a0]">Preset: <span className="text-[#d63c6a] font-mono">{selectedPreset}</span></p>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-[#4a4a4e]">Current Hex</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-text-input-label">Current Hex</span>
                         <span className="font-mono text-lg text-white">{currentColor.toUpperCase()}</span>
                       </div>
                    </div>
@@ -226,8 +226,8 @@ export default function EditingTheme({
                    <OklchPicker hex={currentColor} onChange={setCurrentColor} />
                 </div>
               ) : (
-                <div className="flex h-full flex-col items-center justify-center text-[#4a4a4a]">
-                  <div className="mb-4 rounded-full border border-[#2a2a2a] bg-[#121418] p-6">
+                <div className="flex h-full flex-col items-center justify-center text-[#555]mer">
+                  <div className="mb-4 rounded-full border border-[#2a2a2a] bg-main p-6">
                     <FaSave className="text-4xl opacity-10" />
                   </div>
                   <p className="text-base font-medium">Select a color key from the sidebar to begin editing</p>
