@@ -56,14 +56,14 @@ export default function OldInstallFound({ fetchInstall }: { fetchInstall: () => 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75">
       <div
-        className={`flex flex-col rounded-lg border border-[#2a2a2a] bg-[#121418] shadow-lg transition-all duration-300 ${
+        className={`flex flex-col rounded-lg border border-[#2a2a2a] bg-main shadow-lg transition-all duration-300 ${
           busy ? "h-[75%] w-full max-w-2xl p-5" : "w-full max-w-sm p-6"
         }`}
       >
         {!busy ? (
           <>
             <div className="mb-4 flex flex-col items-center">
-              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#1e2228]">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-tertiary">
                 <FaExclamationTriangle className="h-6 w-6 text-yellow-400" />
               </div>
               <h2 className="mb-1 text-lg font-bold text-white">Old Installation Found</h2>
@@ -74,16 +74,16 @@ export default function OldInstallFound({ fetchInstall }: { fetchInstall: () => 
             <button
               onClick={handleRestore}
               disabled={restored}
-              className="w-full rounded bg-[#d63c6a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c52c5a] active:bg-[#b51c4a] disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover active:bg-brand-active disabled:cursor-not-allowed disabled:opacity-50"
             >
               {restored ? "Restored!" : "Restore to Default"}
             </button>
           </>
         ) : (
           <>
-            <div className="mb-4 flex items-center rounded-lg border border-[#2a2a2a] bg-[#121418] p-3.5">
+            <div className="mb-4 flex items-center rounded-lg border border-[#2a2a2a] bg-main p-3.5">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d63c6a]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand">
                   <FaSync className="h-5 w-5 animate-spin text-white" />
                 </div>
                 <div>
@@ -93,11 +93,11 @@ export default function OldInstallFound({ fetchInstall }: { fetchInstall: () => 
               </div>
             </div>
 
-            <div className="flex-1 overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#0c0e11]">
+            <div className="flex-1 overflow-hidden rounded-lg border border-[#2a2a2a] bg-blacker">
               <div className="flex items-center justify-between border-b border-[#2a2a2a] px-3 py-2">
                 <span className="text-xs font-medium text-white">Restore Log</span>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 animate-pulse rounded-full bg-[#d63c6a]"></div>
+                  <div className="h-2 w-2 animate-pulse rounded-full bg-brand"></div>
                   <span className="text-xs text-[#a0a0a0]">Live</span>
                 </div>
               </div>
@@ -109,7 +109,7 @@ export default function OldInstallFound({ fetchInstall }: { fetchInstall: () => 
         )}
 
         {error && (
-          <div className="mt-4 rounded-lg bg-[#3c1212] p-3">
+          <div className="mt-4 rounded-lg bg-error-dark p-3">
             <p className="text-xs text-[#ff9999]">{error}</p>
           </div>
         )}
