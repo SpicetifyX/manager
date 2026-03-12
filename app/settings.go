@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"manager/internal/helpers"
 	"os"
@@ -165,15 +164,3 @@ func fileExists(path string) bool {
 	return !errors.Is(err, os.ErrNotExist)
 }
 
-func downloadText(url string) (string, error) {
-	resp, err := helpers.HttpGet(url)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("HTTP %d for %s", resp.StatusCode, url)
-	}
-	data, err := io.ReadAll(resp.Body)
-	return string(data), err
-}
