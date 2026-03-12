@@ -28,6 +28,9 @@ func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	a.rpcStart = helpers.CurrentTimeMillis()
 
+	StartWSServer()
+	a.InstallSpicetifyXExtension()
+
 	settings, err := ReadSettings()
 	if err == nil {
 		a.closeToTray = settings.CloseToTray
@@ -112,4 +115,16 @@ func (a *App) WindowMinimize() {
 
 func (a *App) WindowClose() {
 	runtime.Quit(a.ctx)
+}
+
+func (a *App) SetWindowSize(width, height int) {
+	runtime.WindowSetSize(a.ctx, width, height)
+}
+
+func (a *App) SetWindowMaxSize(width, height int) {
+	runtime.WindowSetMaxSize(a.ctx, width, height)
+}
+
+func (a *App) SetWindowMinSize(width, height int) {
+	runtime.WindowSetMinSize(a.ctx, width, height)
 }
