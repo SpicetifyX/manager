@@ -4,6 +4,8 @@ import {app} from '../models';
 
 export function ApplySpicetifyTheme(arg1:string):Promise<boolean>;
 
+export function BroadcastColorUpdate(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
+
 export function CheckForUpdates():Promise<app.UpdateInfo>;
 
 export function CheckInstallation():Promise<app.InstallStatus>;
@@ -30,6 +32,8 @@ export function GetSpicetifyVersion():Promise<string>;
 
 export function GetSpotifyVersion():Promise<string>;
 
+export function GetThemePresets(arg1:string):Promise<Record<string, Record<string, string>>>;
+
 export function InstallMarketplaceApp(arg1:string,arg2:string,arg3:string,arg4:any,arg5:app.MarketplaceMeta):Promise<boolean>;
 
 export function InstallMarketplaceExtension(arg1:string,arg2:string,arg3:app.MarketplaceMeta):Promise<boolean>;
@@ -38,6 +42,8 @@ export function InstallMarketplaceTheme(arg1:string,arg2:string,arg3:any,arg4:Ar
 
 export function InstallSpicetifyBinary():Promise<void>;
 
+export function InstallSpicetifyXExtension():Promise<boolean>;
+
 export function OpenConfigFolder():Promise<boolean>;
 
 export function OpenExternalLink(arg1:string):Promise<boolean>;
@@ -45,6 +51,12 @@ export function OpenExternalLink(arg1:string):Promise<boolean>;
 export function ReloadSpicetify():Promise<boolean>;
 
 export function SetColorScheme(arg1:string,arg2:string):Promise<boolean>;
+
+export function SetWindowMaxSize(arg1:number,arg2:number):Promise<void>;
+
+export function SetWindowMinSize(arg1:number,arg2:number):Promise<void>;
+
+export function SetWindowSize(arg1:number,arg2:number):Promise<void>;
 
 export function SetupSpicetifyAssets():Promise<void>;
 
@@ -59,6 +71,8 @@ export function ToggleSpicetifyApp(arg1:string,arg2:boolean):Promise<boolean>;
 export function ToggleSpicetifyExtension(arg1:string,arg2:boolean):Promise<boolean>;
 
 export function UpdateSettings(arg1:Record<string, any>):Promise<app.AppSettings>;
+
+export function UpdateThemePreset(arg1:string,arg2:string,arg3:string,arg4:string):Promise<boolean>;
 
 export function WindowClose():Promise<void>;
 
