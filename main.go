@@ -16,11 +16,7 @@ func main() {
 	err := wails.Run(&options.App{
 		Title:            "SpicetifyX Manager",
 		Width:            950,
-		MaxWidth:         950,
-		MinWidth:         950,
 		Height:           640,
-		MaxHeight:        640,
-		MinHeight:        640,
 		Frameless:        true,
 		BackgroundColour: &options.RGBA{R: 23, G: 27, B: 32, A: 255},
 		AssetServer: &assetserver.Options{
