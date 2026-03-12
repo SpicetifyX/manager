@@ -1,6 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-main: #121418;
+  --color-secondary: #171b20;
+  --color-tertiary: #1e2228;
+  --color-deep: #0a0c0f;
+  --color-overlay: #0e1114;
+  --color-highlight: #2a2e34;
+  --color-menu: #161a1e;
+  --color-card: #1e1e22;
+  --color-dark: #1a1a1a;
+  --color-error: #3c1212;
+  --color-brand: #d63c6a;
+  --color-brand-hover: #c52c5a;
+  --color-brand-active: #b51c4a;
+  --color-brand-disabled: #a02950;
+  --color-discord: #5865f2;
+}
 
 body {
   user-select: none;
@@ -8,6 +24,8 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  background-color: var(--color-main);
+  color: white;
 }
 
 .xterm {
