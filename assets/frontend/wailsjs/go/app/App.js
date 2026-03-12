@@ -6,6 +6,10 @@ export function ApplySpicetifyTheme(arg1) {
   return window['go']['app']['App']['ApplySpicetifyTheme'](arg1);
 }
 
+export function BroadcastColorUpdate(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['BroadcastColorUpdate'](arg1, arg2, arg3, arg4);
+}
+
 export function CheckForUpdates() {
   return window['go']['app']['App']['CheckForUpdates']();
 }
@@ -58,6 +62,10 @@ export function GetSpotifyVersion() {
   return window['go']['app']['App']['GetSpotifyVersion']();
 }
 
+export function GetThemePresets(arg1) {
+  return window['go']['app']['App']['GetThemePresets'](arg1);
+}
+
 export function InstallMarketplaceApp(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['app']['App']['InstallMarketplaceApp'](arg1, arg2, arg3, arg4, arg5);
 }
@@ -74,6 +82,10 @@ export function InstallSpicetifyBinary() {
   return window['go']['app']['App']['InstallSpicetifyBinary']();
 }
 
+export function InstallSpicetifyXExtension() {
+  return window['go']['app']['App']['InstallSpicetifyXExtension']();
+}
+
 export function OpenConfigFolder() {
   return window['go']['app']['App']['OpenConfigFolder']();
 }
@@ -88,6 +100,18 @@ export function ReloadSpicetify() {
 
 export function SetColorScheme(arg1, arg2) {
   return window['go']['app']['App']['SetColorScheme'](arg1, arg2);
+}
+
+export function SetWindowMaxSize(arg1, arg2) {
+  return window['go']['app']['App']['SetWindowMaxSize'](arg1, arg2);
+}
+
+export function SetWindowMinSize(arg1, arg2) {
+  return window['go']['app']['App']['SetWindowMinSize'](arg1, arg2);
+}
+
+export function SetWindowSize(arg1, arg2) {
+  return window['go']['app']['App']['SetWindowSize'](arg1, arg2);
 }
 
 export function SetupSpicetifyAssets() {
@@ -116,6 +140,10 @@ export function ToggleSpicetifyExtension(arg1, arg2) {
 
 export function UpdateSettings(arg1) {
   return window['go']['app']['App']['UpdateSettings'](arg1);
+}
+
+export function UpdateThemePreset(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['UpdateThemePreset'](arg1, arg2, arg3, arg4);
 }
 
 export function WindowClose() {
