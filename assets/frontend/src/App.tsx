@@ -1,33 +1,20 @@
 import { useEffect, useState } from "react";
-import InstallWizard from "./components/InstallWizard";
-import OldInstallFound from "./components/OldInstallFound";
-import TitleBar from "./components/TitleBar";
-import CheckingInstallation from "./components/CheckingInstallation";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import { FaDownload, FaHome, FaPuzzlePiece, FaPalette, FaAppStore, FaCog, FaRocket, FaFlag, FaExclamationTriangle, FaExternalLinkAlt } from "react-icons/fa";
-import Dashboard from "./components/Dashboard";
-import MarketplaceThemes from "./components/MarketplaceThemes";
-import MarketplaceApps from "./components/MarketplaceApps";
-import Settings from "./components/Settings";
-import SubmitAddon from "./components/SubmitAddon";
-import { FaShield } from "react-icons/fa6";
-import MarketplaceAddons from "./components/MarketplaceAddons";
-import PendingChangesBar from "./components/PendingChangesBar";
+import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import * as backend from "../wailsjs/go/app/App";
 import { onInstallComplete } from "./utils/bridge";
-import { SpicetifyProvider } from "./context/SpicetifyContext";
 
-export type StepStatus = "pending" | "active" | "complete" | "error";
-
-export interface InstallStep {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  status: StepStatus;
-  details?: string;
-}
+import Layout from "./components/Layout";
+import DashboardPage from "./pages/DashboardPage";
+import MarketplaceAddonsPage from "./pages/MarketplaceAddonsPage";
+import MarketplaceThemesPage from "./pages/MarketplaceThemesPage";
+import MarketplaceAppsPage from "./pages/MarketplaceAppsPage";
+import SettingsPage from "./pages/SettingsPage";
+import SubmitAddonPage from "./pages/SubmitAddonPage";
+import CheckingInstallationPage from "./pages/CheckingInstallationPage";
+import IncompatibleSpotifyPage from "./pages/IncompatibleSpotifyPage";
+import OldInstallFoundPage from "./pages/OldInstallFoundPage";
+import InstallWizardPage from "./pages/InstallWizardPage";
+import TitleBar from "./components/TitleBar";
 
 export default function App() {
   const [isChecking, setIsChecking] = useState(true);
@@ -37,102 +24,35 @@ export default function App() {
     already_patched: boolean;
     microsoft_store: boolean;
   }>(null);
-  const [installing, setInstalling] = useState(false);
-  const [installCompleted, setInstallCompleted] = useState(false);
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [addonsDirty, setAddonsDirty] = useState(false);
-  const [themesDirty, setThemesDirty] = useState(false);
-  const [appsDirty, setAppsDirty] = useState(false);
-  const hasPendingChanges = addonsDirty || themesDirty || appsDirty;
-  const [resetKey, setResetKey] = useState(0);
-  const [snapshotKey, setSnapshotKey] = useState(0);
-  const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set());
-  const [steps, setSteps] = useState<InstallStep[]>([
-    {
-      id: "install",
-      title: "Install",
-      description: "Download & extract",
-      icon: FaDownload,
-      status: "pending",
-    },
-    {
-      id: "setup",
-      title: "Setup",
-      description: "Configure files",
-      icon: FaCog,
-      status: "pending",
-    },
-    {
-      id: "backup",
-      title: "Backup",
-      description: "Protect files",
-      icon: FaShield,
-      status: "pending",
-    },
-    {
-      id: "apply",
-      title: "Apply",
-      description: "Patch client",
-      icon: FaRocket,
-      status: "pending",
-    },
-  ]);
-
-  function updateStepStatus(stepId: string, status: StepStatus) {
-    setSteps((prev) => {
-      const updated = [...prev];
-      const currentIndex = updated.findIndex((s) => s.id === stepId);
-
-      if (status === "active") {
-        if (currentIndex > 0 && updated[currentIndex - 1].status === "active") {
-          updated[currentIndex - 1].status = "complete";
-        }
-        for (let i = 0; i < currentIndex - 1; i++) {
-          if (updated[i].status === "pending") {
-            updated[i].status = "complete";
-          }
-        }
-      }
-
-      if (status === "complete") {
-        for (let i = 0; i < currentIndex; i++) {
-          if (updated[i].status === "pending" || updated[i].status === "active") {
-            updated[i].status = "complete";
-          }
-        }
-      }
-
-      updated[currentIndex].status = status;
-      return updated;
-    });
-  }
-
-  async function installSpicetify() {
-    setInstalling(true);
-
-    updateStepStatus("install", "active");
-    await backend.InstallSpicetifyBinary();
-    updateStepStatus("install", "complete");
-
-    updateStepStatus("setup", "active");
-    await backend.SetupSpicetifyAssets();
-    updateStepStatus("setup", "complete");
-
-    updateStepStatus("backup", "active");
-    await backend.StartInstall();
-    updateStepStatus("backup", "complete");
-  }
+  
+  const navigate = useNavigate();
+  const location = useLocation();
 
   async function fetchInstallStatus() {
     setIsChecking(true);
     try {
       const status = await backend.CheckInstallation();
-      setInstallStatus({
+      const newStatus = {
         spicetify_installed: status.spicetify,
         spotify_installed: status.spotify,
         already_patched: status.patched,
         microsoft_store: status.microsoft_store,
-      });
+      };
+      setInstallStatus(newStatus);
+      
+      // Initial routing based on status
+      if (newStatus.microsoft_store) {
+        navigate("/error/microsoft-store", { replace: true });
+      } else if (newStatus.spicetify_installed && !newStatus.already_patched) {
+        navigate("/error/old-install", { replace: true });
+      } else if (!newStatus.already_patched) {
+        navigate("/install", { replace: true });
+      } else {
+        // If we are on / or any other route that doesn't make sense after install
+        if (location.pathname === "/" || location.pathname === "/install" || location.pathname.startsWith("/error")) {
+            navigate("/dashboard", { replace: true });
+        }
+      }
     } catch (error) {
       console.error("Failed to check installation status:", error);
     } finally {
@@ -146,14 +66,9 @@ export default function App() {
     const handleInstallComplete = (_event: any, { success, error }: { success: boolean; error?: string }) => {
       if (success) {
         setTimeout(() => {
-          setInstallCompleted(true);
-          setTimeout(() => {
-            setInstalling(false);
-            fetchInstallStatus();
-          }, 3000);
-        }, 500);
+          fetchInstallStatus();
+        }, 3000);
       } else {
-        setInstalling(false);
         console.error("Installation failed:", error);
       }
     };
@@ -164,169 +79,30 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    const marketplaceTabs = ["addons", "themes", "apps"];
-    if (marketplaceTabs.includes(activeTab)) {
-      setMountedTabs((prev) => {
-        if (prev.has(activeTab)) return prev;
-        const next = new Set(prev);
-        next.add(activeTab);
-        return next;
-      });
-    }
-
-    // Reset window size when leaving themes tab
-    if (activeTab !== "themes") {
-      backend.SetWindowMaxSize(950, 640);
-      backend.SetWindowMinSize(950, 640);
-      backend.SetWindowSize(950, 640);
-    }
-  }, [activeTab]);
-
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-secondary">
       <TitleBar />
-      <div className="flex h-full flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden">
         {isChecking ? (
-          <>
-            <Header title="Spicetify Installer" description="Checking Existing Spicetify & Spotify Installations" />
-            <CheckingInstallation />
-            <Footer hidden />
-          </>
-        ) : installStatus && installStatus.microsoft_store ? (
-          <>
-            <Header title="Spicetify Installer" description="Incompatible Spotify Installation" />
-            <div className="flex flex-1 flex-col items-center justify-center gap-6 p-8">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
-                <FaExclamationTriangle className="h-8 w-8 text-red-500" />
-              </div>
-              <div className="max-w-md text-center">
-                <h2 className="mb-3 text-lg font-bold text-white">Microsoft Store Spotify Detected</h2>
-                <p className="text-sm leading-relaxed text-[#a0a0a0]">
-                  SpicetifyX cannot patch the Microsoft Store version of Spotify. Please uninstall Spotify from the
-                  Microsoft Store and install the official version from spotify.com.
-                </p>
-              </div>
-              <button
-                onClick={() => backend.OpenExternalLink("https://www.spotify.com/download")}
-                className="flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover active:bg-brand-active"
-              >
-                <FaExternalLinkAlt className="h-3.5 w-3.5" />
-                Download Official Spotify
-              </button>
-            </div>
-            <Footer hidden />
-          </>
-        ) : installStatus && installStatus.spicetify_installed && !installStatus.already_patched ? (
-          <OldInstallFound fetchInstall={fetchInstallStatus} />
-        ) : installStatus && !installStatus.already_patched ? (
-          <>
-            <Header title="Spicetify Installer" description="Select Install to Continue" />
-            <InstallWizard installStatus={installStatus} isInstalling={installing} updateStepStatus={updateStepStatus} steps={steps} />
-            <Footer>
-              <div className="flex w-full justify-end">
-                <button
-                  onClick={installSpicetify}
-                  disabled={installing || installCompleted}
-                  className={`flex items-center gap-2 rounded px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${installing
-                      ? "cursor-not-allowed bg-brand-disabled text-white"
-                      : installCompleted
-                        ? "cursor-not-allowed bg-[#2a2a2a] text-white"
-                        : "bg-brand text-white hover:bg-brand-hover active:bg-brand-active"
-                    }`}
-                >
-                  <FaDownload />
-                  {installing ? "Installing..." : installCompleted ? "Complete!" : "Install Spicetify"}
-                </button>
-              </div>
-            </Footer>
-          </>
+            <CheckingInstallationPage />
         ) : (
-          <SpicetifyProvider>
-            <div className="flex h-full w-full flex-1">
-              <div className="flex w-16 flex-col items-center bg-main p-4">
-                <button
-                  className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "dashboard" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-highlight"}`}
-                  onClick={() => setActiveTab("dashboard")}
-                >
-                  <FaHome size={20} />
-                </button>
-                <button
-                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "addons" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-highlight"}`}
-                  onClick={() => setActiveTab("addons")}
-                >
-                  <FaPuzzlePiece size={20} />
-                </button>
-                <button
-                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "themes" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
-                  onClick={() => setActiveTab("themes")}
-                >
-                  <FaPalette size={20} />
-                </button>
-                <button
-                  className={`mt-2 flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "apps" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
-                  onClick={() => setActiveTab("apps")}
-                >
-                  <FaAppStore size={20} />
-                </button>
-                <div className="mt-auto flex flex-col gap-2">
-                  <button
-                    className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "submit" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
-                    onClick={() => setActiveTab("submit")}
-                  >
-                    <FaFlag size={20} />
-                  </button>
-                  <button
-                    className={`flex items-center justify-center rounded-full px-3 py-3 ${activeTab === "settings" ? "bg-brand text-white" : "text-[#a0a0a0] hover:bg-[#2a2a2a]"}`}
-                    onClick={() => setActiveTab("settings")}
-                  >
-                    <FaCog size={20} />
-                  </button>
-                </div>
-              </div>
-              <div className="relative flex flex-1 flex-col overflow-hidden">
-                <div className="flex-1 overflow-hidden flex flex-col">
-                  {installStatus && activeTab === "dashboard" && <Dashboard installStatus={installStatus} onNavigate={setActiveTab} />}
-                  {mountedTabs.has("addons") && (
-                    <div className={activeTab === "addons" ? "h-full" : "hidden"}>
-                      <MarketplaceAddons onDirtyChange={(d) => setAddonsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
-                    </div>
-                  )}
-                  {activeTab === "themes" && (
-                    <div className="h-full">
-                      <MarketplaceThemes onDirtyChange={(d) => setThemesDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
-                    </div>
-                  )}
-                  {mountedTabs.has("apps") && (
-                    <div className={activeTab === "apps" ? "h-full" : "hidden"}>
-                      <MarketplaceApps onDirtyChange={(d) => setAppsDirty(d)} resetKey={resetKey} snapshotKey={snapshotKey} />
-                    </div>
-                  )}
-                  {activeTab === "submit" && (
-                    <div className="h-full">
-                      <SubmitAddon />
-                    </div>
-                  )}
-                  {activeTab === "settings" && (
-                    <div className="h-full">
-                      <Settings />
-                    </div>
-                  )}
-                </div>
-                {hasPendingChanges && (
-                  <PendingChangesBar
-                    onApplied={() => {
-                      setAddonsDirty(false);
-                      setThemesDirty(false);
-                      setAppsDirty(false);
-                      setSnapshotKey((k) => k + 1);
-                    }}
-                    onReset={() => setResetKey((k) => k + 1)}
-                  />
-                )}
-              </div>
-            </div>
-          </SpicetifyProvider>
+            <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/error/microsoft-store" element={<IncompatibleSpotifyPage />} />
+                <Route path="/error/old-install" element={<OldInstallFoundPage fetchInstall={fetchInstallStatus} />} />
+                <Route path="/install" element={<InstallWizardPage installStatus={installStatus} onInstallComplete={() => {}} />} />
+                
+                <Route element={<Layout />}>
+                    <Route path="/dashboard" element={<DashboardPage installStatus={installStatus} />} />
+                    <Route path="/marketplace/addons" element={<MarketplaceAddonsPage />} />
+                    <Route path="/marketplace/themes" element={<MarketplaceThemesPage />} />
+                    <Route path="/marketplace/apps" element={<MarketplaceAppsPage />} />
+                    <Route path="/submit" element={<SubmitAddonPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                </Route>
+
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
         )}
       </div>
     </div>
