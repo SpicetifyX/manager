@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { FaCheckCircle, FaSpinner, FaPuzzlePiece, FaPalette, FaInfoCircle } from "react-icons/fa";
 import TerminalOutput, { TerminalOutputRef } from "./TerminalOutput";
-import { InstallStep, StepStatus } from "../App";
+import { InstallStep, StepStatus } from "../types/install";
 import { onCommandOutput } from "../utils/bridge";
 import preinstall from "../../../preinstall.json";
 import StaticImage from "./StaticImage";
