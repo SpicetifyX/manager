@@ -5,18 +5,18 @@ import * as backend from "../../wailsjs/go/app/App";
 import { onRestoreComplete } from "../utils/bridge";
 import { useSpicetify } from "../context/SpicetifyContext";
 import { WindowSetMaxSize, WindowSetMinSize, WindowSetSize } from "../../wailsjs/runtime/runtime";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard({
   installStatus,
-  onNavigate,
 }: {
   installStatus: {
     spicetify_installed: boolean;
     spotify_installed: boolean;
     already_patched: boolean;
   };
-  onNavigate?: (tab: string) => void;
 }) {
+  const navigate = useNavigate();
   const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [showReloadModal, setShowReloadModal] = useState(false);
   const [isRestoringProcess, setIsRestoringProcess] = useState(false);
@@ -170,7 +170,7 @@ export default function Dashboard({
 
           <div className="grid grid-cols-3 gap-4">
             <button
-              onClick={() => onNavigate?.("addons")}
+              onClick={() => navigate("/marketplace/addons")}
               className="group relative flex flex-col overflow-hidden rounded-md border border-[#2a2a2a]/75 bg-main p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-brand/10 active:scale-[0.98]"
             >
               <div className="flex items-center justify-between">
@@ -195,7 +195,7 @@ export default function Dashboard({
             </button>
 
             <button
-              onClick={() => onNavigate?.("themes")}
+              onClick={() => navigate("/marketplace/themes")}
               className="group relative flex flex-col overflow-hidden rounded-md border border-[#2a2a2a]/75 bg-main p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-brand/10 active:scale-[0.98]"
             >
               <div className="flex items-center justify-between">
@@ -215,7 +215,7 @@ export default function Dashboard({
             </button>
 
             <button
-              onClick={() => onNavigate?.("apps")}
+              onClick={() => navigate("/marketplace/apps")}
               className="group relative flex flex-col overflow-hidden rounded-md border border-[#2a2a2a]/75 bg-main p-2 text-left transition-all hover:border-[#d63c6a] hover:shadow-lg hover:shadow-brand/10 active:scale-[0.98]"
             >
               <div className="flex items-center justify-between">
